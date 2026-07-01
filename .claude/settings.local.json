@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(Remove-Item \"d:\\\\Project\\\\fotia\\\\src\\\\app\\\\g\\\\demo-gallery\" -Recurse -Force)",
+      "Bash(powershell -Command \"Remove-Item -Path 'd:\\\\Project\\\\fotia\\\\src\\\\app\\\\g\\\\demo-gallery' -Recurse -Force\")",
+      "Bash(powershell -Command \"Stop-Process -Id 15404 -Force\")",
+      "Bash(powershell -Command \"Start-Sleep 5; Get-Content 'C:\\\\Temp\\\\claude\\\\d--Project-fotia\\\\c844bc84-0bd0-49b0-b061-c8255d57eaea\\\\tasks\\\\b08ve4emf.output'\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Temp\\\\claude\\\\d--Project-fotia\\\\c844bc84-0bd0-49b0-b061-c8255d57eaea\\\\tasks\\\\b08ve4emf.output' -Tail 30\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Temp\\\\claude\\\\d--Project-fotia\\\\c844bc84-0bd0-49b0-b061-c8255d57eaea\\\\tasks\\\\b08ve4emf.output' -Tail 40\")",
+      "Bash(powershell -Command \"Get-Process -Name 'node' -ErrorAction SilentlyContinue | Stop-Process -Force\")",
+      "Bash(mkdir -p \"d:\\\\Project\\\\fotia\\\\src\\\\app\\\\api\\\\gallery\\\\[slug]\")",
+      "Bash(powershell -Command \"New-Item -ItemType Directory -Path 'd:\\\\Project\\\\fotia\\\\src\\\\app\\\\api\\\\gallery\\\\[slug]' -Force\")"
+    ],
+    "additionalDirectories": [
+      "d:\\Project\\fotia\\src\\app\\api\\gallery\\[slug]"
+    ]
+  }
+}
