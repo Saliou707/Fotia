@@ -1,27 +1,35 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import { generateId } from '@/lib/utils'
+import { createDjomyGatewayPayment } from '@/lib/djomy'
 
-const PAYLIV_API_URL = 'https://ivnvckgzkxxhowusxczt.supabase.co/functions/v1/api-payments-create'
-const PAYLIV_SECRET_KEY = process.env.PAYLIV_SECRET_KEY || ''
-
-const PLAN_PRICE_XOF = 5900 // 9€ equivalent in CFA
+// Prix en GNF (Francs Guinéens)
+// Ajustez selon votre tarification
+const PLAN_PRICE_GNF = 90000 // ~9€ en GNF
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
-  const { plan } = await request.json()
+  const body = await request.json()
+  const { plan, phone } = body
 
   if (plan !== 'pro') {
-    return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 })
+    return NextResponse.json({ error: 'Plan invalide' }, { status: 400 })
   }
 
-  // Verify current plan
+  if (!phone) {
+    return NextResponse.json(
+      { error: 'Numéro de téléphone requis (format international, ex: 00224623707722)' },
+      { status: 400 }
+    )
+  }
+
+  // Vérifier que l'utilisateur n'est pas déjà Pro
   const { data: profile } = await supabase
     .from('profiles')
     .select('plan')
@@ -29,88 +37,64 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (profile?.plan === 'pro') {
-    return NextResponse.json({ error: 'You are already on the Premium Pro plan.' }, { status: 400 })
+    return NextResponse.json({ error: 'Vous êtes déjà sur le plan Premium Pro.' }, { status: 400 })
   }
 
   const reference = `SUB_${generateId(16)}`
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const successUrl = `${appUrl}/billing/success`
-  const cancelUrl = `${appUrl}/billing/failed`
-  // Webhook URL — will be the ngrok URL in dev or the production URL
-  const webhookUrl = `${appUrl}/api/webhooks/payliv`
+  const returnUrl = `${appUrl}/billing/success`
+  const cancelUrl  = `${appUrl}/billing/failed`
 
   try {
-    // 1. Create a pending subscription in Supabase
+    // 1. Créer un abonnement en attente dans Supabase
     const { data: subscription, error: subError } = await supabase
       .from('subscriptions')
       .insert({
         user_id: user.id,
         plan: 'pro',
         status: 'pending',
-        provider: 'payliv',
+        provider: 'djomy',
         provider_reference: reference,
-        billing_cycle: 'monthly'
+        billing_cycle: 'monthly',
       })
       .select('id')
       .single()
 
     if (subError) throw subError
 
-    // 2. Call Payliv API to create a payment
-    const paylivResponse = await fetch(PAYLIV_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': PAYLIV_SECRET_KEY
+    // 2. Initier le paiement via Djomy Gateway (sandbox)
+    // → Djomy gère la sélection du moyen de paiement et le flux OTP sur son portail
+    const djomyData = await createDjomyGatewayPayment({
+      amount: PLAN_PRICE_GNF,
+      countryCode: 'GN',
+      payerNumber: phone,
+      description: `Abonnement mensuel Fotia Premium Pro — ${user.email}`,
+      merchantPaymentReference: reference,
+      returnUrl,
+      cancelUrl,
+      metadata: {
+        subscription_id: subscription.id,
+        user_id: user.id,
       },
-      body: JSON.stringify({
-        amount: PLAN_PRICE_XOF,
-        currency: 'XOF',
-        title: 'Abonnement Fotia Premium Pro',
-        description: `Souscription mensuelle Premium Pro pour ${user.email}`,
-        customer_name: user.user_metadata?.full_name || user.email,
-        customer_email: user.email,
-        success_url: successUrl,
-        cancel_url: cancelUrl,
-        webhook_url: webhookUrl,
-        metadata: {
-          subscription_id: subscription.id,
-          user_id: user.id,
-          reference: reference
-        },
-        expires_in_hours: 24
-      })
     })
 
-    if (!paylivResponse.ok) {
-      const err = await paylivResponse.text()
-      console.error('[Payliv] Failed to create payment:', err)
-      throw new Error('Failed to communicate with payment gateway')
-    }
+    // 3. Stocker le transactionId Djomy dans l'abonnement
+    await supabase
+      .from('subscriptions')
+      .update({ provider_payment_id: djomyData.transactionId })
+      .eq('id', subscription.id)
 
-    const paylivData = await paylivResponse.json()
-    console.log('[Payliv] Payment created:', paylivData)
-
-    // Update subscription with Payliv payment ID
-    if (paylivData.id || paylivData.short_code) {
-      await supabase
-        .from('subscriptions')
-        .update({
-          provider_payment_id: paylivData.id || paylivData.short_code
-        })
-        .eq('id', subscription.id)
-    }
-
-    const checkout_url = paylivData.payment_url
-
+    // 4. Retourner l'URL de redirection Djomy
+    const checkout_url = djomyData.redirectUrl || djomyData.paymentUrl
     if (!checkout_url) {
-      throw new Error('No checkout URL returned from payment gateway')
+      throw new Error('Djomy n\'a pas retourné d\'URL de redirection')
     }
 
-    return NextResponse.json({ checkout_url })
+    return NextResponse.json({ checkout_url, transaction_id: djomyData.transactionId })
 
-  } catch (err: any) {
-    console.error('[Billing Checkout Error]', err)
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Erreur interne'
+    console.error('[Billing Checkout Djomy Error]', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

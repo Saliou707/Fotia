@@ -1,70 +1,96 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import crypto from 'crypto'
+import { verifyDjomyWebhookSignature, verifyDjomyPayment } from '@/lib/djomy'
 
 export async function POST(request: NextRequest) {
   const rawBody = await request.text()
-  const signature = request.headers.get('x-webhook-signature') || request.headers.get('X-Webhook-Signature')
-  const webhookSecret = process.env.DJOMY_WEBHOOK_SECRET || ''
 
-  console.log('[Djomy Webhook] Received webhook call')
+  // Header Djomy : X-Webhook-Signature: v1:<hex>
+  const signatureHeader =
+    request.headers.get('x-webhook-signature') ||
+    request.headers.get('X-Webhook-Signature') ||
+    ''
 
-  // 1. Signature Verification
-  if (webhookSecret && !signature) {
-    console.error('[Djomy Webhook] Missing signature header')
-    return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
-  }
+  console.log('[Djomy Webhook] Received')
 
-  if (webhookSecret && signature) {
-    const computedSignature = crypto
-      .createHmac('sha256', webhookSecret)
-      .update(rawBody)
-      .digest('hex')
+  // 1. Vérification de la signature (format v1:<hex>)
+  const webhookSecret =
+    process.env.DJOMY_WEBHOOK_SECRET ||
+    process.env.DJOMY_CLIENT_SECRET ||
+    ''
 
-    if (computedSignature !== signature) {
-      console.error('[Djomy Webhook] Signature mismatch. Received:', signature, 'Computed:', computedSignature)
+  if (webhookSecret) {
+    if (!signatureHeader) {
+      console.error('[Djomy Webhook] Missing X-Webhook-Signature header')
+      return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
+    }
+
+    const valid = verifyDjomyWebhookSignature(rawBody, signatureHeader)
+    if (!valid) {
+      console.error('[Djomy Webhook] Signature invalide:', signatureHeader)
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
     }
   } else {
-    console.log('[Djomy Webhook] Skipping signature check (secret not configured)')
+    console.warn('[Djomy Webhook] Aucun secret configuré — vérification de signature désactivée')
   }
 
-  // 2. Parse Webhook Payload
-  let payload: any
+  // 2. Parse du payload
+  let payload: {
+    eventType?: string
+    eventId?: string
+    message?: string
+    data?: {
+      transactionId?: string
+      status?: string
+      merchantPaymentReference?: string
+      paidAmount?: number
+      currency?: string
+    }
+    metadata?: Record<string, unknown>
+    paymentLinkReference?: string
+    timestamp?: string
+  }
+
   try {
     payload = JSON.parse(rawBody)
-  } catch (err) {
-    console.error('[Djomy Webhook] Failed to parse raw body JSON:', err)
+  } catch {
+    console.error('[Djomy Webhook] Payload JSON invalide')
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  // Support both nested structure (data.status, etc.) and flat structure
-  const event = payload.event || (payload.data?.event) || 'payment.success'
-  const data = payload.data || payload
+  const eventType      = payload.eventType || ''
+  const data           = payload.data || {}
+  const transactionId  = data.transactionId || ''
+  const reference      = data.merchantPaymentReference || payload.paymentLinkReference || ''
 
-  const status = (data.status || '').toUpperCase()
-  const reference = data.reference || data.paymentLinkReference
-  const transactionId = data.transactionId || data.id || 'N/A'
-  const amount = Number(data.amount || 0)
-  const currency = data.currency || 'XOF'
+  console.log('[Djomy Webhook] Event:', { eventType, transactionId, reference })
 
-  console.log('[Djomy Webhook] Details:', { event, status, reference, transactionId, amount, currency })
-
-  if (!reference) {
-    console.error('[Djomy Webhook] Missing reference in payload')
-    return NextResponse.json({ error: 'Missing reference' }, { status: 400 })
+  // 3. On ne traite que payment.success — retourner 200 pour tous les autres
+  if (eventType !== 'payment.success') {
+    console.log('[Djomy Webhook] Événement ignoré (non-success):', eventType)
+    return NextResponse.json({ received: true })
   }
 
-  // We only process subscription-related references
   if (!reference.startsWith('SUB_')) {
-    console.log('[Djomy Webhook] Reference does not match subscription prefix. Skipping.')
+    console.log('[Djomy Webhook] Référence non-abonnement. Ignoré.')
     return NextResponse.json({ received: true })
+  }
+
+  if (!transactionId) {
+    console.error('[Djomy Webhook] transactionId manquant')
+    return NextResponse.json({ error: 'Missing transactionId' }, { status: 400 })
   }
 
   const supabase = createAdminClient()
 
   try {
-    // 3. Find the pending subscription
+    // 4. Vérification côté serveur via verify_payment (ne jamais faire confiance au webhook seul)
+    const verified = await verifyDjomyPayment(transactionId)
+    const isSuccess = verified.status === 'SUCCESS'
+
+    console.log('[Djomy Webhook] Verification result:', { status: verified.status, isSuccess })
+
+    // 5. Trouver l'abonnement en attente
     const { data: sub, error: subError } = await supabase
       .from('subscriptions')
       .select('id, user_id, status')
@@ -72,73 +98,64 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (subError || !sub) {
-      console.error('[Djomy Webhook] Subscription not found for reference:', reference, subError)
+      console.error('[Djomy Webhook] Abonnement introuvable pour la référence:', reference)
       return NextResponse.json({ error: 'Subscription not found' }, { status: 404 })
     }
 
-    const isSuccess = status === 'SUCCESS' || event === 'payment.success'
     const finalStatus = isSuccess ? 'active' : 'failed'
 
-    // 4. Record payment in payments history
-    const { error: payErr } = await supabase
-      .from('payments')
-      .insert({
-        user_id: sub.user_id,
-        subscription_id: sub.id,
-        amount: amount,
-        currency: currency,
-        provider: 'djomy',
-        provider_reference: reference,
-        provider_payment_id: transactionId,
-        status: isSuccess ? 'success' : 'failed'
-      })
+    // 6. Enregistrer le paiement dans l'historique
+    const { error: payErr } = await supabase.from('payments').insert({
+      user_id:             sub.user_id,
+      subscription_id:     sub.id,
+      amount:              verified.receivedAmount || verified.paidAmount,
+      currency:            'GNF',
+      provider:            'djomy',
+      provider_reference:  reference,
+      provider_payment_id: transactionId,
+      status:              isSuccess ? 'success' : 'failed',
+    })
 
     if (payErr) {
-      console.error('[Djomy Webhook] Failed to insert payment record:', payErr)
+      console.error('[Djomy Webhook] Erreur insertion paiement:', payErr)
     }
 
-    // 5. Update subscription record
-    const now = new Date()
-    const expiresAt = new Date()
-    expiresAt.setMonth(expiresAt.getMonth() + 1) // 1 month subscription cycle
+    // 7. Mettre à jour l'abonnement
+    const now       = new Date()
+    const expiresAt = new Date(now)
+    expiresAt.setMonth(expiresAt.getMonth() + 1)
 
-    const { error: updateSubErr } = await supabase
+    const { error: subUpdateErr } = await supabase
       .from('subscriptions')
       .update({
-        status: finalStatus,
+        status:              finalStatus,
         provider_payment_id: transactionId,
-        started_at: isSuccess ? now.toISOString() : null,
-        expires_at: isSuccess ? expiresAt.toISOString() : null,
-        updated_at: now.toISOString()
+        started_at:          isSuccess ? now.toISOString() : null,
+        expires_at:          isSuccess ? expiresAt.toISOString() : null,
+        updated_at:          now.toISOString(),
       })
       .eq('id', sub.id)
 
-    if (updateSubErr) {
-      console.error('[Djomy Webhook] Failed to update subscription status:', updateSubErr)
-      throw updateSubErr
-    }
+    if (subUpdateErr) throw subUpdateErr
 
-    // 6. Update user's profile plan
+    // 8. Mettre à jour le plan utilisateur
     const finalPlan = isSuccess ? 'pro' : 'free'
-    const { error: updateProfileErr } = await supabase
+    const { error: profileErr } = await supabase
       .from('profiles')
-      .update({
-        plan: finalPlan,
-        updated_at: now.toISOString()
-      })
+      .update({ plan: finalPlan, updated_at: now.toISOString() })
       .eq('id', sub.user_id)
 
-    if (updateProfileErr) {
-      console.error('[Djomy Webhook] Failed to update profile plan:', updateProfileErr)
-      throw updateProfileErr
-    }
+    if (profileErr) throw profileErr
 
-    console.log(`[Djomy Webhook] Successfully updated subscription to ${finalStatus} and plan to ${finalPlan} for user ${sub.user_id}`)
+    console.log(
+      `[Djomy Webhook] ✅ Abonnement ${finalStatus}, plan ${finalPlan} pour user ${sub.user_id}`
+    )
 
     return NextResponse.json({ success: true, status: finalStatus })
 
-  } catch (err: any) {
-    console.error('[Djomy Webhook Error]', err)
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Erreur interne'
+    console.error('[Djomy Webhook Error]', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

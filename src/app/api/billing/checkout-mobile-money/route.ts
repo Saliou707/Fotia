@@ -1,31 +1,42 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import { generateId } from '@/lib/utils'
+import { createDjomyGatewayPayment, type DjomyPaymentMethod } from '@/lib/djomy'
 
-const PAYLIV_API_URL = 'https://ivnvckgzkxxhowusxczt.supabase.co/functions/v1/api-payments-mobile-money'
-const PAYLIV_SECRET_KEY = process.env.PAYLIV_SECRET_KEY || ''
+// Prix en GNF
+const PLAN_PRICE_GNF = 90000
 
-const PLAN_PRICE_XOF = 5900 // 9€ equivalent in CFA
+// Map des méthodes de paiement supportées par Djomy
+const DJOMY_METHODS: Record<string, DjomyPaymentMethod> = {
+  orange_money: 'OM',
+  mtn_momo:     'MOMO',
+  om:           'OM',
+  momo:         'MOMO',
+}
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
-  const { plan, phone, country, provider } = await request.json()
+  const body = await request.json()
+  const { plan, phone, country, provider } = body
 
   if (plan !== 'pro') {
-    return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 })
-  }
-  
-  if (!phone || !country || !provider) {
-    return NextResponse.json({ error: 'Phone, country and provider are required for direct payment' }, { status: 400 })
+    return NextResponse.json({ error: 'Plan invalide' }, { status: 400 })
   }
 
-  // Verify current plan
+  if (!phone) {
+    return NextResponse.json(
+      { error: 'Numéro de téléphone requis (format international, ex: 00224623707722)' },
+      { status: 400 }
+    )
+  }
+
+  // Vérifier que l'utilisateur n'est pas déjà Pro
   const { data: profile } = await supabase
     .from('profiles')
     .select('plan')
@@ -33,86 +44,76 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (profile?.plan === 'pro') {
-    return NextResponse.json({ error: 'You are already on the Premium Pro plan.' }, { status: 400 })
+    return NextResponse.json({ error: 'Vous êtes déjà sur le plan Premium Pro.' }, { status: 400 })
   }
 
   const reference = `SUB_${generateId(16)}`
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const successUrl = `${appUrl}/billing/success`
-  const cancelUrl = `${appUrl}/billing/failed`
-  // Webhook URL — will be the ngrok URL in dev or the production URL
-  const webhookUrl = `${appUrl}/api/webhooks/payliv`
+  const returnUrl = `${appUrl}/billing/success`
+  const cancelUrl  = `${appUrl}/billing/failed`
+
+  // Résoudre le code pays Djomy (ISO alpha-2)
+  const countryCode = (country || 'GN').toUpperCase()
+
+  // Résoudre la méthode de paiement Djomy si fournie
+  const djomyMethod = provider ? DJOMY_METHODS[provider.toLowerCase()] : undefined
+  const allowedMethods: DjomyPaymentMethod[] | undefined = djomyMethod ? [djomyMethod] : undefined
 
   try {
-    // 1. Create a pending subscription in Supabase
+    // 1. Créer un abonnement en attente dans Supabase
     const { data: subscription, error: subError } = await supabase
       .from('subscriptions')
       .insert({
         user_id: user.id,
         plan: 'pro',
         status: 'pending',
-        provider: 'payliv',
+        provider: 'djomy',
         provider_reference: reference,
-        billing_cycle: 'monthly'
+        billing_cycle: 'monthly',
       })
       .select('id')
       .single()
 
     if (subError) throw subError
 
-    // 2. Call Payliv API to initiate direct mobile money payment
-    const paylivResponse = await fetch(PAYLIV_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': PAYLIV_SECRET_KEY
+    // 2. Initier le paiement via Djomy Gateway (sandbox)
+    const djomyData = await createDjomyGatewayPayment({
+      amount: PLAN_PRICE_GNF,
+      countryCode,
+      payerNumber: phone,
+      ...(allowedMethods && { allowedPaymentMethods: allowedMethods }),
+      description: `Abonnement mensuel Fotia Premium Pro — ${user.email}`,
+      merchantPaymentReference: reference,
+      returnUrl,
+      cancelUrl,
+      metadata: {
+        subscription_id: subscription.id,
+        user_id: user.id,
       },
-      body: JSON.stringify({
-        amount: PLAN_PRICE_XOF,
-        currency: 'XOF',
-        phone: phone,
-        country: country,
-        provider: provider,
-        fee_bearer: 'client',
-        title: 'Abonnement Fotia Premium Pro',
-        description: `Souscription mensuelle Premium Pro pour ${user.email}`,
-        customer_name: user.user_metadata?.full_name || user.email,
-        customer_email: user.email,
-        success_url: successUrl,
-        cancel_url: cancelUrl,
-        webhook_url: webhookUrl,
-        metadata: {
-          subscription_id: subscription.id,
-          user_id: user.id,
-          reference: reference
-        }
-      })
     })
 
-    if (!paylivResponse.ok) {
-      const errText = await paylivResponse.text()
-      console.error('[Payliv Direct] Failed to create payment:', errText)
-      throw new Error('Failed to initiate direct payment with gateway')
+    // 3. Stocker le transactionId Djomy dans l'abonnement
+    await supabase
+      .from('subscriptions')
+      .update({ provider_payment_id: djomyData.transactionId })
+      .eq('id', subscription.id)
+
+    // 4. Retourner checkout_url et transaction_id
+    const checkout_url = djomyData.redirectUrl || djomyData.paymentUrl
+    if (!checkout_url) {
+      throw new Error('Djomy n\'a pas retourné d\'URL de redirection')
     }
 
-    const paylivData = await paylivResponse.json()
-    console.log('[Payliv Direct] Payment initiated:', paylivData)
+    return NextResponse.json({
+      checkout_url,
+      transaction_id: djomyData.transactionId,
+      // On retourne aussi ces champs pour rétro-compatibilité UI
+      type: 'redirect',
+    })
 
-    // Update subscription with Payliv payment ID
-    if (paylivData.id || paylivData.short_code) {
-      await supabase
-        .from('subscriptions')
-        .update({
-          provider_payment_id: paylivData.id || paylivData.short_code
-        })
-        .eq('id', subscription.id)
-    }
-
-    // Return the payliv response containing instructions, type, ussd_code, etc.
-    return NextResponse.json(paylivData)
-
-  } catch (err: any) {
-    console.error('[Billing Checkout Direct Error]', err)
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Erreur interne'
+    console.error('[Billing Mobile Money Djomy Error]', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
