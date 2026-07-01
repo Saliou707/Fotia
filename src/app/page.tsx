@@ -910,7 +910,7 @@ export default function LandingPage() {
                     transition: 'color 0.25s ease',
                     cursor: 'default',
                   }}
-                  whileHover={{ color: '#888' } as Record<string, unknown>}
+                  whileHover={{ color: '#888' }}
                 >
                   {name}
                 </motion.div>
