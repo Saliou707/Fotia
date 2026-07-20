@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin, logAdminAction } from '@/lib/admin'
 import { listImages, downloadObject, uploadBuffer, deleteObject } from '@/lib/r2/client'
 
 export async function GET(request: NextRequest) {
