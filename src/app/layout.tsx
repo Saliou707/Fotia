@@ -4,9 +4,9 @@ import './globals.css'
 import { LanguageProvider } from '@/lib/i18n'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
-const bigShoulders = Big_Shoulders({ subsets: ['latin'], variable: '--font-title', display: 'swap', adjustFontFallback: false, fallback: ['system-ui', 'sans-serif'] })
-const plexMono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-mono', display: 'swap' })
-const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair', display: 'swap', style: ['normal', 'italic'] })
+const bigShoulders = Big_Shoulders({ subsets: ['latin'], variable: '--font-title', display: 'swap', preload: false, fallback: ['system-ui', 'sans-serif'] })
+const plexMono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-mono', display: 'swap', preload: false })
+const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair', display: 'swap', preload: false })
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://myfotia.com'), // Important for resolving relative URLs in og:image, etc.

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion, AnimatePresence, useInView } from 'framer-motion'
 import {
   ArrowRight, Upload, Share2, Heart, Download,
@@ -133,10 +134,12 @@ export default function LandingPage() {
               background: 'radial-gradient(ellipse, rgba(255,107,53,0.2) 0%, transparent 70%)',
               filter: 'blur(10px)', pointerEvents: 'none',
             }} />
-            <img
+            <Image
               src="/logo.png" alt="Fotia Logo"
               width={isMobile ? 80 : 100}
-              style={{ objectFit: 'contain', position: 'relative', filter: 'brightness(1.1) drop-shadow(0 0 8px rgba(255,107,53,0.4))' }}
+              height={32}
+              priority
+              style={{ width: 'auto', height: 'auto', objectFit: 'contain', position: 'relative', filter: 'brightness(1.1) drop-shadow(0 0 8px rgba(255,107,53,0.4))' }}
             />
           </div>
         </Link>
@@ -342,7 +345,7 @@ export default function LandingPage() {
               onClick={() => setShowDemoModal(true)}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
-                padding: '14px 28px', borderRadius: 12, border: 'none',
+                padding: '14px 28px', borderRadius: 12,
                 fontSize: 16, fontWeight: 600, cursor: 'pointer',
                 border: '1px solid rgba(255,255,255,0.15)',
                 background: 'rgba(255,255,255,0.06)',
@@ -675,7 +678,7 @@ export default function LandingPage() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 18, background: 'linear-gradient(135deg, #DF5438, #C8482E)', boxShadow: '0 3px 12px rgba(255,107,53,0.5)' }}>
                     <Download size={9} color="#fff" />
-                    <span style={{ fontSize: 9.5, fontWeight: 700, color: '#fff' }}>{l.common?.download || 'Télécharger'}</span>
+                    <span style={{ fontSize: 9.5, fontWeight: 700, color: '#fff' }}>{tr.common?.download || 'Télécharger'}</span>
                   </div>
                 </div>
               </div>
@@ -1052,7 +1055,7 @@ export default function LandingPage() {
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', gap: 40, marginBottom: 52 }}>
             <div style={{ maxWidth: 300 }}>
-              <img src="/logo.png" alt="Fotia Logo" width={90} style={{ objectFit: 'contain', filter: 'brightness(1.05)', marginBottom: 16 }} />
+              <Image src="/logo.png" alt="Fotia Logo" width={90} height={30} style={{ width: 'auto', height: 'auto', objectFit: 'contain', filter: 'brightness(1.05)', marginBottom: 16 }} />
               <p style={{ fontSize: 14, color: '#555', lineHeight: 1.65 }}>{l.footerBrand}</p>
             </div>
             <div style={{ display: 'flex', gap: isMobile ? 32 : 64, flexWrap: 'wrap' }}>

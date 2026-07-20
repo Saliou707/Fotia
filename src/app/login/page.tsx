@@ -2,6 +2,7 @@
 import { useState, FormEvent, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, ArrowRight, Loader2, AlertCircle, ArrowLeft, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -126,7 +127,7 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 40 }}>
-          <img src="/logo.png" alt="Fotia Logo" width={120} style={{ objectFit: 'contain' }} />
+          <Image src="/logo.png" alt="Fotia Logo" width={120} height={40} priority style={{ width: 'auto', height: 'auto', objectFit: 'contain' }} />
         </div>
 
         {/* Card */}
