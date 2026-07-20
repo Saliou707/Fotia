@@ -118,6 +118,6 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
-  await logAdminAction(admin.id, `PATCH_GALLERY:${galleryId}`, { title, status });
+  await logAdminAction(admin.id, 'PATCH_GALLERY', galleryId);
   return NextResponse.json({ success: true });
 }
