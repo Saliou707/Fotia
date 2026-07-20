@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getAdminUser } from '@/lib/admin'
 import { S3Client, ListBucketsCommand, HeadBucketCommand, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 
 interface DiagResult {
@@ -167,6 +168,12 @@ async function checkR2PublicUrl(): Promise<DiagResult> {
 }
 
 export async function GET() {
+  // Require admin authentication to access diagnostics
+  const adminUser = await getAdminUser()
+  if (!adminUser) {
+    return NextResponse.json({ error: 'Unauthorized — admin access required' }, { status: 401 })
+  }
+
   const checks = await Promise.allSettled([
     checkSupabaseConnection(),
     checkSupabaseTables(),

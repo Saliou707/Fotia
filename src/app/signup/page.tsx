@@ -17,7 +17,6 @@ export default function SignupPage() {
   const router = useRouter()
   const supabase = createClient()
   const [showPwd, setShowPwd] = useState(false)
-  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [pwd, setPwd] = useState('')
   const [loading, setLoading] = useState(false)
@@ -40,7 +39,6 @@ export default function SignupPage() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password: pwd,
-        options: { data: { full_name: name } },
       })
       if (error) throw error
       
@@ -75,8 +73,8 @@ export default function SignupPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#15171A', color: '#F2EDE4', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: 'var(--font-inter, Inter, sans-serif)', position: 'relative', overflow: 'hidden' }}>
-      <Link href="/" style={{ position: 'absolute', top: 24, left: 24, display: 'inline-flex', alignItems: 'center', gap: 8, color: '#A1A1AA', textDecoration: 'none', fontWeight: 500, fontSize: 14, zIndex: 10, padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }}>
+    <div style={{ minHeight: '100vh', background: '#15171A', color: '#F2EDE4', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px 24px', fontFamily: 'var(--font-inter, Inter, sans-serif)', position: 'relative', overflow: 'hidden' }}>
+      <Link href="/" style={{ position: 'fixed', top: 20, left: 20, display: 'inline-flex', alignItems: 'center', gap: 8, color: '#A1A1AA', textDecoration: 'none', fontWeight: 500, fontSize: 14, zIndex: 50, padding: '8px 12px', background: 'rgba(21,23,26,0.85)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }}>
         <ArrowLeft size={16} /> Retour à l'accueil
       </Link>
 
@@ -120,10 +118,6 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div>
-                <label style={{ fontSize: 13, fontWeight: 500, color: '#A1A1AA', display: 'block', marginBottom: 8 }}>Nom complet</label>
-                <input value={name} onChange={e => setName(e.target.value)} placeholder="Ibrahima Diallo" style={inputStyle} required />
-              </div>
               <div>
                 <label style={{ fontSize: 13, fontWeight: 500, color: '#A1A1AA', display: 'block', marginBottom: 8 }}>Adresse email</label>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="vous@exemple.com" style={inputStyle} required />

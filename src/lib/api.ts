@@ -1,27 +1,7 @@
-// ─── API client centralisé pour Fotia ─────────────────────────────────────
 import { createClient } from '@/lib/supabase/client'
+import type { Gallery, GalleryImage } from '@/types'
 
-export interface Gallery {
-  id: string
-  title: string
-  slug: string
-  description: string | null
-  status: 'active' | 'draft'
-  photo_count: number
-  view_count: number
-  favorite_count: number
-  download_count: number
-  created_at: string
-  cover_image_url?: string | null
-}
-
-export interface GalleryImage {
-  id: string
-  r2_key: string
-  original_filename: string
-  display_order: number
-  file_size_bytes?: number
-}
+export type { Gallery, GalleryImage }
 
 export interface UserProfile {
   id: string
@@ -73,7 +53,7 @@ export async function createGallery(title: string, description?: string): Promis
   return data
 }
 
-export async function updateGallery(id: string, fields: Partial<{ title: string; description: string; status: 'active' | 'draft' }>): Promise<boolean> {
+export async function updateGallery(id: string, fields: Partial<{ title: string; description: string; status: 'active' | 'draft' | 'archived' }>): Promise<boolean> {
   const supabase = createClient()
   const { error } = await supabase.from('galleries').update(fields).eq('id', id)
   return !error
@@ -190,14 +170,14 @@ export async function fetchProfile(): Promise<UserProfile | null> {
 
   const { data } = await supabase
     .from('profiles')
-    .select('name, plan, storage_used_bytes')
+    .select('display_name, plan, storage_used_bytes')
     .eq('id', user.id)
     .single()
 
   return {
     id: user.id,
     email: user.email ?? '',
-    name: data?.name ?? user.email?.split('@')[0] ?? 'Utilisateur',
+    name: data?.display_name ?? user.email?.split('@')[0] ?? 'Utilisateur',
     plan: data?.plan ?? 'free',
     storage_used_bytes: data?.storage_used_bytes ?? 0,
   }

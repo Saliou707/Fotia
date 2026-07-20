@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
-import { buildImageKey, buildThumbnailKey, uploadBuffer, getPublicUrl } from '@/lib/r2/client'
+import { buildImageKey, buildThumbnailKey, uploadBuffer, getPublicUrl, deleteObject } from '@/lib/r2/client'
 import { generateId } from '@/lib/utils'
 import { checkCanUploadPhoto } from '@/lib/limits'
 
@@ -52,7 +52,9 @@ export async function POST(request: NextRequest) {
     .eq('gallery_id', gallery_id)
 
   const image_id = crypto.randomUUID()
-  const r2_key = buildImageKey(user.id, gallery_id, image_id, file.name, gallery.title)
+  // Calcul du dossier R2 identique à la route de lecture (slug du titre ou ID)
+  const folder = gallery.title ? gallery.title.toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 80) : gallery.id;
+  const r2_key = buildImageKey(user.id, gallery_id, image_id, file.name, folder)
 
   try {
     // Read file into buffer and upload to R2
@@ -75,11 +77,31 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error('[Upload] DB insert error:', insertError.message)
+      // Clean up the uploaded image to avoid orphaned files
+      try {
+        await deleteObject(r2_key)
+      } catch (cleanupErr) {
+        console.warn('[Upload] Failed to delete orphaned R2 object after DB error:', cleanupErr)
+      }
       return NextResponse.json({ error: 'Failed to save image' }, { status: 500 })
     }
 
     // Increment gallery photo count
     await supabase.rpc('increment_gallery_photo_count', { gallery_id_param: gallery_id })
+
+    // Increment user storage usage
+    const { data: currentProfile } = await supabase
+      .from('profiles')
+      .select('storage_used_bytes')
+      .eq('id', user.id)
+      .single()
+    
+    if (currentProfile) {
+      await supabase
+        .from('profiles')
+        .update({ storage_used_bytes: (Number(currentProfile.storage_used_bytes) || 0) + buffer.length })
+        .eq('id', user.id)
+    }
 
     // Si c'est la première photo uploadée, on la définit comme couverture
     if ((count ?? 0) === 0) {

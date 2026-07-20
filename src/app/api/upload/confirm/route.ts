@@ -44,6 +44,22 @@ export async function POST(request: NextRequest) {
   // Update gallery photo count
   await supabase.rpc('increment_gallery_photo_count', { gallery_id_param: gallery_id })
 
+  // Increment user storage usage
+  if (image.file_size_bytes > 0) {
+    const { data: currentProfile } = await supabase
+      .from('profiles')
+      .select('storage_used_bytes')
+      .eq('id', user.id)
+      .single()
+    
+    if (currentProfile) {
+      await supabase
+        .from('profiles')
+        .update({ storage_used_bytes: (Number(currentProfile.storage_used_bytes) || 0) + image.file_size_bytes })
+        .eq('id', user.id)
+    }
+  }
+
   return NextResponse.json({
     ...updated,
     url,

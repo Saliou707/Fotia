@@ -746,6 +746,131 @@ export default function ClientGalleryView({ gallery, images }: Props) {
             display: none !important;
           }
         }
+
+        /* ── Fullscreen Lightbox ── */
+        .lightbox-fullscreen {
+          position: fixed;
+          inset: 0;
+          z-index: 200;
+          background: #000;
+          display: flex;
+          flex-direction: column;
+          touch-action: none;
+          -webkit-user-select: none;
+          user-select: none;
+          overscroll-behavior: none;
+        }
+
+        .lightbox-topbar {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 210;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px 20px;
+          padding-top: max(16px, env(safe-area-inset-top, 16px));
+          background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
+        }
+
+        .lightbox-counter {
+          font-size: 14px;
+          color: rgba(255,255,255,0.6);
+          font-weight: 600;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .lightbox-topbar-actions {
+          display: flex;
+          gap: 8px;
+        }
+
+        .lightbox-icon-btn {
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.08);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255,255,255,0.1);
+          color: #FFF;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: background 0.2s, transform 0.15s;
+        }
+
+        .lightbox-icon-btn:active {
+          transform: scale(0.92);
+        }
+
+        .lightbox-icon-btn.fav-active {
+          background: #C8482E;
+          border-color: #C8482E;
+        }
+
+        .lightbox-image-area {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          position: relative;
+        }
+
+        .lightbox-slide-container {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          will-change: transform;
+        }
+
+        .lightbox-slide-container img {
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+          pointer-events: none;
+          -webkit-user-drag: none;
+        }
+
+        .lightbox-desktop-nav {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          z-index: 211;
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          background: rgba(18,18,18,0.5);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          border: 1px solid rgba(255,255,255,0.08);
+          color: #fff;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+
+        .lightbox-desktop-nav:hover {
+          background: #C8482E;
+          border-color: #C8482E;
+        }
+
+        .lightbox-desktop-nav.prev { left: 20px; }
+        .lightbox-desktop-nav.next { right: 20px; }
+
+        @media (max-width: 768px) {
+          .lightbox-desktop-nav {
+            display: none !important;
+          }
+        }
       `}</style>
 
       {/* ---- HERO BANNER ---- */}
@@ -817,10 +942,11 @@ export default function ClientGalleryView({ gallery, images }: Props) {
       {/* ---- MAIN GALLERY SECTION ---- */}
       <main className="main-gallery-section">
         {/* Section Header */}
-        <div className="section-header" style={{ borderBottom: 'none', justifyContent: 'center', marginBottom: 32 }}>
+        <div className="section-header" style={{ borderBottom: 'none', justifyContent: 'center', marginBottom: 32, flexDirection: 'column', gap: 8, alignItems: 'center' }}>
           <h2 className="section-title" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 400, fontSize: 28, fontStyle: 'italic', color: '#A09890' }}>
-            La Collection
+            {gallery.title}
           </h2>
+          <p style={{ fontSize: 13, color: '#71717A', fontWeight: 500 }}>{images.length} photo{images.length > 1 ? 's' : ''}</p>
         </div>
 
         {/* Photos Grid */}
@@ -1135,7 +1261,7 @@ export default function ClientGalleryView({ gallery, images }: Props) {
   )
 }
 
-// ── Client Lightbox Component ──
+// ── Fullscreen Swipeable Lightbox ──
 function ClientLightbox({
   images,
   index,
@@ -1159,137 +1285,171 @@ function ClientLightbox({
 }) {
   const image = images[index]
   const isFav = favorites.has(image.id)
-  const touchStartX = useRef(0)
+
+  // Touch swipe state
+  const dragX = useRef(0)
+  const startX = useRef(0)
+  const startY = useRef(0)
+  const isDragging = useRef(false)
+  const isHorizontalSwipe = useRef<boolean | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [offsetX, setOffsetX] = useState(0)
+  const [isSwiping, setIsSwiping] = useState(false)
+
+  // Lock body scroll when lightbox is open
+  useEffect(() => {
+    const original = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = original }
+  }, [])
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowLeft' && index > 0) onNavigate(index - 1)
+      if (e.key === 'ArrowRight' && index < images.length - 1) onNavigate(index + 1)
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [index, images.length, onClose, onNavigate])
+
+  // Reset offset when index changes
+  useEffect(() => {
+    setOffsetX(0)
+    setIsSwiping(false)
+  }, [index])
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    isDragging.current = true
+    isHorizontalSwipe.current = null
+    startX.current = e.touches[0].clientX
+    startY.current = e.touches[0].clientY
+    dragX.current = 0
+    setIsSwiping(true)
+  }, [])
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isDragging.current) return
+    const currentX = e.touches[0].clientX
+    const currentY = e.touches[0].clientY
+    const diffX = currentX - startX.current
+    const diffY = currentY - startY.current
+
+    // Determine swipe direction on first significant move
+    if (isHorizontalSwipe.current === null) {
+      if (Math.abs(diffX) > 8 || Math.abs(diffY) > 8) {
+        isHorizontalSwipe.current = Math.abs(diffX) > Math.abs(diffY)
+      }
+      return
+    }
+
+    if (!isHorizontalSwipe.current) return
+
+    e.preventDefault()
+    dragX.current = diffX
+
+    // Apply resistance at edges
+    let adjustedX = diffX
+    if ((index === 0 && diffX > 0) || (index === images.length - 1 && diffX < 0)) {
+      adjustedX = diffX * 0.3 // rubber-band effect
+    }
+    setOffsetX(adjustedX)
+  }, [index, images.length])
+
+  const handleTouchEnd = useCallback(() => {
+    if (!isDragging.current) return
+    isDragging.current = false
+
+    const threshold = 60
+    const velocity = Math.abs(dragX.current)
+
+    if (dragX.current < -threshold && index < images.length - 1) {
+      onNavigate(index + 1)
+    } else if (dragX.current > threshold && index > 0) {
+      onNavigate(index - 1)
+    } else {
+      // Snap back
+      setOffsetX(0)
+      setIsSwiping(false)
+    }
+  }, [index, images.length, onNavigate])
 
   return (
-    <div
-      className="lightbox-backdrop"
-      onClick={onClose}
-      onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX }}
-      onTouchEnd={(e) => {
-        const delta = touchStartX.current - e.changedTouches[0].clientX
-        if (delta > 50 && index < images.length - 1) onNavigate(index + 1)
-        if (delta < -50 && index > 0) onNavigate(index - 1)
-      }}
-      style={{ background: 'rgba(5,5,5,0.98)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', zIndex: 120 }}
-    >
-      {/* Top bar inside lightbox */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          padding: '20px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          zIndex: 101,
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%)',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <span style={{ fontSize: 14, color: '#8E8E93', fontWeight: 600 }}>
+    <div className="lightbox-fullscreen">
+      {/* Top bar */}
+      <div className="lightbox-topbar">
+        <span className="lightbox-counter">
           {index + 1} / {images.length}
         </span>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div className="lightbox-topbar-actions">
           {allowFavorite && (
             <button
-              className={`photo-card-heart-btn ${isFav ? 'active' : ''}`}
+              className={`lightbox-icon-btn ${isFav ? 'fav-active' : ''}`}
               onClick={() => onFavorite(image.id)}
-              style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
             >
-              <Heart size={15} fill={isFav ? 'currentColor' : 'none'} />
+              <Heart size={16} fill={isFav ? 'currentColor' : 'none'} />
             </button>
           )}
           {allowDownload && (
             <button
-              className="photo-card-heart-btn"
+              className="lightbox-icon-btn"
               onClick={() => onDownload(image)}
-              style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
             >
-              <Download size={15} />
+              <Download size={16} />
             </button>
           )}
-          <button
-            className="photo-card-heart-btn"
-            onClick={onClose}
-            style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-          >
-            <X size={15} />
+          <button className="lightbox-icon-btn" onClick={onClose}>
+            <X size={18} />
           </button>
         </div>
       </div>
 
-      {/* Prev Navigation Button */}
-      {index > 0 && (
-        <button
-          className="lightbox-nav-btn"
-          onClick={(e) => { e.stopPropagation(); onNavigate(index - 1) }}
-          style={{
-            position: 'fixed',
-            left: 24,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            zIndex: 101,
-            width: 48,
-            height: 48,
-            borderRadius: '50%',
-            background: 'rgba(18,18,18,0.6)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            color: '#fff',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = '#C8482E'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(18,18,18,0.6)'}
-        >
-          <ChevronLeft size={22} />
-        </button>
-      )}
+      {/* Image area with swipe */}
+      <div
+        className="lightbox-image-area"
+        ref={containerRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Desktop nav buttons */}
+        {index > 0 && (
+          <button
+            className="lightbox-desktop-nav prev"
+            onClick={() => onNavigate(index - 1)}
+          >
+            <ChevronLeft size={22} />
+          </button>
+        )}
+        {index < images.length - 1 && (
+          <button
+            className="lightbox-desktop-nav next"
+            onClick={() => onNavigate(index + 1)}
+          >
+            <ChevronRight size={22} />
+          </button>
+        )}
 
-      {/* Central Image View */}
-      <div onClick={(e) => e.stopPropagation()}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={getImageUrl(image.r2_key)}
-          alt={image.original_filename}
-          style={{ maxWidth: '92vw', maxHeight: '82vh', objectFit: 'contain', borderRadius: 12, boxShadow: '0 30px 70px rgba(0,0,0,0.8)' }}
-        />
+        {/* Swipeable image container */}
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.div
+            key={image.id}
+            className="lightbox-slide-container"
+            initial={{ opacity: 0.5, x: offsetX > 0 ? -80 : 80 }}
+            animate={{ opacity: 1, x: offsetX, scale: isSwiping ? 0.97 : 1 }}
+            exit={{ opacity: 0, x: offsetX > 0 ? 200 : -200 }}
+            transition={isSwiping ? { type: 'tween', duration: 0 } : { type: 'spring', stiffness: 350, damping: 35 }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={getImageUrl(image.r2_key)}
+              alt={image.original_filename}
+              draggable={false}
+            />
+          </motion.div>
+        </AnimatePresence>
       </div>
-
-      {/* Next Navigation Button */}
-      {index < images.length - 1 && (
-        <button
-          className="lightbox-nav-btn"
-          onClick={(e) => { e.stopPropagation(); onNavigate(index + 1) }}
-          style={{
-            position: 'fixed',
-            right: 24,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            zIndex: 101,
-            width: 48,
-            height: 48,
-            borderRadius: '50%',
-            background: 'rgba(18,18,18,0.6)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            color: '#fff',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = '#C8482E'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(18,18,18,0.6)'}
-        >
-          <ChevronRight size={22} />
-        </button>
-      )}
     </div>
   )
 }

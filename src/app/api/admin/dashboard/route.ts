@@ -27,9 +27,7 @@ export async function GET() {
     supabase.from('profiles').select('storage_used_bytes'),
     supabase.from('payments').select('amount').eq('status', 'success').gte('created_at', startOfMonth),
     supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', startOfMonth),
-    supabase.rpc('get_signup_trend').maybeSingle().then(() =>
-      supabase.from('profiles').select('created_at').gte('created_at', startOfLast30Days).order('created_at')
-    ),
+    supabase.from('profiles').select('created_at').gte('created_at', startOfLast30Days).order('created_at'),
     supabase.from('payments').select('amount, created_at').eq('status', 'success').gte('created_at', startOfLast30Days).order('created_at'),
   ])
 

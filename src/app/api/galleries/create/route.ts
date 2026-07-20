@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import { generateId } from '@/lib/utils'
 import { checkCanCreateGallery } from '@/lib/limits'
+import { gallerySchema, validatePayload } from '@/lib/validations'
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -12,11 +13,12 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { title, description } = body
-
-  if (!title || !title.trim()) {
-    return NextResponse.json({ error: 'Title is required' }, { status: 400 })
+  const validation = validatePayload(gallerySchema, body)
+  if (!validation.success) {
+    return NextResponse.json({ error: validation.error }, { status: 400 })
   }
+
+  const { title, description } = validation.data
 
   // Check gallery creation limits
   const galleryCheck = await checkCanCreateGallery(supabase, user.id)

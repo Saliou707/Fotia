@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { buildImageKey, createPresignedUploadUrl } from '@/lib/r2/client'
 import { generateId } from '@/lib/utils'
 import { checkCanUploadPhoto } from '@/lib/limits'
+import { imageUploadSchema, validatePayload } from '@/lib/validations'
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -10,11 +11,18 @@ export async function POST(request: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
-  const { filename, content_type, file_size_bytes, gallery_id } = body
+  const validation = validatePayload(imageUploadSchema, {
+    galleryId: body.gallery_id,
+    filename: body.filename,
+    contentType: body.content_type,
+    fileSizeBytes: body.file_size_bytes ?? 0,
+  })
 
-  if (!filename || !content_type || !gallery_id) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  if (!validation.success) {
+    return NextResponse.json({ error: validation.error }, { status: 400 })
   }
+
+  const { galleryId: gallery_id, filename, contentType: content_type, fileSizeBytes: file_size_bytes } = validation.data
 
   // Verify gallery ownership
   const { data: gallery } = await supabase

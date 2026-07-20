@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="96" fill="#15171A"/>
+  <!-- 4-pointed star / sparkle - Fotia brand icon -->
+  <path d="M256 80 C256 80, 272 192, 368 256 C272 256, 272 320, 256 432 C256 432, 240 320, 144 256 C240 256, 240 192, 256 80 Z" fill="#C8482E"/>
+  <path d="M80 256 C80 256, 192 240, 256 144 C256 240, 320 240, 432 256 C432 256, 320 272, 256 368 C256 272, 192 272, 80 256 Z" fill="#C8482E"/>
+  <!-- Brighter center glow -->
+  <circle cx="256" cy="256" r="24" fill="#DF5D43" opacity="0.6"/>
+</svg>

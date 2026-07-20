@@ -1,7 +1,43 @@
 import { createClient } from '@/lib/supabase/server'
 import { listImages } from '@/lib/r2/client'
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import ClientGalleryView from './ClientGalleryView'
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const supabase = await createClient()
+
+  const { data: gallery } = await supabase
+    .from('galleries')
+    .select('title, description, cover_image_url, profiles(display_name)')
+    .eq('slug', slug)
+    .single()
+
+  if (!gallery) {
+    return { title: 'Galerie introuvable' }
+  }
+
+  const photographerName = gallery.profiles?.display_name || 'Photographe'
+  const title = `${gallery.title} | ${photographerName}`
+  const description = gallery.description || `Découvrez la galerie "${gallery.title}" par ${photographerName} sur Fotia.`
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: gallery.cover_image_url ? [{ url: gallery.cover_image_url }] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: gallery.cover_image_url ? [gallery.cover_image_url] : [],
+    },
+  }
+}
 
 export default async function PublicGalleryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -39,7 +75,8 @@ export default async function PublicGalleryPage({ params }: { params: Promise<{ 
     images = dbImages
   } else {
     // Fallback to R2 bucket listing
-    const prefix = `photos/${gallery.user_id}/${gallery.id}/`
+    const folder = gallery.title ? gallery.title.toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 80) : gallery.id;
+    const prefix = `photos/${folder}/`
     try {
       const r2Images = await listImages(prefix)
       images = r2Images.map((obj, index) => {

@@ -365,3 +365,35 @@ ALTER TABLE admin_logs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Admins can view admin_logs" ON admin_logs FOR SELECT USING (
   EXISTS (SELECT 1 FROM admin_users a WHERE a.user_id = auth.uid())
 );
+
+-- ============================================================
+-- EMAIL LOGS (Monitoring pour Edge Functions)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.email_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    email_type TEXT NOT NULL,
+    to_email TEXT NOT NULL,
+    status TEXT NOT NULL, -- 'success', 'error', 'pending'
+    provider TEXT DEFAULT 'resend',
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- RLS pour email_logs
+ALTER TABLE public.email_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Admins can view email_logs" ON public.email_logs FOR SELECT USING (
+  EXISTS (SELECT 1 FROM admin_users a WHERE a.user_id = auth.uid())
+);
+
+-- ============================================================
+-- INDEX DE PERFORMANCE ET TRI
+-- ============================================================
+CREATE INDEX IF NOT EXISTS idx_galleries_user_created ON galleries(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_gallery_images_gallery_order ON gallery_images(gallery_id, display_order ASC);
+CREATE INDEX IF NOT EXISTS idx_gallery_images_gallery_created ON gallery_images(gallery_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_gallery_views_gallery_created ON gallery_views(gallery_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_favorites_gallery_created ON favorites(gallery_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user_status ON subscriptions(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_payments_user_created ON payments(user_id, created_at DESC);
+
