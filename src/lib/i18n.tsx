@@ -531,11 +531,13 @@ const TRANSLATIONS = {
 } as const
 
 // ── Context ───────────────────────────────────────────────────────────────
+type TranslationsType = typeof TRANSLATIONS.fr | typeof TRANSLATIONS.en
+
 interface LanguageContextValue {
   lang: Lang
   setLang: (l: Lang) => void
   t: (key: string) => string
-  translations: typeof TRANSLATIONS.fr
+  translations: TranslationsType
 }
 
 const LanguageContext = createContext<LanguageContextValue>({
