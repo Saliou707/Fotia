@@ -30,7 +30,7 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
       const supabase = createClient()
       const { data } = await supabase
         .from('galleries')
-        .select('id, title, slug, description, status, photo_count, view_count, favorite_count, download_count, created_at, cover_image_url')
+        .select('*')
         .eq('id', id).single()
       if (data) {
         setGallery(data); setEditTitle(data.title)
