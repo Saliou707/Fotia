@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Loader2, Image, TrendingUp } from 'lucide-react'
 
 // Simple Card component
-function StatCard({ icon: Icon, label, value }) {
+function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | number }) {
   return (
     <div className="flex items-center space-x-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
       <Icon className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
