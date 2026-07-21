@@ -20,7 +20,7 @@ export async function fetchGalleries(): Promise<Gallery[]> {
 
   const { data, error } = await supabase
     .from('galleries')
-    .select('id, title, slug, description, status, photo_count, view_count, favorite_count, download_count, created_at, cover_image_url')
+    .select('*')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
@@ -32,7 +32,7 @@ export async function fetchGallery(id: string): Promise<Gallery | null> {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('galleries')
-    .select('id, title, slug, description, status, photo_count, view_count, favorite_count, download_count, created_at, cover_image_url')
+    .select('*')
     .eq('id', id)
     .single()
 

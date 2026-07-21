@@ -18,7 +18,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return { title: 'Galerie introuvable' }
   }
 
-  const photographerName = gallery.profiles?.display_name || 'Photographe'
+  const profiles = Array.isArray(gallery.profiles) ? gallery.profiles[0] : gallery.profiles
+  const photographerName = (profiles as { display_name?: string } | null)?.display_name || 'Photographe'
   const title = `${gallery.title} | ${photographerName}`
   const description = gallery.description || `Découvrez la galerie "${gallery.title}" par ${photographerName} sur Fotia.`
 
@@ -39,32 +40,63 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
+// Type for the gallery+profile composite passed to ClientGalleryView
+type ProfileShape = {
+  display_name: string | null
+  avatar_url: string | null
+  phone: string | null
+  instagram: string | null
+  facebook: string | null
+  tiktok: string | null
+  website: string | null
+  bio: string | null
+}
+
+type GalleryWithProfile = {
+  id: string
+  title: string
+  slug: string
+  user_id: string
+  status: string
+  photo_count: number
+  allow_downloads: boolean
+  allow_favorites: boolean
+  description: string | null
+  cover_image_url: string | null
+  profiles: ProfileShape | null
+}
+
+type SimpleImage = { id: string; r2_key: string; original_filename: string }
+
 export default async function PublicGalleryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const supabase = await createClient()
 
-  // Load gallery
-  const { data: gallery } = await supabase
+  // Load gallery (full columns needed)
+  const { data: rawGallery } = await supabase
     .from('galleries')
     .select('id, title, slug, user_id, status, photo_count, allow_downloads, allow_favorites, description, cover_image_url')
     .eq('slug', slug)
     .single()
 
-  if (!gallery) {
+  if (!rawGallery) {
     notFound()
   }
 
-  // Attempt to load profile with new columns, gracefully degrade if they don't exist yet
+  // Load photographer profile
   const { data: profile } = await supabase
     .from('profiles')
     .select('display_name, avatar_url, phone, instagram, facebook, tiktok, website, bio')
-    .eq('id', gallery.user_id)
+    .eq('id', rawGallery.user_id)
     .single()
-  
-  ;(gallery as any).profiles = profile || { display_name: null, avatar_url: null }
+
+  const gallery: GalleryWithProfile = {
+    ...rawGallery,
+    profiles: profile ?? { display_name: null, avatar_url: null, phone: null, instagram: null, facebook: null, tiktok: null, website: null, bio: null },
+  }
 
   // Load images
-  let images: any[] = []
+  let images: SimpleImage[] = []
   const { data: dbImages } = await supabase
     .from('gallery_images')
     .select('id, r2_key, original_filename')
@@ -75,7 +107,7 @@ export default async function PublicGalleryPage({ params }: { params: Promise<{ 
     images = dbImages
   } else {
     // Fallback to R2 bucket listing
-    const folder = gallery.title ? gallery.title.toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 80) : gallery.id;
+    const folder = gallery.title ? gallery.title.toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 80) : gallery.id
     const prefix = `photos/${folder}/`
     try {
       const r2Images = await listImages(prefix)
@@ -83,16 +115,13 @@ export default async function PublicGalleryPage({ params }: { params: Promise<{ 
         const key = obj.key
         const filename = key.split('/').pop() || `image-${index}.jpg`
         const id = `img-${index}-${key.replace(/[^a-zA-Z0-9]/g, '').substring(0, 15)}`
-        return {
-          id,
-          r2_key: key,
-          original_filename: filename,
-        }
+        return { id, r2_key: key, original_filename: filename }
       })
     } catch (err) {
       console.error('[Page] Error fetching from R2:', err)
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return <ClientGalleryView gallery={gallery as any} images={images as any} />
 }
