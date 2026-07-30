@@ -68,9 +68,9 @@ function SettingRow({
   )
 }
 
-function Card({ children, style = {} }: { children: React.ReactNode; style?: React.CSSProperties }) {
+function Card({ children, style = {}, className }: { children: React.ReactNode; style?: React.CSSProperties; className?: string }) {
   return (
-    <div style={{
+    <div className={className} style={{
       background: 'rgba(17,17,17,0.9)',
       border: '1px solid rgba(255,255,255,0.07)',
       borderRadius: 16, overflow: 'hidden',
@@ -306,7 +306,7 @@ export default function SettingsPage() {
       {/* ── Background subtle gradient ── */}
       <div style={{ position: 'fixed', inset: 0, zIndex: -1, background: 'radial-gradient(ellipse at 20% 0%, rgba(200,72,46,0.04) 0%, transparent 60%)' }} />
 
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px 80px' }}>
+      <div className="settings-page-inner" style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px 80px' }}>
 
         {/* ── Page Header ── */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
@@ -320,7 +320,7 @@ export default function SettingsPage() {
         {/* ── Avatar Hero Card ── */}
         {!loadingData && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.05 }}>
-            <Card style={{ marginBottom: 24, padding: 28, display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap',
+            <Card className="settings-hero-card" style={{ marginBottom: 24, padding: 28, display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap',
               background: 'linear-gradient(135deg, rgba(200,72,46,0.08) 0%, rgba(17,17,17,0.95) 60%)',
               border: '1px solid rgba(200,72,46,0.18)',
               boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
@@ -396,10 +396,10 @@ export default function SettingsPage() {
         )}
 
         {/* ── Tab layout ── */}
-        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div className="settings-tab-layout" style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
 
           {/* ── Sidebar tabs ── */}
-          <motion.div initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.1 }}
+          <motion.div className="settings-tab-sidebar" initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.1 }}
             style={{ width: 200, flexShrink: 0 }}>
             <Card style={{ padding: '8px 0' }}>
               {TABS.map(({ id, label, icon: Icon }) => {
@@ -1007,6 +1007,21 @@ export default function SettingsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .settings-tab-layout { flex-direction: column !important; }
+          .settings-tab-sidebar { width: 100% !important; }
+          .settings-tab-sidebar > div { display: flex !important; overflow-x: auto !important; gap: 0 !important; padding: 4px !important; }
+          .settings-tab-sidebar button { white-space: nowrap !important; border-left: none !important; border-bottom: 2px solid transparent !important; padding: 10px 14px !important; flex: 0 0 auto !important; }
+          .settings-tab-sidebar button span { display: none !important; }
+          .settings-tab-content { min-width: 0 !important; }
+          .settings-hero-card { flex-direction: column !important; text-align: center !important; align-items: center !important; }
+        }
+        @media (max-width: 480px) {
+          .settings-page-inner { padding: 20px 12px 60px !important; }
+        }
+      `}</style>
     </div>
   )
 }

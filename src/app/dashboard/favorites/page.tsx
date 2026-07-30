@@ -203,9 +203,8 @@ export default function FavoritesPage() {
               </p>
             </div>
 
-            {/* Tabs (masqués si drill) */}
-            {!drillGallery && (
-              <div style={{ display: 'flex', gap: 2, background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: 4, border: '1px solid rgba(255,255,255,0.05)' }}>
+            {/* Tabs (masqués si drill) */}                    {!drillGallery && (
+              <div className="favorites-tabs" style={{ display: 'flex', gap: 2, background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: 4, border: '1px solid rgba(255,255,255,0.05)' }}>
                 {TABS.map((t, i) => (
                   <button key={t} onClick={() => setTab(i)} style={{ padding: '6px 14px', borderRadius: 6, border: 'none', fontSize: 13, fontWeight: 500, cursor: 'pointer', background: tab === i ? '#fff' : 'transparent', color: tab === i ? '#000' : '#8E8E93', transition: 'all 0.2s' }}>
                     {t}
@@ -559,6 +558,17 @@ export default function FavoritesPage() {
           .page-layout { grid-template-columns: 1fr !important; }
           .page-main { padding: 24px 16px !important; border-right: none !important; }
           .page-sidebar { padding: 24px 16px !important; position: relative !important; top: 0 !important; max-height: none !important; overflow-y: visible !important; border-top: 1px solid rgba(255,255,255,0.06); }
+        }
+        @media (max-width: 640px) {
+          .favorites-tabs { overflow-x: auto !important; width: 100% !important; }
+          .favorites-tabs > div { flex-shrink: 0 !important; }
+          .favorites-masonry { columns: 2 130px !important; gap: 8px !important; }
+          .favorites-header { flex-direction: column !important; align-items: flex-start !important; }
+          .favorites-drill-controls { width: 100% !important; }
+          .favorites-drill-controls button { flex: 1 !important; }
+        }
+        @media (max-width: 480px) {
+          .favorites-masonry { columns: 1 !important; }
         }
       `}</style>
     </div>

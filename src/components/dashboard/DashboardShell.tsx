@@ -513,12 +513,26 @@ export default function DashboardShell({
         .nav-item-hover:hover { background: rgba(255,255,255,0.03) !important; color: #F2EDE4 !important; border-color: rgba(255,255,255,0.05) !important; }
         .nav-item-hover:hover svg { color: #A09890 !important; }
 
+        @media (max-width: 1024px) {
+          .fotia-sidebar { width: 200px !important; }
+          .fotia-main { margin-left: 200px !important; }
+          .fotia-topbar { left: 200px !important; }
+        }
+
         @media (max-width: 768px) {
           .fotia-sidebar { display: none !important; }
           .fotia-mobile-header { display: flex !important; }
           .fotia-mobile-bottom-nav { display: flex !important; }
           .fotia-topbar { display: none !important; }
           .fotia-main { margin-left: 0 !important; padding-top: 60px; padding-bottom: 84px; }
+        }
+
+        @media (max-width: 480px) {
+          .fotia-mobile-header { padding: 8px 12px !important; }
+          .fotia-mobile-bottom-nav { padding: 6px 4px 24px !important; }
+          .fotia-mobile-bottom-nav a { min-width: 44px !important; }
+          .fotia-mobile-bottom-nav a svg { width: 18px !important; height: 18px !important; }
+          .fotia-mobile-bottom-nav a span { font-size: 9px !important; }
         }
       `}</style>
     </div>

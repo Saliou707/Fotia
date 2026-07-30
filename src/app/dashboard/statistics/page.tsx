@@ -253,7 +253,7 @@ export default function StatisticsPage() {
   const activeFiltersCount = (galleryFilter !== 'all' ? 1 : 0) + (searchGallery ? 1 : 0) + (periodDays !== 30 ? 1 : 0)
 
   return (
-    <div style={{ padding: '32px', minHeight: 'calc(100vh - 58px)', background: '#15171A', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+    <div className="stats-page" style={{ padding: '32px', minHeight: 'calc(100vh - 58px)', background: '#15171A', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
 
       {/* ── Header ── */}
       <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginBottom: 32 }}>
@@ -282,7 +282,7 @@ export default function StatisticsPage() {
       </motion.div>
 
       {/* ── Filtres ── */}
-      <motion.div
+      <motion.div className="stats-filters-row"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.05 }}
@@ -420,7 +420,7 @@ export default function StatisticsPage() {
       </motion.div>
 
       {/* ── KPI Cards ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 16, marginBottom: 36 }}>
+      <div className="stats-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 16, marginBottom: 36 }}>
         <KpiCard icon={Eye} label="Vues totales" value={filteredTotals.views} accent="#F59E0B" loading={loading} delay={0.08} />
         <KpiCard icon={Heart} label="Favoris clients" value={filteredTotals.favorites} accent="#EC4899" loading={loading} delay={0.13}
           sub={filteredTotals.views > 0 ? `${Math.round((filteredTotals.favorites / filteredTotals.views) * 100)}% taux de favori` : undefined} />
@@ -430,7 +430,7 @@ export default function StatisticsPage() {
       </div>
 
       {/* ── Corps en 2 colonnes ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20 }}>
+      <div className="stats-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20 }}>
 
         {/* ── Tableau galeries ── */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.25 }}>
@@ -559,6 +559,18 @@ export default function StatisticsPage() {
         }
         @media (max-width: 768px) {
           .stats-filters { flex-wrap: wrap; }
+        }
+        @media (max-width: 640px) {
+          .stats-page { padding: 20px 16px !important; }
+          .stats-page .stats-two-col { grid-template-columns: 1fr !important; }
+          .stats-page .stats-kpi-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+          .stats-page .stats-filters-row { flex-direction: column !important; align-items: stretch !important; }
+          .stats-page .stats-filters-row > div { width: 100% !important; }
+          .stats-page .stats-filters-row button { width: 100% !important; justify-content: space-between !important; }
+          .stats-page .stats-table-header { display: none !important; }
+        }
+        @media (max-width: 480px) {
+          .stats-page .stats-kpi-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>

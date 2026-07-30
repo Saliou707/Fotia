@@ -72,10 +72,10 @@ export default function GalleriesPage() {
   }
 
   return (
-    <div style={{ padding: '32px 36px', minHeight: 'calc(100vh - 58px)', background: '#15171A', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+    <div className="galleries-page" style={{ padding: '32px 36px', minHeight: 'calc(100vh - 58px)', background: '#15171A', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
 
       {/* ── Header ── */}
-      <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
+      <motion.div className="galleries-header" initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
         style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}
       >
         <div>
@@ -107,7 +107,7 @@ export default function GalleriesPage() {
       </motion.div>
 
       {/* ── Filtres ── */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
+      <motion.div className="galleries-filter-wrap" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
         style={{ display: 'flex', gap: 12, marginBottom: 28, alignItems: 'center', flexWrap: 'wrap' }}
       >
         {/* Recherche */}
@@ -420,6 +420,14 @@ export default function GalleriesPage() {
         .search-focus-wrapper:focus-within { border-color: rgba(200,72,46,0.35) !important; }
         @media (max-width: 768px) {
           .g-list-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 640px) {
+          .galleries-page { padding: 20px 16px !important; }
+          .galleries-header { flex-direction: column !important; align-items: stretch !important; }
+          .galleries-header button { width: 100% !important; justify-content: center !important; }
+          .galleries-filter-wrap { flex-direction: column !important; }
+          .galleries-filter-wrap > div:first-child { max-width: none !important; width: 100% !important; }
+          .galleries-list-view { display: none !important; }
         }
       `}</style>
     </div>

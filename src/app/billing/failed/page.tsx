@@ -57,12 +57,13 @@ export default function BillingFailedPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="billing-card-fail"
         style={{
           width: '100%', maxWidth: 480,
           background: 'rgba(17,17,17,0.85)',
           backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-          border: '1px solid rgba(239,68,68,0.25)', borderRadius: 24,
-          padding: '48px 36px', textAlign: 'center',
+          border: '1px solid rgba(239,68,68,0.25)',
+          borderRadius: 24, padding: '48px 36px', textAlign: 'center',
           boxShadow: '0 24px 60px rgba(0,0,0,0.8), 0 0 80px rgba(239,68,68,0.04), inset 0 1px 0 rgba(255,255,255,0.05)',
           zIndex: 2, position: 'relative'
         }}
@@ -162,6 +163,13 @@ export default function BillingFailedPage() {
           Besoin d&apos;aide ? Contactez-nous sur WhatsApp.
         </p>
       </motion.div>
+
+      <style>{`
+        @media (max-width: 480px) {
+          .billing-card-fail { padding: 32px 20px !important; }
+          .billing-card-fail h1 { font-size: 26px !important; }
+        }
+      `}</style>
     </div>
   )
 }

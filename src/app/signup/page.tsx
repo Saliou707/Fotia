@@ -62,9 +62,10 @@ export default function SignupPage() {
         router.push('/dashboard')
         return
       }
+      const appUrl = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).replace(/\/+$/, '')
       await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
+        options: { redirectTo: `${appUrl}/auth/callback` },
       })
     } catch (err) {
       setError('Erreur lors de la connexion Google')
@@ -73,9 +74,9 @@ export default function SignupPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#15171A', color: '#F2EDE4', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px 24px', fontFamily: 'var(--font-inter, Inter, sans-serif)', position: 'relative', overflow: 'hidden' }}>
-      <Link href="/" style={{ position: 'fixed', top: 20, left: 20, display: 'inline-flex', alignItems: 'center', gap: 8, color: '#A1A1AA', textDecoration: 'none', fontWeight: 500, fontSize: 14, zIndex: 50, padding: '8px 12px', background: 'rgba(21,23,26,0.85)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }}>
-        <ArrowLeft size={16} /> Retour à l'accueil
+    <div style={{ minHeight: '100vh', background: '#15171A', color: '#F2EDE4', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px 24px', fontFamily: 'var(--font-inter, Inter, sans-serif)', position: 'relative', overflow: 'hidden' }} className="auth-page">
+      <Link href="/" style={{ position: 'fixed', top: 16, left: 14, display: 'inline-flex', alignItems: 'center', gap: 8, color: '#A1A1AA', textDecoration: 'none', fontWeight: 500, fontSize: 14, zIndex: 50, padding: '8px 12px', background: 'rgba(21,23,26,0.85)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }} className="auth-back-btn">
+        <ArrowLeft size={16} /> <span className="auth-back-label">Retour</span>
       </Link>
 
       <div style={{ position: 'absolute', top: '25%', left: '50%', transform: 'translateX(-50%)', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,107,53,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
@@ -163,6 +164,14 @@ export default function SignupPage() {
           En continuant, vous acceptez nos <Link href="/terms" style={{ color: '#C8482E', textDecoration: 'none' }}>Conditions</Link> et notre <Link href="/privacy" style={{ color: '#C8482E', textDecoration: 'none' }}>Politique de confidentialité</Link>
         </p>
       </motion.div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .auth-page { padding: 70px 12px 24px !important; }
+          .auth-back-btn { padding: 6px 10px !important; font-size: 13px !important; }
+          .auth-back-label { display: none !important; }
+        }
+      `}</style>
     </div>
   )
 }

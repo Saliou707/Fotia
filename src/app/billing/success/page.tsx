@@ -72,6 +72,7 @@ export default function BillingSuccessPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="billing-card"
         style={{
           width: '100%', maxWidth: 480,
           background: 'rgba(17,17,17,0.85)',
@@ -188,6 +189,13 @@ export default function BillingSuccessPage() {
           Merci d&apos;avoir rejoint Fotia Pro. Votre compte est maintenant actif.
         </p>
       </motion.div>
+
+      <style>{`
+        @media (max-width: 480px) {
+          .billing-card { padding: 32px 20px !important; }
+          .billing-card h1 { font-size: 26px !important; }
+        }
+      `}</style>
     </div>
   )
 }

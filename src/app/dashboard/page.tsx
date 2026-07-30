@@ -241,7 +241,7 @@ export default function DashboardPage() {
     <div style={{ minHeight: 'calc(100vh - 58px)', background: '#15171A', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
 
       {/* ══ HERO BANNER ══════════════════════════════════════════════════════ */}
-      <div style={{ position: 'relative', overflow: 'hidden', padding: '44px 36px 0', marginBottom: 0 }}>
+      <div className="dash-hero" style={{ position: 'relative', overflow: 'hidden', padding: '44px 36px 0', marginBottom: 0 }}>
         {/* Ambient gradient background */}
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: -80, left: -60, width: 500, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(200,72,46,0.09) 0%, transparent 70%)', filter: 'blur(40px)' }} />
@@ -335,7 +335,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ══ QUICK ACTIONS STRIP ══════════════════════════════════════════════ */}
-      <motion.div
+      <motion.div className="dash-actions"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
@@ -363,7 +363,7 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* ══ GALERIES RÉCENTES ════════════════════════════════════════════════ */}
-      <div style={{ padding: '0 36px 48px' }}>
+      <div className="dash-galleries" style={{ padding: '0 36px 48px' }}>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -539,6 +539,13 @@ export default function DashboardPage() {
         @media (max-width: 768px) {
           .kpi-grid { grid-template-columns: 1fr !important; }
           .gallery-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .dash-hero { padding: 24px 16px 0 !important; }
+          .dash-actions { padding: 16px 16px !important; gap: 8px !important; flex-wrap: wrap !important; }
+          .dash-actions a { flex: 1 1 auto !important; min-width: 0 !important; }
+          .dash-galleries { padding: 0 16px 32px !important; }
+          .create-modal-padding { padding: 24px 20px !important; }
         }
       `}</style>
     </div>

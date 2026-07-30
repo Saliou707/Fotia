@@ -87,9 +87,10 @@ export default function LoginPage() {
         router.push('/dashboard')
         return
       }
+      const appUrl = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).replace(/\/+$/, '')
       await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
+        options: { redirectTo: `${appUrl}/auth/callback` },
       })
     } catch (err) {
       setError('Erreur lors de la connexion Google')
@@ -101,9 +102,9 @@ export default function LoginPage() {
   const labelStyle: React.CSSProperties = { fontSize: 13, fontWeight: 500, color: '#A1A1AA', display: 'block', marginBottom: 8 }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#15171A', color: '#F2EDE4', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', paddingTop: '80px', fontFamily: 'var(--font-inter, Inter, sans-serif)', position: 'relative', overflow: 'hidden' }}>
-      <Link href="/" style={{ position: 'absolute', top: 24, left: 24, display: 'inline-flex', alignItems: 'center', gap: 8, color: '#A1A1AA', textDecoration: 'none', fontWeight: 500, fontSize: 14, zIndex: 10, padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }} className="hover:bg-white/10 transition">
-        <ArrowLeft size={16} /> Retour à l'accueil
+    <div style={{ minHeight: '100vh', background: '#15171A', color: '#F2EDE4', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', paddingTop: '80px', fontFamily: 'var(--font-inter, Inter, sans-serif)', position: 'relative', overflow: 'hidden' }} className="auth-page">
+      <Link href="/" style={{ position: 'absolute', top: 20, left: 16, display: 'inline-flex', alignItems: 'center', gap: 8, color: '#A1A1AA', textDecoration: 'none', fontWeight: 500, fontSize: 14, zIndex: 10, padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }} className="hover:bg-white/10 transition auth-back-btn">
+        <ArrowLeft size={16} /> <span className="auth-back-label">Retour</span>
       </Link>
 
       {/* Background glow */}
@@ -209,6 +210,14 @@ export default function LoginPage() {
           En continuant, vous acceptez nos <Link href="/terms" style={{ color: '#C8482E', textDecoration: 'none' }}>Conditions</Link> et notre <Link href="/privacy" style={{ color: '#C8482E', textDecoration: 'none' }}>Politique de confidentialité</Link>
         </p>
       </motion.div>
+      {/* Responsive styles */}
+      <style>{`
+        @media (max-width: 640px) {
+          .auth-page { padding: 70px 12px 24px !important; }
+          .auth-back-btn { top: 12px !important; left: 10px !important; padding: 6px 10px !important; font-size: 13px !important; }
+          .auth-back-label { display: none !important; }
+        }
+      `}</style>
     </div>
   )
 }
