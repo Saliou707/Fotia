@@ -3,17 +3,14 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { XCircle, RefreshCw, ArrowLeft, ShieldAlert } from 'lucide-react'
-import { useLanguage } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/client'
 
 export default function BillingFailedPage() {
   const [dots, setDots] = useState<number[]>([])
   const [userName, setUserName] = useState<string>('')
-  const { t } = useLanguage()
 
   useEffect(() => {
     setDots(Array.from({ length: 15 }, (_, i) => i))
-    // Récupérer le nom de l'utilisateur
     const fetchUser = async () => {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
@@ -93,7 +90,6 @@ export default function BillingFailedPage() {
           <XCircle size={36} strokeWidth={2.2} />
         </motion.div>
 
-        {/* Nom personnalisé */}
         {userName && (
           <motion.p
             initial={{ opacity: 0 }}
@@ -109,10 +105,8 @@ export default function BillingFailedPage() {
           fontSize: 32, fontWeight: 800, letterSpacing: '-0.03em',
           marginBottom: 16, color: '#F7F7F5', lineHeight: 1.1
         }}>
-          {t('billing.failed.title').split(' ')[0]}{' '}
-          <span style={{ color: '#EF4444' }}>
-            {t('billing.failed.title').split(' ').slice(1).join(' ')}
-          </span>
+          Paiement{' '}
+          <span style={{ color: '#EF4444' }}>échoué</span>
         </h1>
 
         <div style={{
@@ -122,11 +116,11 @@ export default function BillingFailedPage() {
           marginBottom: 24, fontSize: 12, color: '#EF4444',
           fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em'
         }}>
-          <ShieldAlert size={12} /> {t('billing.failed.badge')}
+          <ShieldAlert size={12} /> Paiement refusé
         </div>
 
         <p style={{ fontSize: 16, color: '#A09890', lineHeight: 1.6, marginBottom: 36 }}>
-          {t('billing.failed.description')}
+          Votre paiement n&apos;a pas pu être traité. Vérifiez votre solde ou réessayez avec un autre numéro.
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -142,7 +136,7 @@ export default function BillingFailedPage() {
             onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.12)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.08)' }}
           >
-            <RefreshCw size={18} /> {t('billing.failed.retry')}
+            <RefreshCw size={18} /> Réessayer le paiement
           </Link>
 
           <Link
@@ -157,7 +151,7 @@ export default function BillingFailedPage() {
             onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#A09890' }}
             onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#787068' }}
           >
-            <ArrowLeft size={16} /> {t('billing.failed.backToDashboard')}
+            <ArrowLeft size={16} /> Retour au Dashboard
           </Link>
         </div>
 
@@ -165,7 +159,7 @@ export default function BillingFailedPage() {
           textAlign: 'center', fontSize: 12, color: '#5A5550',
           marginTop: 28, borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: 16
         }}>
-          {t('billing.failed.footer')}
+          Besoin d&apos;aide ? Contactez-nous sur WhatsApp.
         </p>
       </motion.div>
     </div>

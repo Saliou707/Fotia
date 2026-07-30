@@ -39,7 +39,7 @@ export function validatePayload<T>(
 ): { success: true; data: T } | { success: false; error: string } {
   const result = schema.safeParse(data)
   if (!result.success) {
-    const formattedError = result.error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')
+    const formattedError = result.error.issues.map((e: any) => `${(e.path || []).join('.')}: ${e.message}`).join(', ')
     return { success: false, error: formattedError }
   }
   return { success: true, data: result.data }

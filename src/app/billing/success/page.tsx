@@ -3,17 +3,14 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { CheckCircle, ArrowRight, Sparkles } from 'lucide-react'
-import { useLanguage } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/client'
 
 export default function BillingSuccessPage() {
   const [dots, setDots] = useState<number[]>([])
   const [userName, setUserName] = useState<string>('')
-  const { t } = useLanguage()
 
   useEffect(() => {
     setDots(Array.from({ length: 20 }, (_, i) => i))
-    // Récupérer le nom de l'utilisateur
     const fetchUser = async () => {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
@@ -30,12 +27,9 @@ export default function BillingSuccessPage() {
     fetchUser()
   }, [])
 
-  const description = typeof t('billing.success.description') === 'function'
-    // @ts-ignore
-    ? (t as any)('billing.success.description')(userName)
-    : userName
-      ? `Félicitations ${userName} ! Votre compte a été mis à jour vers le plan Premium Pro. Vous disposez désormais de galeries illimitées et de toutes les fonctionnalités avancées.`
-      : `Votre compte a été mis à jour vers le plan Premium Pro. Vous disposez désormais de galeries illimitées et de toutes les fonctionnalités avancées.`
+  const description = userName
+    ? `Félicitations ${userName} ! Votre compte a été mis à jour vers le plan Premium Pro. Vous disposez désormais de galeries illimitées et de toutes les fonctionnalités avancées.`
+    : `Votre compte a été mis à jour vers le plan Premium Pro. Vous disposez désormais de galeries illimitées et de toutes les fonctionnalités avancées.`
 
   return (
     <div style={{
@@ -111,7 +105,6 @@ export default function BillingSuccessPage() {
           <CheckCircle size={36} strokeWidth={2.2} />
         </motion.div>
 
-        {/* Nom personnalisé */}
         {userName && (
           <motion.p
             initial={{ opacity: 0 }}
@@ -127,8 +120,7 @@ export default function BillingSuccessPage() {
           fontSize: 32, fontWeight: 800, letterSpacing: '-0.03em',
           marginBottom: 16, color: '#F7F7F5', lineHeight: 1.1
         }}>
-          {t('billing.success.title').split('!')[0]}
-          <span style={{ color: '#C8482E' }}>!</span>
+          Paiement réussi<span style={{ color: '#C8482E' }}>!</span>
         </h1>
 
         <div style={{
@@ -138,7 +130,7 @@ export default function BillingSuccessPage() {
           marginBottom: 24, fontSize: 12, color: '#DF5D43',
           fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em'
         }}>
-          <Sparkles size={12} /> {t('billing.success.badge')}
+          <Sparkles size={12} /> Plan Premium Pro activé
         </div>
 
         <p style={{ fontSize: 16, color: '#A09890', lineHeight: 1.6, marginBottom: 36 }}>
@@ -164,7 +156,7 @@ export default function BillingSuccessPage() {
               ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 8px 24px rgba(200,72,46,0.3)'
             }}
           >
-            {t('billing.success.goToDashboard')} <ArrowRight size={18} />
+            Aller au Dashboard <ArrowRight size={18} />
           </Link>
 
           <Link
@@ -185,7 +177,7 @@ export default function BillingSuccessPage() {
               ;(e.currentTarget as HTMLAnchorElement).style.color = '#A09890'
             }}
           >
-            {t('billing.success.seeSettings')}
+            Voir mes paramètres
           </Link>
         </div>
 
@@ -193,7 +185,7 @@ export default function BillingSuccessPage() {
           textAlign: 'center', fontSize: 12, color: '#5A5550',
           marginTop: 28, borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: 16
         }}>
-          {t('billing.success.footer')}
+          Merci d&apos;avoir rejoint Fotia Pro. Votre compte est maintenant actif.
         </p>
       </motion.div>
     </div>

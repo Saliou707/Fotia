@@ -10,8 +10,6 @@ import {
 } from 'lucide-react'
 import { fadeUp as fade, stagger } from '@/lib/animations'
 import { createClient } from '@/lib/supabase/client'
-import { useLanguage } from '@/lib/i18n'
-import LangSwitcher from '@/components/LangSwitcher'
 
 // ─── Shared styles ──────────────────────────────────────────────────────────
 const inputStyle: React.CSSProperties = {
@@ -317,7 +315,6 @@ export default function SettingsPage() {
             <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.04em', margin: 0 }}>Paramètres</h1>
             <p style={{ color: '#787068', fontSize: 14, marginTop: 4 }}>Gérez votre compte et personnalisez votre expérience</p>
           </div>
-          <LangSwitcher variant="compact" />
         </motion.div>
 
         {/* ── Avatar Hero Card ── */}
@@ -814,7 +811,9 @@ export default function SettingsPage() {
                       <div style={{ marginBottom: 20 }}>
                         <div style={{ fontSize: 14, color: '#E5DDD6', fontWeight: 500, marginBottom: 6 }}>Langue de l'interface</div>
                         <div style={{ fontSize: 12, color: '#787068', marginBottom: 16 }}>Ce réglage s'applique à toutes les pages de Fotia</div>
-                        <LangSwitcher variant="full" />
+                        <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(200,72,46,0.08)', border: '1px solid rgba(200,72,46,0.2)', fontSize: 13, color: '#C8482E' }}>
+                          🇫🇷 Le site est actuellement disponible uniquement en français.
+                        </div>
                       </div>
                       <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '20px 0' }} />
                       <div>

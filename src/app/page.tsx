@@ -10,8 +10,6 @@ import {
   Globe, Mail
 } from 'lucide-react'
 import { fadeUp, stagger } from '@/lib/animations'
-import { useLanguage } from '@/lib/i18n'
-import LangSwitcher from '@/components/LangSwitcher'
 
 const fade = fadeUp
 
@@ -66,8 +64,6 @@ export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isDesktop, setIsDesktop] = useState(true)
-  const { translations: tr } = useLanguage()
-  const l = tr.landing
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -84,31 +80,31 @@ export default function LandingPage() {
     }
   }, [])
 
-  const NAV_LINKS = [
-    { label: l.navFeatures, href: '#features' },
-    { label: l.navHowItWorks, href: '#workflow' },
-    { label: l.navWhatsapp, href: '#whatsapp' },
-    { label: l.navPricing, href: '#pricing' },
+  const NAV_LINKS: { label: string; href: string }[] = [
+    { label: 'Fonctionnalités', href: '#features' },
+    { label: 'Comment ça marche', href: '#workflow' },
+    { label: 'WhatsApp', href: '#whatsapp' },
+    { label: 'Tarifs', href: '#pricing' },
   ]
 
   const FEATURES = [
-    { icon: Upload, title: l.feature1Title, desc: l.feature1Desc },
-    { icon: Share2, title: l.feature2Title, desc: l.feature2Desc },
-    { icon: Heart, title: l.feature3Title, desc: l.feature3Desc },
-    { icon: BarChart3, title: l.feature4Title, desc: l.feature4Desc },
+    { icon: Upload, title: 'Import en un clic', desc: 'Importez toutes vos photos en quelques secondes, depuis votre ordinateur ou votre téléphone.' },
+    { icon: Share2, title: 'Partagez via WhatsApp', desc: 'Envoyez un lien sécurisé à vos clients directement sur WhatsApp, sans application tierce.' },
+    { icon: Heart, title: 'Sélection de favoris', desc: 'Vos clients marquent leurs photos préférées en un tap. Vous recevez la sélection instantanément.' },
+    { icon: BarChart3, title: 'Statistiques en temps réel', desc: 'Suivez les vues, les favoris et l\'engagement pour chaque galerie livrée.' },
   ]
 
   const STEPS = [
-    { n: '01', label: l.step1Label, sub: l.step1Sub },
-    { n: '02', label: l.step2Label, sub: l.step2Sub },
-    { n: '03', label: l.step3Label, sub: l.step3Sub },
-    { n: '04', label: l.step4Label, sub: l.step4Sub },
+    { n: '01', label: 'Créez votre galerie', sub: 'Importez vos photos en quelques secondes' },
+    { n: '02', label: 'Partagez via WhatsApp', sub: 'Un lien sécurisé pour votre client' },
+    { n: '03', label: 'Le client sélectionne', sub: 'Il marque ses photos favorites' },
+    { n: '04', label: 'Vous livrez', sub: 'Téléchargez la sélection finale' },
   ]
 
   const CLIENT_FEATURES = [
-    { icon: Smartphone, label: l.clientFeat1 },
-    { icon: Heart, label: l.clientFeat2 },
-    { icon: Download, label: l.clientFeat3 },
+    { icon: Smartphone, label: 'Optimisé mobile' },
+    { icon: Heart, label: 'Sélection de favoris' },
+    { icon: Download, label: 'Téléchargement facile' },
   ]
 
   return (
@@ -171,9 +167,7 @@ export default function LandingPage() {
         )}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          {/* Language Switcher — toujours visible */}
-          <LangSwitcher variant="compact" />
-
+            {/* Language Switcher supprimé — site en français uniquement */}
           {!isMobile && (
             <Link
               href="/login"
@@ -185,7 +179,7 @@ export default function LandingPage() {
               onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = '#F2EDE4'}
               onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = '#A09890'}
             >
-              {l.login}
+              Connexion
             </Link>
           )}
           <Link
@@ -209,7 +203,7 @@ export default function LandingPage() {
             }}
           >
             {!isMobile && <Camera size={14} />}
-            {l.getStarted}
+            Commencer gratuitement
           </Link>
 
           {isMobile && (
@@ -269,10 +263,10 @@ export default function LandingPage() {
             <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 16 }} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <Link href="/login" onClick={() => setMenuOpen(false)} style={{ textAlign: 'center', padding: '12px', borderRadius: 12, textDecoration: 'none', color: '#A09890', fontSize: 15, fontWeight: 500, border: '1px solid rgba(255,255,255,0.08)' }}>
-                {l.login}
+                Connexion
               </Link>
               <Link href="/signup" onClick={() => setMenuOpen(false)} style={{ textAlign: 'center', padding: '13px', borderRadius: 12, textDecoration: 'none', color: '#fff', fontSize: 15, fontWeight: 700, background: 'linear-gradient(135deg, #DF5438 0%, #C8482E 100%)', boxShadow: '0 4px 16px rgba(255,107,53,0.3)' }}>
-                {l.drawerStartFree}
+                Commencer gratuitement
               </Link>
             </div>
           </motion.div>
@@ -305,7 +299,7 @@ export default function LandingPage() {
             borderRadius: 99, border: '1px solid rgba(255,107,53,0.25)', background: 'rgba(255,107,53,0.07)',
             marginBottom: 28, fontSize: 13, color: '#C8482E', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase'
           }}>
-            <Star size={12} fill="#E8B33D" color="#E8B33D" /> {l.badge}
+            <Star size={12} fill="#E8B33D" color="#E8B33D" /> ✦ Nouveau — Partagez via WhatsApp
           </motion.div>
 
           <motion.h1 className="font-title" variants={fade} style={{
@@ -313,12 +307,12 @@ export default function LandingPage() {
             fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.05, marginBottom: 24,
             color: '#F2EDE4',
           }}>
-            {l.heroTitle1}{' '}
-            <span style={{ color: '#C8482E' }}>{l.heroTitle2}</span>
+            Livrez vos photos{' '}
+            <span style={{ color: '#C8482E' }}>comme un pro</span>
           </motion.h1>
 
           <motion.p variants={fade} style={{ fontSize: isMobile ? 16 : 18, color: '#787068', maxWidth: 540, lineHeight: 1.7, marginBottom: 40 }}>
-            {l.heroDesc}
+            La plateforme pour photographes qui veulent livrer des galeries élégantes, recevoir les sélections clients et se démarquer.
           </motion.p>
 
           <motion.div variants={fade} style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 52 }}>
@@ -339,7 +333,7 @@ export default function LandingPage() {
                 ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 6px 24px rgba(255,107,53,0.4)'
               }}
             >
-              {l.ctaPrimary} <ArrowRight size={18} />
+              Commencer gratuitement <ArrowRight size={18} />
             </Link>
             <button
               onClick={() => setShowDemoModal(true)}
@@ -361,7 +355,7 @@ export default function LandingPage() {
                 ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.15)'
               }}
             >
-              <Play size={16} fill="#F2EDE4" color="#F2EDE4" /> {l.ctaSecondary}
+              <Play size={16} fill="#F2EDE4" color="#F2EDE4" /> Voir la démo
             </button>
           </motion.div>
 
@@ -387,7 +381,7 @@ export default function LandingPage() {
                 {[1, 2, 3, 4, 5].map(i => <Star key={i} size={13} fill="#E8B33D" color="#E8B33D" />)}
               </div>
               <div style={{ fontSize: 14, color: '#787068' }}
-                dangerouslySetInnerHTML={{ __html: l.socialProof }}
+                dangerouslySetInnerHTML={{ __html: '<strong style="color:#F2EDE4">+500 photographes</strong> nous font confiance' }}
               />
             </div>
           </motion.div>
@@ -419,7 +413,7 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <div style={{ fontSize: 10, color: '#555', marginBottom: 2 }}>WhatsApp · now</div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: '#F2EDE4' }}>{l.floatWhatsapp}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#F2EDE4' }}>Galerie partagée ✓</div>
                 </div>
               </motion.div>
             )}
@@ -436,7 +430,7 @@ export default function LandingPage() {
                   boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
                 }}
               >
-                <div style={{ fontSize: 10, color: '#555', marginBottom: 4 }}>{l.floatViews}</div>
+                <div style={{ fontSize: 10, color: '#555', marginBottom: 4 }}>Vues cette semaine</div>
                 <div style={{ fontSize: 26, fontWeight: 800, color: '#C8482E', letterSpacing: '-0.02em', lineHeight: 1 }}>3.6K</div>
               </motion.div>
             )}
@@ -455,7 +449,7 @@ export default function LandingPage() {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
                   <Heart size={11} color="#C8482E" fill="#C8482E" />
-                  <div style={{ fontSize: 10, color: '#555' }}>{l.floatFavorites}</div>
+                  <div style={{ fontSize: 10, color: '#555' }}>Favoris sélectionnés</div>
                 </div>
                 <div style={{ fontSize: 26, fontWeight: 800, color: '#F2EDE4', letterSpacing: '-0.02em', lineHeight: 1 }}>1.2K</div>
               </motion.div>
@@ -498,7 +492,7 @@ export default function LandingPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
                       <Smartphone size={9} color="#A09890" />
-                      <span style={{ fontSize: 9, color: '#A09890', fontWeight: 600 }}>{l.phoneOpen}</span>
+                      <span style={{ fontSize: 9, color: '#A09890', fontWeight: 600 }}>Galerie ouverte</span>
                     </div>
                     <div style={{ width: 22, height: 22, borderRadius: 6, background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <span style={{ fontSize: 13, color: '#787068', lineHeight: 1 }}>···</span>
@@ -530,7 +524,7 @@ export default function LandingPage() {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                     {[{ icon: '📷', label: '152 photos' }, { icon: '📅', label: '12 mai 2024' }, { icon: '👁', label: '3.6K vues' }].map(({ icon, label }) => (
-                      <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                       <div key={label as string} style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                         <span style={{ fontSize: 8 }}>{icon}</span>
                         <span style={{ fontSize: 8, color: '#555', fontWeight: 500 }}>{label}</span>
                       </div>
@@ -540,20 +534,20 @@ export default function LandingPage() {
                   <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '6px 0', borderRadius: 8, background: 'rgba(255,107,53,0.12)', border: '1px solid rgba(255,107,53,0.25)' }}>
                       <Heart size={9} color="#C8482E" fill="#C8482E" />
-                      <span style={{ fontSize: 9, fontWeight: 700, color: '#C8482E' }}>{l.phoneLikeAll}</span>
+                      <span style={{ fontSize: 9, fontWeight: 700, color: '#C8482E' }}>Tout aimer</span>
                     </div>
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '6px 0', borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)' }}>
                       <Share2 size={9} color="#A09890" />
-                      <span style={{ fontSize: 9, fontWeight: 600, color: '#A09890' }}>{l.phoneShare}</span>
+                      <span style={{ fontSize: 9, fontWeight: 600, color: '#A09890' }}>Partager</span>
                     </div>
                   </div>
                 </div>
 
                 <div style={{ padding: '0 14px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: '#F2EDE4' }}>{l.phoneGallery}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#F2EDE4' }}>Galerie photos</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 8, color: '#555' }}>{l.phoneFilter}</span>
-                    <span style={{ fontSize: 8, color: '#555' }}>{l.phoneSort}</span>
+                    <span style={{ fontSize: 8, color: '#555' }}>Filtrer</span>
+                    <span style={{ fontSize: 8, color: '#555' }}>Trier</span>
                   </div>
                 </div>
 
@@ -579,7 +573,7 @@ export default function LandingPage() {
                 </div>
 
                 <div style={{ padding: '10px 0 4px', textAlign: 'center' }}>
-                  <span style={{ fontSize: 8, color: '#333' }}>{l.phonePowered} </span>
+                  <span style={{ fontSize: 8, color: '#333' }}>Propulsé par </span>
                   <span style={{ fontSize: 8, color: '#C8482E', fontWeight: 700 }}>Fotia</span>
                 </div>
               </div>
@@ -589,12 +583,12 @@ export default function LandingPage() {
                   <Heart size={13} color="#C8482E" fill="#C8482E" />
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 800, color: '#F2EDE4', lineHeight: 1 }}>24</div>
-                    <div style={{ fontSize: 9, color: '#555', lineHeight: 1 }}>{l.floatFavorites}</div>
+                    <div style={{ fontSize: 9, color: '#555', lineHeight: 1 }}>Favoris</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '9px 16px', borderRadius: 20, background: 'linear-gradient(135deg, #DF5438, #C8482E)', boxShadow: '0 4px 14px rgba(255,107,53,0.45)' }}>
                   <Download size={11} color="#fff" />
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>{l.phoneDownloadFav}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>Télécharger</span>
                 </div>
               </div>
             </div>
@@ -634,7 +628,7 @@ export default function LandingPage() {
                     </div>
                     <div style={{ padding: '4px 9px', background: 'rgba(255,255,255,0.05)', borderRadius: 7, display: 'flex', alignItems: 'center', gap: 4, border: '1px solid rgba(255,255,255,0.07)' }}>
                       <Share2 size={8} color="#A09890" />
-                      <span style={{ fontSize: 8.5, fontWeight: 600, color: '#A09890' }}>{l.phoneShare}</span>
+                      <span style={{ fontSize: 8.5, fontWeight: 600, color: '#A09890' }}>Partager</span>
                     </div>
                   </div>
                   <div style={{ position: 'relative', height: 130, overflow: 'hidden' }}>
@@ -673,12 +667,12 @@ export default function LandingPage() {
                     <Heart size={11} color="#C8482E" fill="#C8482E" />
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 800, color: '#F2EDE4', lineHeight: 1 }}>24</div>
-                      <div style={{ fontSize: 8, color: '#555', lineHeight: 1 }}>{l.floatFavorites}</div>
+                      <div style={{ fontSize: 8, color: '#555', lineHeight: 1 }}>Favoris</div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 18, background: 'linear-gradient(135deg, #DF5438, #C8482E)', boxShadow: '0 3px 12px rgba(255,107,53,0.5)' }}>
                     <Download size={9} color="#fff" />
-                    <span style={{ fontSize: 9.5, fontWeight: 700, color: '#fff' }}>{tr.common?.download || 'Télécharger'}</span>
+                    <span style={{ fontSize: 9.5, fontWeight: 700, color: '#fff' }}>Télécharger</span>
                   </div>
                 </div>
               </div>
@@ -692,9 +686,7 @@ export default function LandingPage() {
         <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: isMobile ? 24 : 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
             <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.06))' }} />
-            <span style={{ fontSize: 10, color: '#444', fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-              {l.trustedBy}
-            </span>
+            <span style={{ fontSize: 10, color: '#444', fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Ils nous font confiance</span>
             <div style={{ flex: 1, height: 1, background: 'linear-gradient(to left, transparent, rgba(255,255,255,0.06))' }} />
           </div>
           <div style={{ display: 'flex', flexWrap: isMobile ? 'wrap' : 'nowrap', justifyContent: 'center', alignItems: 'center', gap: 0 }}>
@@ -731,16 +723,16 @@ export default function LandingPage() {
         <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
           <motion.div variants={fade} style={{ textAlign: 'center', marginBottom: 72 }}>
             <h2 className="font-title" style={{ fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 16, color: '#F2EDE4' }}>
-              {l.featuresTag}{' '}
-              <span style={{ color: '#C8482E' }}>{l.featuresTagHighlight}</span>
+              Tout ce dont vous avez{' '}
+              <span style={{ color: '#C8482E' }}>besoin</span>
             </h2>
             <p style={{ fontSize: 18, color: '#787068', maxWidth: 520, margin: '0 auto', lineHeight: 1.65 }}>
-              {l.featuresDesc}
+              Une suite complète d’outils pour gérer vos galeries, partager vos photos et recevoir les sélections de vos clients.
             </p>
           </motion.div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: isMobile ? 12 : 20 }}>
             {FEATURES.map((f) => (
-              <motion.div key={f.title} variants={fade} style={{ padding: isMobile ? '24px 18px' : '36px 28px', borderRadius: 20, background: '#111', border: '1px solid rgba(255,255,255,0.06)', transition: 'all 0.2s ease', cursor: 'default' }} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+              <motion.div key={f.title as string} variants={fade} style={{ padding: isMobile ? '24px 18px' : '36px 28px', borderRadius: 20, background: '#111', border: '1px solid rgba(255,255,255,0.06)', transition: 'all 0.2s ease', cursor: 'default' }} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(255,107,53,0.09)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, border: '1px solid rgba(255,107,53,0.15)' }}>
                   <f.icon size={22} color="#C8482E" />
                 </div>
@@ -768,7 +760,7 @@ export default function LandingPage() {
                     </div>
                     <div style={{ padding: '6px 10px', background: 'rgba(255,255,255,0.06)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Share2 size={10} color="#A09890" />
-                      <span style={{ fontSize: 10, fontWeight: 600, color: '#A09890' }}>{l.phoneShare}</span>
+                      <span style={{ fontSize: 10, fontWeight: 600, color: '#A09890' }}>Partager</span>
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, padding: '0 6px', height: '100%', overflowY: 'hidden' }}>
@@ -805,7 +797,7 @@ export default function LandingPage() {
                     <Heart size={18} color="#C8482E" />
                     <div>
                       <div style={{ fontSize: 16, fontWeight: 700, color: '#F2EDE4', lineHeight: 1 }}>24</div>
-                      <div style={{ fontSize: 11, color: '#A09890', lineHeight: 1, marginTop: 4 }}>{l.floatFavorites}</div>
+                      <div style={{ fontSize: 11, color: '#A09890', lineHeight: 1, marginTop: 4 }}>Favoris sélectionnés</div>
                     </div>
                   </div>
                   <div style={{ padding: '10px 16px', borderRadius: 10, background: 'linear-gradient(135deg, #DF5438, #C8482E)', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 12px rgba(223,84,56,0.3)' }}>
@@ -820,17 +812,17 @@ export default function LandingPage() {
           {/* Right — Text */}
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger} style={{ flex: 1, maxWidth: isMobile ? '100%' : 520 }}>
             <motion.div variants={fade} style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 12, color: '#C8482E', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 20, padding: '5px 12px', borderRadius: 99, background: 'rgba(255,107,53,0.08)', border: '1px solid rgba(255,107,53,0.15)' }}>
-              <Smartphone size={13} /> {l.clientTag}
+              <Smartphone size={13} /> Expérience client
             </motion.div>
             <motion.h2 variants={fade} style={{ fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 20, lineHeight: 1.1, color: '#F2EDE4' }}>
-              {l.clientTitle1} <span style={{ color: '#C8482E' }}>{l.clientTitle2}</span>
+              Votre client <span style={{ color: '#C8482E' }}>adore l&apos;expérience</span>
             </motion.h2>
             <motion.p variants={fade} style={{ fontSize: 17, color: '#787068', lineHeight: 1.7, marginBottom: 36 }}>
-              {l.clientDesc}
+              Vos clients reçoivent un lien WhatsApp, ouvrent la galerie sur leur téléphone et sélectionnent leurs photos préférées en quelques secondes.
             </motion.p>
             <motion.div variants={fade} style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 36 }}>
               {CLIENT_FEATURES.map(({ icon: Icon, label }) => (
-                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div key={label as string} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(255,107,53,0.09)', border: '1px solid rgba(255,107,53,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon size={15} color="#C8482E" />
                   </div>
@@ -843,7 +835,7 @@ export default function LandingPage() {
                 onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,107,53,0.15)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,107,53,0.1)' }}
               >
-                {l.clientCta} <ArrowRight size={16} />
+                Essayer gratuitement <ArrowRight size={16} />
               </Link>
             </motion.div>
           </motion.div>
@@ -855,8 +847,8 @@ export default function LandingPage() {
         <div style={{ maxWidth: 880, margin: '0 auto' }}>
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
             <motion.div variants={fade} style={{ textAlign: 'center', marginBottom: 70 }}>
-              <div style={{ fontSize: 12, color: '#C8482E', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 16 }}>{l.workflowTag}</div>
-              <h2 className="font-title" style={{ fontSize: 'clamp(36px, 4.5vw, 56px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#F2EDE4' }}>{l.workflowTitle}</h2>
+              <div style={{ fontSize: 12, color: '#C8482E', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 16 }}>Comment ça marche</div>
+              <h2 className="font-title" style={{ fontSize: 'clamp(36px, 4.5vw, 56px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#F2EDE4' }}>En 4 étapes simples</h2>
             </motion.div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {STEPS.map((s, i) => (
@@ -877,12 +869,12 @@ export default function LandingPage() {
       <section style={{ padding: isMobile ? '60px 20px' : '90px 40px', background: '#0a0a0a', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto', display: 'grid', gridTemplateColumns: `repeat(${isMobile ? 2 : 4}, 1fr)`, gap: isMobile ? 32 : 0 }}>
           {[
-            { value: 1200, suffix: '+', label: l.stat1Label },
-            { value: 15000, suffix: '+', label: l.stat2Label },
-            { value: 99, suffix: '%', label: l.stat3Label },
-            { value: 0, suffix: '€', label: l.stat4Label },
+            { value: 1200, suffix: '+', label: 'Photographes' },
+            { value: 15000, suffix: '+', label: 'Photos livrées' },
+            { value: 99, suffix: '%', label: 'Satisfaction client' },
+            { value: 0, suffix: '€', label: 'Pour commencer' },
           ].map(({ value, suffix, label }, i) => (
-            <div key={label} style={{ textAlign: 'center', padding: isMobile ? 0 : '0 20px', borderRight: !isMobile && i < 3 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+            <div key={label as string} style={{ textAlign: 'center', padding: isMobile ? 0 : '0 20px', borderRight: !isMobile && i < 3 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
               <div style={{ fontSize: isMobile ? 40 : 52, fontWeight: 800, color: '#C8482E', letterSpacing: '-0.03em', lineHeight: 1 }}>
                 {value === 0 ? '0€' : <CountUp target={value} suffix={suffix} />}
               </div>
@@ -897,20 +889,20 @@ export default function LandingPage() {
         <div style={{ position: 'absolute', bottom: '15%', left: '50%', transform: 'translateX(-50%)', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(37,211,102,0.04) 0%, transparent 65%)', pointerEvents: 'none', filter: 'blur(60px)' }} />
         <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger} style={{ maxWidth: 820, margin: '0 auto', textAlign: 'center' }}>
           <motion.div variants={fade} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 18px', borderRadius: 99, background: 'rgba(37,211,102,0.08)', border: '1px solid rgba(37,211,102,0.2)', marginBottom: 28, fontSize: 13, color: '#25D366', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            <Smartphone size={14} /> {l.waTag}
+            <Smartphone size={14} /> WhatsApp Natif
           </motion.div>
           <motion.h2 variants={fade} style={{ fontSize: 'clamp(36px, 5vw, 60px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 28, lineHeight: 1.1, color: '#F2EDE4' }}>
-            {l.waTitle1}{' '}<span style={{ color: '#25D366' }}>{l.waTitle2}</span>
+            Partagez{' '}<span style={{ color: '#25D366' }}>via WhatsApp</span>
           </motion.h2>
           <motion.p variants={fade} style={{ color: '#787068', fontSize: 18, lineHeight: 1.7, marginBottom: 48, maxWidth: 680, marginLeft: 'auto', marginRight: 'auto' }}>
-            {l.waDesc}
+            Envoyez un lien WhatsApp à vos clients. Ils ouvrent la galerie directement, sans télécharger d’application. Simple, rapide, professionnel.
           </motion.p>
           <motion.div variants={fade}>
             <Link href="/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '16px 36px', borderRadius: 14, textDecoration: 'none', fontSize: 17, fontWeight: 700, background: 'linear-gradient(135deg, #DF5438 0%, #C8482E 100%)', color: '#fff', boxShadow: '0 8px 32px rgba(255,107,53,0.4)', transition: 'all 0.2s ease' }}
               onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 14px 44px rgba(255,107,53,0.55)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 8px 32px rgba(255,107,53,0.4)' }}
             >
-              {l.waCta} <ArrowRight size={18} />
+              Commencer gratuitement <ArrowRight size={18} />
             </Link>
           </motion.div>
         </motion.div>
@@ -923,13 +915,13 @@ export default function LandingPage() {
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
             <motion.div variants={fade} style={{ textAlign: 'center', marginBottom: 80 }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 18px', borderRadius: 99, background: 'rgba(255,107,53,0.08)', border: '1px solid rgba(255,107,53,0.2)', marginBottom: 24, fontSize: 12, color: '#C8482E', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                {l.pricingTag}
+                Tarifs
               </div>
               <h2 className="font-title" style={{ fontSize: 'clamp(36px, 4.5vw, 60px)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 20, color: '#F2EDE4' }}>
-                {l.pricingTitle1} <span style={{ color: '#C8482E' }}>{l.pricingTitle2}</span>
+                Simple et <span style={{ color: '#C8482E' }}>transparent</span>
               </h2>
               <p style={{ fontSize: 18, color: '#787068', maxWidth: 520, margin: '0 auto', lineHeight: 1.65 }}>
-                {l.pricingDesc}
+                Commencez gratuitement, passez au Pro quand vous êtes prêt.
               </p>
             </motion.div>
 
@@ -937,16 +929,16 @@ export default function LandingPage() {
               {/* ESSENTIEL */}
               <motion.div variants={fade} whileHover={{ y: -5, transition: { duration: 0.25 } }} style={{ padding: '44px 40px', borderRadius: 24, border: '1px solid rgba(255,255,255,0.07)', background: '#111', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ marginBottom: 32 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#787068', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>{l.planFreeTitle}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#787068', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>Essentiel</div>
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 10 }}>
-                    <span style={{ fontSize: 58, fontWeight: 800, color: '#F2EDE4', letterSpacing: '-0.04em', lineHeight: 1 }}>{l.planFreePrice}</span>
-                    <span style={{ fontSize: 16, color: '#787068', marginBottom: 10 }}>{l.planFreeRecurrence}</span>
+                    <span style={{ fontSize: 58, fontWeight: 800, color: '#F2EDE4', letterSpacing: '-0.04em', lineHeight: 1 }}>0€</span>
+                    <span style={{ fontSize: 16, color: '#787068', marginBottom: 10 }}>/mois</span>
                   </div>
-                  <p style={{ fontSize: 15, color: '#787068', lineHeight: 1.55 }}>{l.planFreeDesc}</p>
+                  <p style={{ fontSize: 15, color: '#787068', lineHeight: 1.55 }}>Parfait pour découvrir Fotia et livrer vos premières galeries.</p>
                 </div>
                 <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 28 }} />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 36, flex: 1 }}>
-                  {l.planFreeFeatures.map((f) => (
+                  {(['3 galeries actives', '50 photos par galerie', 'Lien de partage WhatsApp', 'Sélection de favoris']).map((f) => (
                     <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                       <div style={{ width: 20, height: 20, borderRadius: 6, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
                         <CheckCircle size={11} color="#555" />
@@ -959,27 +951,27 @@ export default function LandingPage() {
                   onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.2)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.12)' }}
                 >
-                  {l.planFreeBtn}
+                  Commencer gratuitement
                 </Link>
               </motion.div>
 
               {/* PREMIUM PRO */}
               <motion.div variants={fade} whileHover={{ y: -5, transition: { duration: 0.25 } }} style={{ padding: '52px 44px', borderRadius: 24, border: '1.5px solid rgba(255,107,53,0.4)', background: 'linear-gradient(155deg, rgba(255,107,53,0.07) 0%, #111 45%)', display: 'flex', flexDirection: 'column', position: 'relative', boxShadow: '0 32px 80px rgba(255,107,53,0.12)' }}>
                 <div style={{ position: 'absolute', top: -17, left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(135deg, #DF5438 0%, #C8482E 100%)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '6px 22px', borderRadius: 99, letterSpacing: '0.06em', textTransform: 'uppercase', boxShadow: '0 6px 20px rgba(255,107,53,0.45)', whiteSpace: 'nowrap' }}>
-                  {l.pricingRecommended}
+                  Recommandé
                 </div>
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 180, borderRadius: '24px 24px 0 0', background: 'radial-gradient(ellipse at 50% 0%, rgba(255,107,53,0.10) 0%, transparent 75%)', pointerEvents: 'none' }} />
                 <div style={{ marginBottom: 32, position: 'relative' }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#DF5438', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>{l.planProTitle}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#DF5438', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>Premium Pro</div>
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 10 }}>
-                    <span style={{ fontSize: 58, fontWeight: 800, color: '#F2EDE4', letterSpacing: '-0.04em', lineHeight: 1 }}>{l.planProPrice}</span>
-                    <span style={{ fontSize: 16, color: '#787068', marginBottom: 10 }}>{l.planProRecurrence}</span>
+                    <span style={{ fontSize: 58, fontWeight: 800, color: '#F2EDE4', letterSpacing: '-0.04em', lineHeight: 1 }}>15€</span>
+                    <span style={{ fontSize: 16, color: '#787068', marginBottom: 10 }}>/mois</span>
                   </div>
-                  <p style={{ fontSize: 15, color: '#A09890', lineHeight: 1.55 }}>{l.planProDesc}</p>
+                  <p style={{ fontSize: 15, color: '#A09890', lineHeight: 1.55 }}>Pour les photographes professionnels qui veulent le meilleur.</p>
                 </div>
                 <div style={{ height: 1, background: 'rgba(255,107,53,0.18)', marginBottom: 28 }} />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 36, flex: 1, position: 'relative' }}>
-                  {l.planProFeatures.map((f) => (
+                  {(['Galeries illimitées', '500 photos par galerie', 'Domaine personnalisé', 'Statistiques avancées', 'Support prioritaire', 'Téléchargement rapide']).map((f) => (
                     <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                       <div style={{ width: 20, height: 20, borderRadius: 6, background: 'rgba(255,107,53,0.13)', border: '1px solid rgba(255,107,53,0.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
                         <CheckCircle size={11} color="#C8482E" />
@@ -992,18 +984,14 @@ export default function LandingPage() {
                   onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 14px 44px rgba(255,107,53,0.58)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 8px 32px rgba(255,107,53,0.42)' }}
                 >
-                  {l.planProBtn} <ArrowRight size={18} />
+                  Commencer l’essai gratuit <ArrowRight size={18} />
                 </Link>
-                <p style={{ textAlign: 'center', fontSize: 13, color: '#787068', marginTop: 14 }}>{l.planProNote}</p>
+                <p style={{ textAlign: 'center', fontSize: 13, color: '#787068', marginTop: 14 }}>14 jours d’essai gratuit • Sans carte bancaire</p>
               </motion.div>
             </div>
 
             <motion.p variants={fade} style={{ textAlign: 'center', marginTop: 56, fontSize: 15, color: '#787068', lineHeight: 1.6 }}>
-              {l.pricingContact.split('<a>')[0]}
-              <a href="https://wa.me/79962131741" target="_blank" rel="noopener noreferrer" style={{ color: '#C8482E', textDecoration: 'none', fontWeight: 600 }}>
-                {l.pricingContact.split('<a>')[1]?.split('</a>')[0]}
-              </a>
-              {l.pricingContact.split('</a>')[1]}
+              Des questions ? <a href="https://wa.me/79962131741" target="_blank" rel="noopener noreferrer" style={{ color: '#C8482E', textDecoration: 'none', fontWeight: 600 }}>Contactez-nous sur WhatsApp</a>.
             </motion.p>
           </motion.div>
         </div>
@@ -1030,13 +1018,13 @@ export default function LandingPage() {
               <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(255,107,53,0.12)', border: '1px solid rgba(255,107,53,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Camera size={22} color="#C8482E" />
               </div>
-              <span style={{ fontSize: 14, color: '#C8482E', fontWeight: 600 }}>{l.ctaBannerTag}</span>
+              <span style={{ fontSize: 14, color: '#C8482E', fontWeight: 600 }}>Pour les photographes</span>
             </div>
             <h2 className="font-title" style={{ fontSize: isMobile ? 28 : 40, fontWeight: 800, letterSpacing: '-0.03em', color: '#F2EDE4', marginBottom: 12, lineHeight: 1.15 }}>
-              {l.ctaBannerTitle}
+              Prêt à impressionner vos clients ?
             </h2>
             <p style={{ fontSize: 16, color: '#787068', lineHeight: 1.65 }}>
-              {l.ctaBannerDesc}
+              Rejoignez des centaines de photographes qui font confiance à Fotia pour livrer leurs galeries.
             </p>
           </div>
           <div style={{ flexShrink: 0 }}>
@@ -1044,7 +1032,7 @@ export default function LandingPage() {
               onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-2px) scale(1.02)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 16px 48px rgba(255,107,53,0.6)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0) scale(1)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 8px 32px rgba(255,107,53,0.45)' }}
             >
-              {l.ctaBannerBtn} <ArrowRight size={18} />
+              Commencer gratuitement <ArrowRight size={18} />
             </Link>
           </div>
         </motion.div>
@@ -1056,11 +1044,11 @@ export default function LandingPage() {
           <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', gap: 40, marginBottom: 52 }}>
             <div style={{ maxWidth: 300 }}>
               <Image src="/logo.png" alt="Fotia Logo" width={90} height={30} style={{ width: 'auto', height: 'auto', objectFit: 'contain', filter: 'brightness(1.05)', marginBottom: 16 }} />
-              <p style={{ fontSize: 14, color: '#555', lineHeight: 1.65 }}>{l.footerBrand}</p>
+              <p style={{ fontSize: 14, color: '#555', lineHeight: 1.65 }}>La plateforme de livraison de galeries photos pour photographes professionnels.</p>
             </div>
             <div style={{ display: 'flex', gap: isMobile ? 32 : 64, flexWrap: 'wrap' }}>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#444', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 18 }}>{l.footerProduct}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#444', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 18 }}>Produit</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {NAV_LINKS.map(link => (
                     <a key={link.label} href={link.href} style={{ fontSize: 14, color: '#787068', textDecoration: 'none', transition: 'color 0.2s' }}
@@ -1073,11 +1061,11 @@ export default function LandingPage() {
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#444', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 18 }}>{l.footerLegal}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#444', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 18 }}>Légal</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <Link href="/privacy" style={{ fontSize: 14, color: '#787068', textDecoration: 'none' }}>{l.footerPrivacy}</Link>
-                  <Link href="/terms" style={{ fontSize: 14, color: '#787068', textDecoration: 'none' }}>{l.footerTerms}</Link>
-                  <a href="https://wa.me/79962131741" target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, color: '#C8482E', textDecoration: 'none', fontWeight: 500 }}>{l.footerSupport}</a>
+                  <Link href="/privacy" style={{ fontSize: 14, color: '#787068', textDecoration: 'none' }}>Confidentialité</Link>
+                  <Link href="/terms" style={{ fontSize: 14, color: '#787068', textDecoration: 'none' }}>Conditions d'utilisation</Link>
+                  <a href="https://wa.me/79962131741" target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, color: '#C8482E', textDecoration: 'none', fontWeight: 500 }}>Support WhatsApp</a>
                 </div>
               </div>
             </div>
@@ -1086,14 +1074,14 @@ export default function LandingPage() {
           <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', marginBottom: 28 }} />
 
           <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', gap: 20 }}>
-            <span style={{ color: '#444', fontSize: 14 }}>{l.footerCopy}</span>
+            <span style={{ color: '#444', fontSize: 14 }}>© 2025 Fotia. Tous droits réservés.</span>
             <div style={{ display: 'flex', gap: 12 }}>
               {[
                 { Icon: Globe, href: '#', label: 'Site' },
                 { Icon: Mail, href: 'mailto:support@myfotia.com', label: 'Support Email' },
-                { Icon: Share2, href: '#', label: l.phoneShare },
+                { Icon: Share2, href: '#', label: 'Partager' },
               ].map(({ Icon, href, label }, i) => (
-                <a key={i} href={href} target="_blank" rel="noopener noreferrer" title={label}
+                 <a key={i} href={href} target="_blank" rel="noopener noreferrer" title={label as string}
                   style={{ width: 36, height: 36, borderRadius: 9, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', textDecoration: 'none', transition: 'all 0.2s' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,107,53,0.1)'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,107,53,0.25)'; (e.currentTarget as HTMLAnchorElement).style.color = '#C8482E' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLAnchorElement).style.color = '#555' }}
@@ -1103,7 +1091,7 @@ export default function LandingPage() {
               ))}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: '#444', fontWeight: 500 }}>
-              <Zap size={13} color="#C8482E" /> {l.footerMadeIn}
+              <Zap size={13} color="#C8482E" /> Fait avec ♥ par des photographes
             </div>
           </div>
         </div>

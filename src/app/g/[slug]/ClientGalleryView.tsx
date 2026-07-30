@@ -215,12 +215,13 @@ export default function ClientGalleryView({ gallery, images }: Props) {
           top: 0;
           left: 0;
           right: 0;
-          height: 90px;
+          height: 88px;
           display: flex;
           align-items: center;
           justify-content: space-between;
           padding: 0 4%;
           z-index: 10;
+          background: linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%);
         }
 
         .hero-logo-box {
@@ -228,22 +229,32 @@ export default function ClientGalleryView({ gallery, images }: Props) {
           align-items: center;
           gap: 10px;
           cursor: pointer;
+          position: relative;
+        }
+
+        .hero-logo-glow {
+          position: absolute;
+          inset: -14px;
+          border-radius: 20px;
+          background: radial-gradient(ellipse, rgba(255,107,53,0.22) 0%, transparent 70%);
+          filter: blur(12px);
+          pointer-events: none;
         }
 
         .hero-nav-actions {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
         }
 
         .hero-nav-btn {
-          background: rgba(255, 255, 255, 0.06);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
+          background: rgba(255, 255, 255, 0.07);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
           color: #F5F0EB;
           border-radius: 99px;
-          padding: 10px 20px;
+          padding: 9px 20px;
           font-size: 13px;
           font-weight: 600;
           cursor: pointer;
@@ -252,11 +263,12 @@ export default function ClientGalleryView({ gallery, images }: Props) {
           align-items: center;
           gap: 8px;
           text-decoration: none;
+          font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         .hero-nav-btn:hover {
-          background: rgba(255, 255, 255, 0.12);
-          border-color: rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.13);
+          border-color: rgba(255, 255, 255, 0.22);
           transform: translateY(-1px);
         }
 
@@ -365,30 +377,40 @@ export default function ClientGalleryView({ gallery, images }: Props) {
         }
 
         .hero-primary-btn {
-          background: #C8482E;
+          background: linear-gradient(135deg, #DF5438 0%, #C8482E 60%, #A4351F 100%);
           color: #FFF;
           border: none;
           font-weight: 700;
           font-size: 14px;
           border-radius: 99px;
-          padding: 13px 26px;
+          padding: 13px 28px;
           cursor: pointer;
           display: flex;
           align-items: center;
           gap: 8px;
-          box-shadow: 0 8px 24px rgba(255, 107, 53, 0.35);
+          box-shadow: 0 8px 28px rgba(200, 72, 46, 0.45);
           transition: all 0.25s ease;
+          position: relative;
+          overflow: hidden;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .hero-primary-btn::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+          pointer-events: none;
         }
 
         .hero-primary-btn:hover {
           transform: translateY(-2px);
-          box-shadow: 0 12px 30px rgba(255, 107, 53, 0.5);
-          background: #FF7B4B;
+          box-shadow: 0 14px 36px rgba(200, 72, 46, 0.6);
         }
 
         .hero-secondary-btn {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.07);
+          border: 1px solid rgba(255, 255, 255, 0.15);
           color: #FFF;
           font-weight: 700;
           font-size: 14px;
@@ -398,14 +420,15 @@ export default function ClientGalleryView({ gallery, images }: Props) {
           display: flex;
           align-items: center;
           gap: 8px;
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
           transition: all 0.25s ease;
+          font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         .hero-secondary-btn:hover {
-          background: rgba(255, 255, 255, 0.12);
-          border-color: rgba(255, 255, 255, 0.24);
+          background: rgba(255, 255, 255, 0.14);
+          border-color: rgba(255, 255, 255, 0.28);
           transform: translateY(-2px);
         }
 
@@ -878,9 +901,24 @@ export default function ClientGalleryView({ gallery, images }: Props) {
         {/* Absolute Navigation inside Hero */}
         <div className="hero-nav">
           <div className="hero-logo-box" onClick={() => window.location.href = '/'}>
-            <img src="/logo.png" alt="Fotia Logo" width={80} style={{ objectFit: 'contain', filter: 'brightness(1.05)' }} />
+            <div className="hero-logo-glow" />
+            <img
+              src="/logo.png"
+              alt="Fotia"
+              width={82}
+              style={{ objectFit: 'contain', position: 'relative', filter: 'brightness(1.12) drop-shadow(0 0 10px rgba(255,107,53,0.45))' }}
+            />
           </div>
           <div className="hero-nav-actions">
+            {gallery.allow_favorites && favCount > 0 && (
+              <button className="hero-nav-btn" onClick={downloadFavorites}>
+                <Heart size={14} fill="currentColor" color="#C8482E" />
+                {favCount} favori{favCount > 1 ? 's' : ''}
+              </button>
+            )}
+            <button className="hero-nav-btn" onClick={() => setIsShareModalOpen(true)}>
+              <Share2 size={14} /> Partager
+            </button>
           </div>
         </div>
 

@@ -1,14 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Save, RefreshCw, Settings2, Image, HardDrive, Crown } from 'lucide-react'
+import { Save, Settings2, HardDrive, Crown } from 'lucide-react'
+import { PageHeader, formatBytes } from '../_components/ui'
 
-function formatBytes(bytes: number) {
-  if (!bytes) return '0 B'
-  const k = 1024, sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`
-}
+
 
 function SettingRow({
   label,
@@ -98,24 +94,25 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Paramètres</h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Configuration de la plateforme</p>
-        </div>
-        <button
-          onClick={save}
-          disabled={saving}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all"
-          style={{
-            background: saved ? 'rgba(16,185,129,0.2)' : 'var(--fotia-orange)',
-            color: saved ? '#10b981' : '#fff',
-          }}
-        >
-          {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          {saved ? 'Sauvegardé !' : saving ? 'Sauvegarde...' : 'Sauvegarder'}
-        </button>
-      </div>
+      <PageHeader
+        title="Paramètres"
+        description="Configuration de la plateforme"
+        actions={
+          <button
+            onClick={save}
+            disabled={saving}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-60"
+            style={{
+              background: saved ? 'rgba(16,185,129,0.2)' : 'var(--fotia-orange)',
+              color: saved ? '#10b981' : '#fff',
+              border: saved ? '1px solid rgba(16,185,129,0.3)' : 'none',
+            }}
+          >
+            <Save className="w-4 h-4" />
+            {saved ? 'Sauvegardé ✓' : saving ? 'Sauvegarde...' : 'Sauvegarder'}
+          </button>
+        }
+      />
 
       {/* Free Plan */}
       <div className="rounded-xl border p-6" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>

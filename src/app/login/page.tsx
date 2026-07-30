@@ -7,8 +7,6 @@ import { motion } from 'framer-motion'
 import { Eye, EyeOff, ArrowRight, Loader2, AlertCircle, ArrowLeft, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
-import { useLanguage } from '@/lib/i18n'
-import LangSwitcher from '@/components/LangSwitcher'
 
 // Separated into its own component because useSearchParams requires Suspense
 function SessionExpiredBanner({ onExpired }: { onExpired: () => void }) {
@@ -33,8 +31,6 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [sessionExpired, setSessionExpired] = useState(false)
-  const { translations: tr } = useLanguage()
-  const a = tr.auth
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -43,7 +39,6 @@ export default function LoginPage() {
 
     try {
       if (!isSupabaseConfigured) {
-        // Mode demo - allow login
         router.push('/dashboard')
         return
       }
@@ -73,7 +68,6 @@ export default function LoginPage() {
       }
     } catch (err: unknown) {
       const rawMessage = err instanceof Error ? err.message : 'Une erreur est survenue'
-      // Map Supabase error messages to user-friendly French messages
       const errorMap: Record<string, string> = {
         'Invalid login credentials': 'Email ou mot de passe incorrect. Si vous avez utilisé Google pour vous inscrire, cliquez sur « Continuer avec Google ».',
         'Email not confirmed': 'Veuillez confirmer votre adresse email avant de vous connecter.',
@@ -109,13 +103,9 @@ export default function LoginPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#15171A', color: '#F2EDE4', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', paddingTop: '80px', fontFamily: 'var(--font-inter, Inter, sans-serif)', position: 'relative', overflow: 'hidden' }}>
       <Link href="/" style={{ position: 'absolute', top: 24, left: 24, display: 'inline-flex', alignItems: 'center', gap: 8, color: '#A1A1AA', textDecoration: 'none', fontWeight: 500, fontSize: 14, zIndex: 10, padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }} className="hover:bg-white/10 transition">
-        <ArrowLeft size={16} /> {a.backHome}
+        <ArrowLeft size={16} /> Retour à l'accueil
       </Link>
-      {/* Language switcher */}
-      <div style={{ position: 'absolute', top: 24, right: 24, zIndex: 10 }}>
-        <LangSwitcher variant="compact" />
-      </div>
-      
+
       {/* Background glow */}
       <div style={{ position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,107,53,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
@@ -133,7 +123,7 @@ export default function LoginPage() {
         {/* Card */}
         <div style={{ background: '#111111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '32px 24px', width: '100%', boxSizing: 'border-box' }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.03em', marginBottom: 6, textAlign: 'center' }}>
-            {mode === 'login' ? `Bon retour 👋` : a.signupTitle}
+            {mode === 'login' ? `Bon retour 👋` : 'Créer un compte'}
           </h1>
           <p style={{ color: '#A1A1AA', fontSize: 14, textAlign: 'center', marginBottom: 28 }}>
             {mode === 'login' ? 'Connectez-vous à votre espace photographe' : 'Rejoignez des centaines de photographes'}
@@ -143,7 +133,7 @@ export default function LoginPage() {
           {sessionExpired && (
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px', borderRadius: 10, background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)', marginBottom: 20, color: '#fbbf24', fontSize: 13, lineHeight: 1.5 }}>
               <Clock size={16} style={{ flexShrink: 0, marginTop: 1 }} />
-              <span>{a.sessionExpired}</span>
+              <span>Votre session a expiré. Veuillez vous reconnecter.</span>
             </div>
           )}
 
@@ -177,16 +167,16 @@ export default function LoginPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {mode === 'signup' && (
                 <div>
-                  <label style={labelStyle}>{a.nameLabel}</label>
-                  <input value={name} onChange={e => setName(e.target.value)} placeholder={a.namePlaceholder} style={inputStyle} required={mode === 'signup'} />
+                  <label style={labelStyle}>Votre nom</label>
+                  <input value={name} onChange={e => setName(e.target.value)} placeholder="Jean-Baptiste Diallo" style={inputStyle} required={mode === 'signup'} />
                 </div>
               )}
               <div>
-                <label style={labelStyle}>{a.emailLabel}</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={a.emailPlaceholder} style={inputStyle} required />
+                <label style={labelStyle}>Adresse e-mail</label>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="votre@email.com" style={inputStyle} required />
               </div>
               <div>
-                <label style={labelStyle}>{a.passwordLabel}</label>
+                <label style={labelStyle}>Mot de passe</label>
                 <div style={{ position: 'relative' }}>
                   <input type={showPwd ? 'text' : 'password'} value={pwd} onChange={e => setPwd(e.target.value)} placeholder="••••••••" style={{ ...inputStyle, paddingRight: 44 }} required minLength={6} />
                   <button type="button" onClick={() => setShowPwd(!showPwd)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#A1A1AA', cursor: 'pointer', display: 'flex' }}>
@@ -198,19 +188,19 @@ export default function LoginPage() {
 
             {mode === 'login' && (
               <div style={{ textAlign: 'right', marginTop: 8 }}>
-                  <Link href="/forgot-password" style={{ fontSize: 13, color: '#A1A1AA', textDecoration: 'none' }}>{a.forgotPassword}</Link>
+                  <Link href="/forgot-password" style={{ fontSize: 13, color: '#A1A1AA', textDecoration: 'none' }}>Mot de passe oublié ?</Link>
               </div>
             )}
 
             <button type="submit" disabled={loading} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', borderRadius: 12, background: '#C8482E', color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: 16, marginTop: 24, border: 'none', width: '100%', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, minHeight: '48px' }}>
-              {loading ? <Loader2 size={18} className="animate-spin" /> : (mode === 'login' ? a.loginBtn : a.signupBtn)} {loading ? '' : <ArrowRight size={18} />}
+              {loading ? <Loader2 size={18} className="animate-spin" /> : (mode === 'login' ? 'Se connecter' : "S'inscrire gratuitement")} {loading ? '' : <ArrowRight size={18} />}
             </button>
           </form>
 
           <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: '#A1A1AA' }}>
-            {mode === 'login' ? `${a.noAccount} ` : `${a.alreadyAccount} `}
+            {mode === 'login' ? `Pas encore de compte ? ` : `Déjà un compte ? `}
             <button type="button" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError('') }} style={{ background: 'none', border: 'none', color: '#C8482E', cursor: 'pointer', fontSize: 14, fontWeight: 600, padding: '10px' }}>
-              {mode === 'login' ? a.signupLink : a.loginLink}
+              {mode === 'login' ? 'Créer un compte' : 'Se connecter'}
             </button>
           </p>
         </div>

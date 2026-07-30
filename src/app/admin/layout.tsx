@@ -1,5 +1,6 @@
 import { requireAdmin } from '@/lib/admin'
 import AdminSidebar from './_components/Sidebar'
+import { ADMIN_CSS_VARS } from './_components/ui'
 
 export const metadata = {
   title: 'Fotia — Admin',
@@ -11,22 +12,22 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Server-side guard — redirects non-admins before anything renders
   await requireAdmin()
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: '#0B0B0B', color: '#F7F7F5', fontFamily: 'Inter, system-ui, sans-serif' }}
-    >
-      <AdminSidebar />
-
-      {/* Main content */}
-      <div className="lg:pl-60">
-        <main className="min-h-screen p-6 lg:p-8">
-          {children}
-        </main>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: ADMIN_CSS_VARS }} />
+      <div
+        className="min-h-screen"
+        style={{ background: 'var(--bg-base)', color: 'var(--text-primary)', fontFamily: 'Inter, system-ui, sans-serif' }}
+      >
+        <AdminSidebar />
+        <div className="lg:pl-64">
+          <main className="min-h-screen p-5 lg:p-8 max-w-[1400px]">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
