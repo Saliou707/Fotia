@@ -29,6 +29,14 @@ export const DJOMY_BASE_URL =
     ? 'https://api.djomy.africa'
     : 'https://sandbox-api.djomy.africa')
 
+// Partenaire — envoyé via X-PARTNER-DOMAIN sur chaque requête
+// Utilise DJOMY_PARTNER_DOMAIN si défini, sinon extrait le hostname depuis NEXT_PUBLIC_APP_URL
+const DJOMY_PARTNER_DOMAIN =
+  process.env.DJOMY_PARTNER_DOMAIN ||
+  (process.env.NEXT_PUBLIC_APP_URL
+    ? new URL(process.env.NEXT_PUBLIC_APP_URL).hostname
+    : 'localhost')
+
 // ---- Types -------------------------------------------------------------
 
 export type DjomyPaymentStatus =
@@ -150,6 +158,7 @@ export async function getDjomyAccessToken(retries = 2): Promise<string> {
           method: 'POST',
           headers: {
             'X-API-KEY': apiKey,
+            'X-PARTNER-DOMAIN': DJOMY_PARTNER_DOMAIN,
             'Content-Type': 'application/json',
           },
         },
@@ -203,6 +212,7 @@ async function authHeaders(): Promise<Record<string, string>> {
   return {
     Authorization: `Bearer ${accessToken}`,
     'X-API-KEY': apiKey,
+    'X-PARTNER-DOMAIN': DJOMY_PARTNER_DOMAIN,
     'Content-Type': 'application/json',
   }
 }

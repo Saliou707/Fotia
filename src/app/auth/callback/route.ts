@@ -1,3 +1,4 @@
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function GET(request: NextRequest) {
@@ -17,11 +18,32 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}${next}`)
   }
 
+  // Créer la réponse de redirection AVANT l'échange pour que les cookies de session
+  // (Set-Cookie) soient bien attachés à cette réponse et suivent le navigateur
+  // vers le dashboard. Sans cela, `cookies().set()` de `next/headers` ne propage
+  // pas les cookies sur un NextResponse.redirect() créé après coup.
+  const response = NextResponse.redirect(`${origin}${next}`)
+
   try {
-    const { createClient } = await import('@/lib/supabase/server')
-    const supabase = await createClient()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll()
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            )
+          },
+        },
+      }
+    )
+
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) return NextResponse.redirect(`${origin}${next}`)
+    if (!error) return response
   } catch {
     // Pas de Supabase configuré
   }
