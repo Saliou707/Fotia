@@ -1,5 +1,34 @@
 import type { NextConfig } from 'next'
 
+const CSP_DIRECTIVES: Record<string, string[]> = {
+  'default-src': ["'self'"],
+  'script-src':  ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+  'style-src':   ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+  'img-src':     ["'self'", 'https:', 'data:', 'blob:'],
+  'font-src':    ["'self'", 'https://fonts.gstatic.com', 'data:'],
+  'connect-src': [
+    "'self'",
+    'https://*.supabase.co',
+    'https://hbntvpgxypwwkgiupves.supabase.co',
+    'https://api.djomy.africa',
+    'https://sandbox-api.djomy.africa',
+    'https://*.r2.dev',
+    'https://*.r2.cloudflarestorage.com',
+    'https://cdn.fotia.app',
+  ],
+  'frame-src':      ["'none'"],
+  'object-src':     ["'none'"],
+  'base-uri':       ["'self'"],
+  'form-action':    ["'self'"],
+  'frame-ancestors': ["'none'"],
+}
+
+function formatCsp(directives: Record<string, string[]>): string {
+  return Object.entries(directives)
+    .map(([key, vals]) => `${key} ${vals.join(' ')}`)
+    .join('; ')
+}
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -24,6 +53,40 @@ const nextConfig: NextConfig = {
   // Optimize for production
   compress: true,
   poweredByHeader: false,
+  // Security headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: formatCsp(CSP_DIRECTIVES),
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+        ],
+      },
+    ]
+  },
   // Allow server actions + gros fichiers (photos)
   experimental: {
     serverActions: {

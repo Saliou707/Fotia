@@ -1,6 +1,31 @@
 import { getPublicUrl } from '@/lib/r2/client'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// En production, restreindre l'origine aux domaines autorisés
+// Les images doivent pouvoir être chargées depuis n'importe quelle galerie
+// → on utilise le domaine parent comme origine dynamique
+// ATTENTION : utiliser hostname exact, jamais startsWith() sur l'URL complète
+// pour éviter les attaques de type 'myfotia.com.evil.com'
+function getCorsOrigin(request: NextRequest): string {
+  const origin = request.headers.get('origin')
+  if (origin) {
+    try {
+      const hostname = new URL(origin).hostname
+      const isAllowed =
+        hostname === 'myfotia.com' ||
+        hostname === 'cdn.fotia.app' ||
+        hostname === 'localhost' ||
+        hostname === 'localhost:3000' ||
+        hostname.endsWith('.myfotia.com') ||
+        hostname === new URL(process.env.NEXT_PUBLIC_APP_URL || '').hostname
+      if (isAllowed) return origin
+    } catch {
+      // URL invalide -> fallback
+    }
+  }
+  return 'https://myfotia.com'
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const key = searchParams.get('key')
@@ -21,13 +46,15 @@ export async function GET(request: NextRequest) {
 
     const imageBuffer = await response.arrayBuffer()
     const contentType = response.headers.get('content-type') || 'image/jpeg'
+    const corsOrigin = getCorsOrigin(request)
 
     return new NextResponse(imageBuffer, {
       headers: {
         'Content-Type': contentType,
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': corsOrigin,
         'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Credentials': 'true',
         'Cache-Control': 'public, max-age=31536000, immutable',
       },
     })
@@ -37,12 +64,14 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function OPTIONS() {
+export async function OPTIONS(request: NextRequest) {
+  const corsOrigin = getCorsOrigin(request)
   return new NextResponse(null, {
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': corsOrigin,
       'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Credentials': 'true',
     },
   })
 }

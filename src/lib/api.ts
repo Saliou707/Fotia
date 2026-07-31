@@ -190,7 +190,7 @@ export function getOrCreateClientToken(): string {
   if (typeof window === 'undefined') return ''
   let token = localStorage.getItem(KEY)
   if (!token) {
-    token = Math.random().toString(36).slice(2) + Date.now().toString(36)
+    token = crypto.randomUUID()
     localStorage.setItem(KEY, token)
   }
   return token
