@@ -1,22 +1,53 @@
 import { NextResponse } from 'next/server'
 import { listImages, deleteObject } from '@/lib/r2/client'
 import { createClient } from '@supabase/supabase-js'
+import { createHash, timingSafeEqual } from 'node:crypto'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   try {
     // 1. Vérification du token de sécurité CRON
+    // ⚠️ Fail-closed : pas de secret par défaut. CRON_SECRET DOIT être défini
+    // sur le serveur (Vercel Dashboard → Environment Variables).
+    const cronSecret = process.env.CRON_SECRET
+    if (!cronSecret) {
+      console.error('[CRON R2 Cleanup] CRON_SECRET non défini sur le serveur')
+      return NextResponse.json(
+        { error: 'Configuration serveur manquante' },
+        { status: 500 }
+      )
+    }
+
     const authHeader = request.headers.get('authorization')
-    const cronSecret = process.env.CRON_SECRET || 'default-cron-secret-fotia'
-    
-    if (authHeader !== `Bearer ${cronSecret}`) {
+    const expected = `Bearer ${cronSecret}`
+
+    // Comparaison en temps constant (anti timing attack).
+    // On compare des hash SHA-256 des deux côtés : normalise la longueur
+    // (pas de fuite de la taille du secret par timing) et permet à
+    // timingSafeEqual de fonctionner sans pré-vérification de longueur.
+    const actualHash = createHash('sha256').update(authHeader ?? '').digest()
+    const expectedHash = createHash('sha256').update(expected).digest()
+    const isAuthorized = timingSafeEqual(actualHash, expectedHash)
+
+    if (!isAuthorized) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
     // Initialisation du client Supabase
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    // ⚠️ Clé service_role OBLIGATOIRE — jamais de fallback vers la clé anon :
+    // la politique RLS "Anyone can view images in active galleries" ne renverrait
+    // que les images des galeries actives → le cron supprimerait TOUTES les
+    // photos des galeries draft/archivées (perte de données).
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('[CRON R2 Cleanup] SUPABASE_SERVICE_ROLE_KEY non définie sur le serveur')
+      return NextResponse.json(
+        { error: 'Configuration serveur manquante' },
+        { status: 500 }
+      )
+    }
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // 2. Récupération de toutes les clés d'images enregistrées en base
