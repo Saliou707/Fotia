@@ -10,7 +10,13 @@ export async function GET(request: Request) {
     // 1. Vérification du token de sécurité CRON
     // ⚠️ Fail-closed : pas de secret par défaut. CRON_SECRET DOIT être défini
     // sur le serveur (Vercel Dashboard → Environment Variables).
-    const cronSecret = process.env.CRON_SECRET
+    // .trim() : défense contre un espace/saut de ligne accidentel collé avec la valeur
+    // (Vercel refuse le déploiement si l'env var contient du whitespace aux extrémités).
+    const rawSecret = process.env.CRON_SECRET ?? ''
+    const cronSecret = rawSecret.trim()
+    if (cronSecret !== rawSecret) {
+      console.warn('[CRON R2 Cleanup] CRON_SECRET contient des espaces/sauts de ligne aux extrémités (nettoyés automatiquement — corrigez la valeur dans Vercel)')
+    }
     if (!cronSecret) {
       console.error('[CRON R2 Cleanup] CRON_SECRET non défini sur le serveur')
       return NextResponse.json(

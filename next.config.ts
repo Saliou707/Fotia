@@ -1,8 +1,12 @@
 import type { NextConfig } from 'next'
 
+// 'unsafe-eval' n'est nécessaire qu'en développement (hot-reload SWC).
+// En production on le retire pour durcir la CSP contre les attaques XSS.
+const IS_PROD = process.env.NODE_ENV === 'production'
+
 const CSP_DIRECTIVES: Record<string, string[]> = {
   'default-src': ["'self'"],
-  'script-src':  ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+  'script-src':  ["'self'", "'unsafe-inline'", ...(IS_PROD ? [] : ["'unsafe-eval'"])],
   'style-src':   ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
   'img-src':     ["'self'", 'https:', 'data:', 'blob:'],
   'font-src':    ["'self'", 'https://fonts.gstatic.com', 'data:'],
@@ -48,6 +52,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '*.supabase.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
     ],
   },
   // Optimize for production
@@ -82,6 +90,14 @@ const nextConfig: NextConfig = {
           {
             key: 'Strict-Transport-Security',
             value: 'max-age=63072000; includeSubDomains; preload',
+          },
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'same-site',
           },
         ],
       },

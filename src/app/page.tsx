@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { motion, AnimatePresence, useInView } from 'framer-motion'
+import { LazyMotion, domAnimation, m, AnimatePresence, useInView } from 'framer-motion'
 import {
   ArrowRight, Upload, Share2, Heart, Download,
   Star, CheckCircle, Zap, MessageSquare, Shield,
@@ -14,12 +14,12 @@ import { fadeUp, stagger } from '@/lib/animations'
 const fade = fadeUp
 
 const HERO_PHOTOS = [
-  '/media__1784566765630.jpg', // Mariage Banquet & Gâteau
-  '/media__1784567428078.jpg', // Mariage Arche de Fleurs
-  '/media__1784567428152.jpg', // Soirée Amis & Fête
-  '/media__1784567428163.jpg', // Nightclub & DJ Selfie
-  '/concert_stage_photo_1784566103244.png', // Concert Live
-  '/corporate_gala_photo_1784566134178.png', // Gala Événement Pro
+  '/media__1784566765630.webp', // Mariage Banquet & Gâteau
+  '/media__1784567428078.webp', // Mariage Arche de Fleurs
+  '/media__1784567428152.webp', // Soirée Amis & Fête
+  '/media__1784567428163.webp', // Nightclub & DJ Selfie
+  '/concert_stage_photo_1784566103244.webp', // Concert Live
+  '/corporate_gala_photo_1784566134178.webp', // Gala Événement Pro
 ]
 
 const TRUSTED_BY = [
@@ -108,6 +108,7 @@ export default function LandingPage() {
   ]
 
   return (
+    <LazyMotion features={domAnimation} strict={false}>
     <div style={{ background: '#15171A', color: '#F2EDE4', fontFamily: 'var(--font-inter, Inter, sans-serif)', overflowX: 'hidden' }}>
 
       {/* ===== NAVBAR ===== */}
@@ -218,8 +219,8 @@ export default function LandingPage() {
             >
               <AnimatePresence mode="wait">
                 {menuOpen
-                  ? <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}><X size={20} /></motion.span>
-                  : <motion.span key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}><Menu size={20} /></motion.span>
+                  ? <m.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}><X size={20} /></m.span>
+                  : <m.span key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}><Menu size={20} /></m.span>
                 }
               </AnimatePresence>
             </button>
@@ -230,7 +231,7 @@ export default function LandingPage() {
       {/* Mobile Drawer */}
       <AnimatePresence>
         {menuOpen && isMobile && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
@@ -244,7 +245,7 @@ export default function LandingPage() {
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 20 }}>
               {NAV_LINKS.map((link, i) => (
-                <motion.a
+                <m.a
                   key={link.label} href={link.href}
                   onClick={() => setMenuOpen(false)}
                   initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
@@ -257,7 +258,7 @@ export default function LandingPage() {
                 >
                   {link.label}
                   <ArrowRight size={14} color="#C8482E" />
-                </motion.a>
+                </m.a>
               ))}
             </div>
             <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 16 }} />
@@ -269,7 +270,7 @@ export default function LandingPage() {
                 Commencer gratuitement
               </Link>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -290,32 +291,32 @@ export default function LandingPage() {
         <div style={{ position: 'absolute', top: '30%', left: '25%', transform: 'translate(-50%,-50%)', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,107,53,0.09) 0%, transparent 65%)', pointerEvents: 'none', filter: 'blur(80px)' }} />
 
         {/* LEFT — Text content */}
-        <motion.div
+        <m.div
           initial="hidden" animate="show" variants={stagger}
           style={{ flex: 1, zIndex: 10, maxWidth: isMobile ? '100%' : 620 }}
         >
-          <motion.div variants={fade} style={{
+          <m.div variants={fade} style={{
             display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 16px',
             borderRadius: 99, border: '1px solid rgba(255,107,53,0.25)', background: 'rgba(255,107,53,0.07)',
             marginBottom: 28, fontSize: 13, color: '#C8482E', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase'
           }}>
             <Star size={12} fill="#E8B33D" color="#E8B33D" /> ✦ Nouveau — Partagez via WhatsApp
-          </motion.div>
+          </m.div>
 
-          <motion.h1 className="font-title" variants={fade} style={{
+          <m.h1 className="font-title" variants={fade} style={{
             fontSize: isMobile ? 'clamp(38px, 12vw, 56px)' : 'clamp(48px, 6vw, 80px)',
             fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.05, marginBottom: 24,
             color: '#F2EDE4',
           }}>
             Livrez vos photos{' '}
             <span style={{ color: '#C8482E' }}>comme un pro</span>
-          </motion.h1>
+          </m.h1>
 
-          <motion.p variants={fade} style={{ fontSize: isMobile ? 16 : 18, color: '#787068', maxWidth: 540, lineHeight: 1.7, marginBottom: 40 }}>
+          <m.p variants={fade} style={{ fontSize: isMobile ? 16 : 18, color: '#787068', maxWidth: 540, lineHeight: 1.7, marginBottom: 40 }}>
             La plateforme pour photographes qui veulent livrer des galeries élégantes, recevoir les sélections clients et se démarquer.
-          </motion.p>
+          </m.p>
 
-          <motion.div variants={fade} style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 52 }}>
+          <m.div variants={fade} style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 52 }}>
             <Link href="/signup" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '14px 28px', borderRadius: 12, textDecoration: 'none',
@@ -357,10 +358,10 @@ export default function LandingPage() {
             >
               <Play size={16} fill="#F2EDE4" color="#F2EDE4" /> Voir la démo
             </button>
-          </motion.div>
+          </m.div>
 
           {/* Social proof */}
-          <motion.div variants={fade} style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <m.div variants={fade} style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               {[1, 2, 3, 4].map(i => (
                 <div key={i} style={{
@@ -384,19 +385,19 @@ export default function LandingPage() {
                 dangerouslySetInnerHTML={{ __html: '<strong style="color:#F2EDE4">+500 photographes</strong> nous font confiance' }}
               />
             </div>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
 
         {/* RIGHT — Phone mockup (Desktop) */}
         {!isMobile && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, x: 60, y: 20 }}
             animate={{ opacity: 1, x: 0, y: 0 }}
             transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
             style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 10, paddingTop: 40 }}
           >
             {isDesktop && (
-              <motion.div
+              <m.div
                 animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
                 style={{
@@ -415,11 +416,11 @@ export default function LandingPage() {
                   <div style={{ fontSize: 10, color: '#555', marginBottom: 2 }}>WhatsApp · now</div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: '#F2EDE4' }}>Galerie partagée ✓</div>
                 </div>
-              </motion.div>
+              </m.div>
             )}
 
             {isDesktop && (
-              <motion.div
+              <m.div
                 animate={{ y: [0, -9, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
                 style={{
@@ -432,11 +433,11 @@ export default function LandingPage() {
               >
                 <div style={{ fontSize: 10, color: '#555', marginBottom: 4 }}>Vues cette semaine</div>
                 <div style={{ fontSize: 26, fontWeight: 800, color: '#C8482E', letterSpacing: '-0.02em', lineHeight: 1 }}>3.6K</div>
-              </motion.div>
+              </m.div>
             )}
 
             {isDesktop && (
-              <motion.div
+              <m.div
                 animate={{ y: [0, -7, 0] }}
                 transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
                 style={{
@@ -452,7 +453,7 @@ export default function LandingPage() {
                   <div style={{ fontSize: 10, color: '#555' }}>Favoris sélectionnés</div>
                 </div>
                 <div style={{ fontSize: 26, fontWeight: 800, color: '#F2EDE4', letterSpacing: '-0.02em', lineHeight: 1 }}>1.2K</div>
-              </motion.div>
+              </m.div>
             )}
 
             {/* Phone Frame */}
@@ -488,7 +489,7 @@ export default function LandingPage() {
 
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflowY: 'hidden', background: '#0f0f0f' }}>
                 <div style={{ padding: '48px 14px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0f0f0f' }}>
-                  <img src="/logo.png" alt="Fotia" style={{ height: 18, objectFit: 'contain', filter: 'brightness(1.1)' }} />
+                  <Image src="/logo.png" alt="Fotia" width={27} height={18} style={{ height: 18, width: 'auto', objectFit: 'contain', filter: 'brightness(1.1)' }} />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
                       <Smartphone size={9} color="#A09890" />
@@ -501,7 +502,7 @@ export default function LandingPage() {
                 </div>
 
                 <div style={{ position: 'relative', margin: '0 14px', borderRadius: 14, overflow: 'hidden', height: 120 }}>
-                  <img src="/media__1784566765630.jpg" alt="Mariage de Prestige" loading="eager" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <Image src="/media__1784566765630.webp" alt="Mariage de Prestige" fill sizes="260px" style={{ objectFit: 'cover', display: 'block' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(15,15,15,0.1) 0%, rgba(15,15,15,0.75) 100%)' }} />
                 </div>
 
@@ -553,18 +554,18 @@ export default function LandingPage() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2, padding: '0 2px' }}>
                   {[
-                    { src: '/media__1784566765630.jpg', liked: true },                                    // Mariage Banquet & Gâteau
-                    { src: '/media__1784567428078.jpg', liked: false },                                   // Arche de fleurs & lumières
-                    { src: '/media__1784567428152.jpg', liked: true },                                    // Fête Amis & Rires
-                    { src: '/media__1784567428163.jpg', liked: false },                                   // Nightclub & DJ Selfie
-                    { src: '/concert_stage_photo_1784566103244.png', liked: true },                       // Concert Live Lasers
-                    { src: '/corporate_gala_photo_1784566134178.png', liked: false },                      // Gala Corporate
-                    { src: '/wedding_reception_photo_1784566087301.png', liked: true },                    // Réception Mariage Luxe
-                    { src: '/nightclub_party_photo_1784566118666.png', liked: false },                    // Party VIP Champagne
+                    { src: '/media__1784566765630.webp', liked: true },                                    // Mariage Banquet & Gâteau
+                    { src: '/media__1784567428078.webp', liked: false },                                   // Arche de fleurs & lumières
+                    { src: '/media__1784567428152.webp', liked: true },                                    // Fête Amis & Rires
+                    { src: '/media__1784567428163.webp', liked: false },                                   // Nightclub & DJ Selfie
+                    { src: '/concert_stage_photo_1784566103244.webp', liked: true },                       // Concert Live Lasers
+                    { src: '/corporate_gala_photo_1784566134178.webp', liked: false },                      // Gala Corporate
+                    { src: '/wedding_reception_photo_1784566087301.webp', liked: true },                    // Réception Mariage Luxe
+                    { src: '/nightclub_party_photo_1784566118666.webp', liked: false },                    // Party VIP Champagne
                     { src: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80&auto=format&fit=crop', liked: true },  // Portrait Événementiel
                   ].map(({ src, liked }, i) => (
                     <div key={i} style={{ aspectRatio: '1/1', position: 'relative', overflow: 'hidden', borderRadius: 4, background: '#1a1a1a' }}>
-                      <img src={src} alt="" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      <Image src={src} alt="" fill sizes="96px" style={{ objectFit: 'cover', display: 'block' }} />
                       <div style={{ position: 'absolute', top: 4, right: 4, width: 18, height: 18, borderRadius: '50%', background: liked ? '#C8482E' : 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: liked ? 'none' : 'blur(4px)', border: liked ? 'none' : '1px solid rgba(255,255,255,0.15)' }}>
                         <Heart size={9} color="#fff" fill={liked ? '#fff' : 'transparent'} />
                       </div>
@@ -592,12 +593,12 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
 
         {/* Mobile Phone */}
         {isMobile && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 50, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
@@ -632,7 +633,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div style={{ position: 'relative', height: 130, overflow: 'hidden' }}>
-                    <img src="/media__1784566765630.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
+                    <Image src="/media__1784566765630.webp" alt="" fill sizes="220px" style={{ objectFit: 'cover', objectPosition: 'center top' }} />
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(15,15,15,0.9) 100%)' }} />
                     <div style={{ position: 'absolute', bottom: 8, left: 12, display: 'flex', alignItems: 'center', gap: 5 }}>
                       <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'linear-gradient(135deg,#DF5438,#C8482E)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -643,18 +644,18 @@ export default function LandingPage() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1.5, padding: '8px 2px 2px' }}>
                     {[
-                      { src: '/media__1784566765630.jpg', liked: true },
-                      { src: '/media__1784567428078.jpg', liked: false },
-                      { src: '/media__1784567428152.jpg', liked: true },
-                      { src: '/media__1784567428163.jpg', liked: false },
-                      { src: '/concert_stage_photo_1784566103244.png', liked: true },
-                      { src: '/corporate_gala_photo_1784566134178.png', liked: false },
-                      { src: '/wedding_reception_photo_1784566087301.png', liked: true },
-                      { src: '/nightclub_party_photo_1784566118666.png', liked: false },
+                      { src: '/media__1784566765630.webp', liked: true },
+                      { src: '/media__1784567428078.webp', liked: false },
+                      { src: '/media__1784567428152.webp', liked: true },
+                      { src: '/media__1784567428163.webp', liked: false },
+                      { src: '/concert_stage_photo_1784566103244.webp', liked: true },
+                      { src: '/corporate_gala_photo_1784566134178.webp', liked: false },
+                      { src: '/wedding_reception_photo_1784566087301.webp', liked: true },
+                      { src: '/nightclub_party_photo_1784566118666.webp', liked: false },
                       { src: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&q=80&auto=format&fit=crop', liked: true },
                     ].map(({ src, liked }, i) => (
                       <div key={i} style={{ aspectRatio: '1/1', position: 'relative', overflow: 'hidden', borderRadius: 3 }}>
-                        <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        <Image src={src} alt="" fill sizes="80px" style={{ objectFit: 'cover', display: 'block' }} />
                         <div style={{ position: 'absolute', top: 3, right: 3, width: 16, height: 16, borderRadius: '50%', background: liked ? '#C8482E' : 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: liked ? 'none' : 'blur(4px)' }}>
                           <Heart size={8} color="#fff" fill={liked ? '#fff' : 'transparent'} />
                         </div>
@@ -677,13 +678,13 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </section>
 
       {/* ===== TRUSTED BY ===== */}
       <section style={{ padding: isMobile ? '36px 20px 44px' : '44px 32px 56px', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)', background: '#080808', overflow: 'hidden' }}>
-        <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <m.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: isMobile ? 24 : 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
             <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.06))' }} />
             <span style={{ fontSize: 10, color: '#444', fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Ils nous font confiance</span>
@@ -692,7 +693,7 @@ export default function LandingPage() {
           <div style={{ display: 'flex', flexWrap: isMobile ? 'wrap' : 'nowrap', justifyContent: 'center', alignItems: 'center', gap: 0 }}>
             {TRUSTED_BY.map(({ name, style: fontStyle }, i) => (
               <div key={name} style={{ display: 'flex', alignItems: 'center' }}>
-                <motion.div
+                <m.div
                   initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.07, duration: 0.5 }}
                   style={{
                     fontSize: isMobile ? 14 : 17,
@@ -707,21 +708,21 @@ export default function LandingPage() {
                   whileHover={{ color: '#888' }}
                 >
                   {name}
-                </motion.div>
+                </m.div>
                 {i < TRUSTED_BY.length - 1 && (
                   <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#2a2a2a', flexShrink: 0, display: isMobile && i % 2 === 1 ? 'none' : 'block' }} />
                 )}
               </div>
             ))}
           </div>
-        </motion.div>
+        </m.div>
       </section>
 
       {/* ===== FEATURES ===== */}
       <section id="features" style={{ padding: isMobile ? '80px 20px 60px' : '120px 40px 100px', maxWidth: 1200, margin: '0 auto', position: 'relative' }}>
         <div style={{ position: 'absolute', top: '10%', right: '5%', width: 350, height: 350, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,107,53,0.04) 0%, transparent 70%)', pointerEvents: 'none', filter: 'blur(60px)' }} />
-        <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-          <motion.div variants={fade} style={{ textAlign: 'center', marginBottom: 72 }}>
+        <m.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+          <m.div variants={fade} style={{ textAlign: 'center', marginBottom: 72 }}>
             <h2 className="font-title" style={{ fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 16, color: '#F2EDE4' }}>
               Tout ce dont vous avez{' '}
               <span style={{ color: '#C8482E' }}>besoin</span>
@@ -729,25 +730,25 @@ export default function LandingPage() {
             <p style={{ fontSize: 18, color: '#787068', maxWidth: 520, margin: '0 auto', lineHeight: 1.65 }}>
               Une suite complète d’outils pour gérer vos galeries, partager vos photos et recevoir les sélections de vos clients.
             </p>
-          </motion.div>
+          </m.div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: isMobile ? 12 : 20 }}>
             {FEATURES.map((f) => (
-              <motion.div key={f.title as string} variants={fade} style={{ padding: isMobile ? '24px 18px' : '36px 28px', borderRadius: 20, background: '#111', border: '1px solid rgba(255,255,255,0.06)', transition: 'all 0.2s ease', cursor: 'default' }} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+              <m.div key={f.title as string} variants={fade} style={{ padding: isMobile ? '24px 18px' : '36px 28px', borderRadius: 20, background: '#111', border: '1px solid rgba(255,255,255,0.06)', transition: 'all 0.2s ease', cursor: 'default' }} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(255,107,53,0.09)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, border: '1px solid rgba(255,107,53,0.15)' }}>
                   <f.icon size={22} color="#C8482E" />
                 </div>
                 <div style={{ fontWeight: 700, fontSize: isMobile ? 15 : 18, marginBottom: 10, color: '#F2EDE4' }}>{f.title}</div>
                 <div style={{ color: '#787068', fontSize: isMobile ? 13 : 15, lineHeight: 1.6 }}>{f.desc}</div>
-              </motion.div>
+              </m.div>
             ))}
           </div>
-        </motion.div>
+        </m.div>
       </section>
 
       {/* ===== CLIENT EXPERIENCE ===== */}
       <section style={{ padding: isMobile ? '80px 20px' : '120px 40px', background: '#0a0a0a', borderTop: '1px solid rgba(255,255,255,0.04)', overflow: 'hidden' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', gap: isMobile ? 48 : 80 }}>
-          <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', width: '100%', minHeight: isMobile ? 500 : 600 }}>
+          <m.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', width: '100%', minHeight: isMobile ? 500 : 600 }}>
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,107,53,0.10) 0%, transparent 65%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
             {!isMobile && (
               <div style={{ width: 250, height: 520, borderRadius: 42, background: '#0a0a0a', position: 'absolute', left: '10%', top: 30, boxShadow: '0 0 0 2px #333, 0 0 0 6px #151515, 0 20px 40px rgba(0,0,0,0.6)', transform: 'rotate(-5deg)', zIndex: 1 }}>
@@ -765,17 +766,17 @@ export default function LandingPage() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, padding: '0 6px', height: '100%', overflowY: 'hidden' }}>
                     {[
-                      '/media__1784566765630.jpg',
-                      '/media__1784567428078.jpg',
-                      '/media__1784567428152.jpg',
-                      '/media__1784567428163.jpg',
-                      '/concert_stage_photo_1784566103244.png',
-                      '/corporate_gala_photo_1784566134178.png',
-                      '/wedding_reception_photo_1784566087301.png',
-                      '/nightclub_party_photo_1784566118666.png',
+                      '/media__1784566765630.webp',
+                      '/media__1784567428078.webp',
+                      '/media__1784567428152.webp',
+                      '/media__1784567428163.webp',
+                      '/concert_stage_photo_1784566103244.webp',
+                      '/corporate_gala_photo_1784566134178.webp',
+                      '/wedding_reception_photo_1784566087301.webp',
+                      '/nightclub_party_photo_1784566118666.webp',
                     ].map((src, i) => (
-                      <div key={i} style={{ borderRadius: 8, overflow: 'hidden', aspectRatio: '1/1', background: '#1c1c1c' }}>
-                        <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      <div key={i} style={{ borderRadius: 8, overflow: 'hidden', aspectRatio: '1/1', background: '#1c1c1c', position: 'relative' }}>
+                        <Image src={src} alt="" fill sizes="120px" style={{ objectFit: 'cover', display: 'block' }} />
                       </div>
                     ))}
                   </div>
@@ -786,7 +787,7 @@ export default function LandingPage() {
               <div style={{ width: '100%', height: '100%', background: '#0a0a0a', borderRadius: 42, overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative' }}>
                 <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', width: 80, height: 24, background: '#000', borderRadius: 12, zIndex: 20 }} />
                 <div style={{ flex: 1, position: 'relative' }}>
-                  <img src={HERO_PHOTOS[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <Image src={HERO_PHOTOS[0]} alt="" fill sizes="280px" style={{ objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 80, background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%)' }} />
                   <div style={{ position: 'absolute', top: 50, right: 20, width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Heart size={18} color="#C8482E" fill="#C8482E" />
@@ -807,20 +808,20 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Right — Text */}
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger} style={{ flex: 1, maxWidth: isMobile ? '100%' : 520 }}>
-            <motion.div variants={fade} style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 12, color: '#C8482E', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 20, padding: '5px 12px', borderRadius: 99, background: 'rgba(255,107,53,0.08)', border: '1px solid rgba(255,107,53,0.15)' }}>
+          <m.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger} style={{ flex: 1, maxWidth: isMobile ? '100%' : 520 }}>
+            <m.div variants={fade} style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 12, color: '#C8482E', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 20, padding: '5px 12px', borderRadius: 99, background: 'rgba(255,107,53,0.08)', border: '1px solid rgba(255,107,53,0.15)' }}>
               <Smartphone size={13} /> Expérience client
-            </motion.div>
-            <motion.h2 variants={fade} style={{ fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 20, lineHeight: 1.1, color: '#F2EDE4' }}>
+            </m.div>
+            <m.h2 variants={fade} style={{ fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 20, lineHeight: 1.1, color: '#F2EDE4' }}>
               Votre client <span style={{ color: '#C8482E' }}>adore l&apos;expérience</span>
-            </motion.h2>
-            <motion.p variants={fade} style={{ fontSize: 17, color: '#787068', lineHeight: 1.7, marginBottom: 36 }}>
+            </m.h2>
+            <m.p variants={fade} style={{ fontSize: 17, color: '#787068', lineHeight: 1.7, marginBottom: 36 }}>
               Vos clients reçoivent un lien WhatsApp, ouvrent la galerie sur leur téléphone et sélectionnent leurs photos préférées en quelques secondes.
-            </motion.p>
-            <motion.div variants={fade} style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 36 }}>
+            </m.p>
+            <m.div variants={fade} style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 36 }}>
               {CLIENT_FEATURES.map(({ icon: Icon, label }) => (
                 <div key={label as string} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(255,107,53,0.09)', border: '1px solid rgba(255,107,53,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -829,39 +830,39 @@ export default function LandingPage() {
                   <span style={{ fontSize: 15, color: '#A09890', fontWeight: 500 }}>{label}</span>
                 </div>
               ))}
-            </motion.div>
-            <motion.div variants={fade}>
+            </m.div>
+            <m.div variants={fade}>
               <Link href="/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '12px 24px', borderRadius: 12, background: 'rgba(255,107,53,0.1)', border: '1px solid rgba(255,107,53,0.3)', fontSize: 15, fontWeight: 600, color: '#C8482E', textDecoration: 'none', transition: 'all 0.2s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,107,53,0.15)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,107,53,0.1)' }}
               >
                 Essayer gratuitement <ArrowRight size={16} />
               </Link>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         </div>
       </section>
 
       {/* ===== HOW IT WORKS ===== */}
       <section id="workflow" style={{ padding: isMobile ? '80px 20px' : '120px 40px', borderTop: '1px solid rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
         <div style={{ maxWidth: 880, margin: '0 auto' }}>
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-            <motion.div variants={fade} style={{ textAlign: 'center', marginBottom: 70 }}>
+          <m.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+            <m.div variants={fade} style={{ textAlign: 'center', marginBottom: 70 }}>
               <div style={{ fontSize: 12, color: '#C8482E', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 16 }}>Comment ça marche</div>
               <h2 className="font-title" style={{ fontSize: 'clamp(36px, 4.5vw, 56px)', fontWeight: 800, letterSpacing: '-0.03em', color: '#F2EDE4' }}>En 4 étapes simples</h2>
-            </motion.div>
+            </m.div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {STEPS.map((s, i) => (
-                <motion.div key={s.n} variants={fade} style={{ display: 'flex', gap: 24, padding: '36px 0', borderBottom: i < STEPS.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', alignItems: 'flex-start' }}>
+                <m.div key={s.n} variants={fade} style={{ display: 'flex', gap: 24, padding: '36px 0', borderBottom: i < STEPS.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', alignItems: 'flex-start' }}>
                   <div style={{ fontSize: 14, fontWeight: 800, color: '#C8482E', minWidth: 44, height: 44, borderRadius: '50%', background: 'rgba(255,107,53,0.09)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,107,53,0.18)', flexShrink: 0 }}>{s.n}</div>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 20, marginBottom: 10, color: '#F2EDE4' }}>{s.label}</div>
                     <div style={{ color: '#787068', fontSize: 16, lineHeight: 1.65 }}>{s.sub}</div>
                   </div>
-                </motion.div>
+                </m.div>
               ))}
             </div>
-          </motion.div>
+          </m.div>
         </div>
       </section>
 
@@ -887,33 +888,33 @@ export default function LandingPage() {
       {/* ===== WHATSAPP CTA ===== */}
       <section id="whatsapp" style={{ padding: isMobile ? '80px 20px' : '120px 40px', position: 'relative' }}>
         <div style={{ position: 'absolute', bottom: '15%', left: '50%', transform: 'translateX(-50%)', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(37,211,102,0.04) 0%, transparent 65%)', pointerEvents: 'none', filter: 'blur(60px)' }} />
-        <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger} style={{ maxWidth: 820, margin: '0 auto', textAlign: 'center' }}>
-          <motion.div variants={fade} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 18px', borderRadius: 99, background: 'rgba(37,211,102,0.08)', border: '1px solid rgba(37,211,102,0.2)', marginBottom: 28, fontSize: 13, color: '#25D366', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <m.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger} style={{ maxWidth: 820, margin: '0 auto', textAlign: 'center' }}>
+          <m.div variants={fade} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 18px', borderRadius: 99, background: 'rgba(37,211,102,0.08)', border: '1px solid rgba(37,211,102,0.2)', marginBottom: 28, fontSize: 13, color: '#25D366', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             <Smartphone size={14} /> WhatsApp Natif
-          </motion.div>
-          <motion.h2 variants={fade} style={{ fontSize: 'clamp(36px, 5vw, 60px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 28, lineHeight: 1.1, color: '#F2EDE4' }}>
+          </m.div>
+          <m.h2 variants={fade} style={{ fontSize: 'clamp(36px, 5vw, 60px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 28, lineHeight: 1.1, color: '#F2EDE4' }}>
             Partagez{' '}<span style={{ color: '#25D366' }}>via WhatsApp</span>
-          </motion.h2>
-          <motion.p variants={fade} style={{ color: '#787068', fontSize: 18, lineHeight: 1.7, marginBottom: 48, maxWidth: 680, marginLeft: 'auto', marginRight: 'auto' }}>
+          </m.h2>
+          <m.p variants={fade} style={{ color: '#787068', fontSize: 18, lineHeight: 1.7, marginBottom: 48, maxWidth: 680, marginLeft: 'auto', marginRight: 'auto' }}>
             Envoyez un lien WhatsApp à vos clients. Ils ouvrent la galerie directement, sans télécharger d’application. Simple, rapide, professionnel.
-          </motion.p>
-          <motion.div variants={fade}>
+          </m.p>
+          <m.div variants={fade}>
             <Link href="/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '16px 36px', borderRadius: 14, textDecoration: 'none', fontSize: 17, fontWeight: 700, background: 'linear-gradient(135deg, #DF5438 0%, #C8482E 100%)', color: '#fff', boxShadow: '0 8px 32px rgba(255,107,53,0.4)', transition: 'all 0.2s ease' }}
               onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 14px 44px rgba(255,107,53,0.55)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 8px 32px rgba(255,107,53,0.4)' }}
             >
               Commencer gratuitement <ArrowRight size={18} />
             </Link>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       </section>
 
       {/* ===== PRICING ===== */}
       <section id="pricing" style={{ padding: isMobile ? '80px 20px' : '140px 40px', background: '#0a0a0a', borderTop: '1px solid rgba(255,255,255,0.04)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '20%', right: '10%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,107,53,0.05) 0%, transparent 70%)', pointerEvents: 'none', filter: 'blur(80px)' }} />
         <div style={{ maxWidth: 1020, margin: '0 auto', position: 'relative' }}>
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
-            <motion.div variants={fade} style={{ textAlign: 'center', marginBottom: 80 }}>
+          <m.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
+            <m.div variants={fade} style={{ textAlign: 'center', marginBottom: 80 }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 18px', borderRadius: 99, background: 'rgba(255,107,53,0.08)', border: '1px solid rgba(255,107,53,0.2)', marginBottom: 24, fontSize: 12, color: '#C8482E', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                 Tarifs
               </div>
@@ -923,11 +924,11 @@ export default function LandingPage() {
               <p style={{ fontSize: 18, color: '#787068', maxWidth: 520, margin: '0 auto', lineHeight: 1.65 }}>
                 Commencez gratuitement, passez au Pro quand vous êtes prêt.
               </p>
-            </motion.div>
+            </m.div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 28, alignItems: 'stretch' }}>
               {/* ESSENTIEL */}
-              <motion.div variants={fade} whileHover={{ y: -5, transition: { duration: 0.25 } }} style={{ padding: '44px 40px', borderRadius: 24, border: '1px solid rgba(255,255,255,0.07)', background: '#111', display: 'flex', flexDirection: 'column' }}>
+              <m.div variants={fade} whileHover={{ y: -5, transition: { duration: 0.25 } }} style={{ padding: '44px 40px', borderRadius: 24, border: '1px solid rgba(255,255,255,0.07)', background: '#111', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ marginBottom: 32 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#787068', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>Essentiel</div>
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 10 }}>
@@ -953,10 +954,10 @@ export default function LandingPage() {
                 >
                   Commencer gratuitement
                 </Link>
-              </motion.div>
+              </m.div>
 
               {/* PREMIUM PRO */}
-              <motion.div variants={fade} whileHover={{ y: -5, transition: { duration: 0.25 } }} style={{ padding: '52px 44px', borderRadius: 24, border: '1.5px solid rgba(255,107,53,0.4)', background: 'linear-gradient(155deg, rgba(255,107,53,0.07) 0%, #111 45%)', display: 'flex', flexDirection: 'column', position: 'relative', boxShadow: '0 32px 80px rgba(255,107,53,0.12)' }}>
+              <m.div variants={fade} whileHover={{ y: -5, transition: { duration: 0.25 } }} style={{ padding: '52px 44px', borderRadius: 24, border: '1.5px solid rgba(255,107,53,0.4)', background: 'linear-gradient(155deg, rgba(255,107,53,0.07) 0%, #111 45%)', display: 'flex', flexDirection: 'column', position: 'relative', boxShadow: '0 32px 80px rgba(255,107,53,0.12)' }}>
                 <div style={{ position: 'absolute', top: -17, left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(135deg, #DF5438 0%, #C8482E 100%)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '6px 22px', borderRadius: 99, letterSpacing: '0.06em', textTransform: 'uppercase', boxShadow: '0 6px 20px rgba(255,107,53,0.45)', whiteSpace: 'nowrap' }}>
                   Recommandé
                 </div>
@@ -987,20 +988,20 @@ export default function LandingPage() {
                   Commencer l’essai gratuit <ArrowRight size={18} />
                 </Link>
                 <p style={{ textAlign: 'center', fontSize: 13, color: '#787068', marginTop: 14 }}>14 jours d’essai gratuit • Sans carte bancaire</p>
-              </motion.div>
+              </m.div>
             </div>
 
-            <motion.p variants={fade} style={{ textAlign: 'center', marginTop: 56, fontSize: 15, color: '#787068', lineHeight: 1.6 }}>
+            <m.p variants={fade} style={{ textAlign: 'center', marginTop: 56, fontSize: 15, color: '#787068', lineHeight: 1.6 }}>
               Des questions ? <a href="https://wa.me/79962131741" target="_blank" rel="noopener noreferrer" style={{ color: '#C8482E', textDecoration: 'none', fontWeight: 600 }}>Contactez-nous sur WhatsApp</a>.
-            </motion.p>
-          </motion.div>
+            </m.p>
+          </m.div>
         </div>
       </section>
 
       {/* ===== FINAL CTA BANNER ===== */}
       <section style={{ padding: isMobile ? '60px 20px' : '80px 40px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,107,53,0.04) 0%, transparent 60%)', pointerEvents: 'none' }} />
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           style={{
             maxWidth: 1100, margin: '0 auto',
@@ -1035,7 +1036,7 @@ export default function LandingPage() {
               Commencer gratuitement <ArrowRight size={18} />
             </Link>
           </div>
-        </motion.div>
+        </m.div>
       </section>
 
       {/* ===== FOOTER ===== */}
@@ -1100,7 +1101,7 @@ export default function LandingPage() {
       {/* ===== INTERACTIVE DEMO MODAL ===== */}
       <AnimatePresence>
         {showDemoModal && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1112,7 +1113,7 @@ export default function LandingPage() {
             }}
             onClick={() => setShowDemoModal(false)}
           >
-            <motion.div
+            <m.div
               initial={{ scale: 0.9, y: 20, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.9, y: 20, opacity: 0 }}
@@ -1199,7 +1200,7 @@ export default function LandingPage() {
                         aspectRatio: '4/3', background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.08)',
                       }}
                     >
-                      <img src={src} alt={`Demo photo ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <Image src={src} alt={`Demo photo ${i + 1}`} fill sizes="300px" style={{ objectFit: 'cover' }} />
                       <div style={{
                         position: 'absolute', inset: 0,
                         background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%)',
@@ -1250,10 +1251,11 @@ export default function LandingPage() {
                   Démarrer gratuitement maintenant →
                 </Link>
               </div>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
+    </LazyMotion>
   )
 }
