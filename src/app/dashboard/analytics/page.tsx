@@ -116,14 +116,14 @@ export default function AnalyticsPage() {
         <motion.div initial="hidden" animate="show" variants={stagger}>
 
           {/* Header */}
-          <motion.div variants={fadeUp} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+          <motion.div variants={fadeUp} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
             <div>
               <h1 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.02em', color: '#fff', marginBottom: 4 }}>Analytiques</h1>
               <p style={{ fontSize: 14, color: '#8E8E93' }}>Performances globales de vos galeries</p>
             </div>
             
             {/* Période */}
-            <div style={{ display: 'flex', gap: 2, background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: 4, border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div className="analytics-period-tabs" style={{ display: 'flex', gap: 2, background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: 4, border: '1px solid rgba(255,255,255,0.05)', overflowX: 'auto', maxWidth: '100%' }}>
               {PERIODS.map(p => (
                 <button key={p} onClick={() => setPeriod(p)} style={{ padding: '6px 14px', borderRadius: 6, border: 'none', fontSize: 13, fontWeight: 500, cursor: 'pointer', background: period === p ? '#fff' : 'transparent', color: period === p ? '#000' : '#8E8E93', transition: 'all 0.2s' }}>{p}</button>
               ))}
@@ -172,7 +172,7 @@ export default function AnalyticsPage() {
                   {galleries.slice(0, 6).map(g => (
                     <Link key={g.id} href={`/dashboard/gallery/${g.id}`} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12 }} className="group">
                       <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(255,255,255,0.05)', overflow: 'hidden', flexShrink: 0 }}>
-                        {g.cover_image_url && <img src={g.cover_image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                        {g.cover_image_url && <img src={g.cover_image_url} alt="" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
@@ -297,6 +297,8 @@ export default function AnalyticsPage() {
         }
         @media (max-width: 480px) {
           .stats-grid { grid-template-columns: 1fr !important; }
+          .analytics-period-tabs { width: 100% !important; -webkit-overflow-scrolling: touch; }
+          .analytics-period-tabs button { flex: 1 0 auto !important; }
         }
       `}</style>
     </div>

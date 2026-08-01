@@ -95,8 +95,8 @@ export default function ResetPasswordPage() {
   const labelStyle: React.CSSProperties = { fontSize: 13, fontWeight: 500, color: '#A1A1AA', display: 'block', marginBottom: 8 }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#15171A', color: '#F2EDE4', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', paddingTop: '80px', fontFamily: 'var(--font-inter, Inter, sans-serif)', position: 'relative', overflow: 'hidden' }}>
-      <Link href="/login" style={{ position: 'absolute', top: 20, left: 16, display: 'inline-flex', alignItems: 'center', gap: 8, color: '#A1A1AA', textDecoration: 'none', fontWeight: 500, fontSize: 14, zIndex: 10, padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }} className="hover:bg-white/10 transition auth-back-btn">
+    <div className="auth-page" style={{ minHeight: '100vh', background: '#15171A', color: '#F2EDE4', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', paddingTop: '80px', fontFamily: 'var(--font-inter, Inter, sans-serif)', position: 'relative', overflow: 'hidden' }}>
+      <Link href="/login" className="auth-back-btn" style={{ position: 'absolute', top: 20, left: 16, display: 'inline-flex', alignItems: 'center', gap: 8, color: '#A1A1AA', textDecoration: 'none', fontWeight: 500, fontSize: 14, zIndex: 10, padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }}>
         <ArrowLeft size={16} /> <span className="auth-back-label">Retour</span>
       </Link>
 
@@ -110,7 +110,7 @@ export default function ResetPasswordPage() {
         </div>
 
         {/* Card */}
-        <div style={{ background: '#111111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '32px 24px', width: '100%', boxSizing: 'border-box' }}>
+        <div className="auth-card" style={{ background: '#111111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '32px 24px', width: '100%', boxSizing: 'border-box' }}>
           {success ? (
             /* Success state */
             <div style={{ textAlign: 'center' }}>
@@ -228,6 +228,10 @@ export default function ResetPasswordPage() {
           .auth-page { padding: 70px 12px 24px !important; }
           .auth-back-btn { top: 12px !important; left: 10px !important; padding: 6px 10px !important; font-size: 13px !important; }
           .auth-back-label { display: none !important; }
+        }
+        @media (max-width: 380px) {
+          .auth-page { padding: 60px 8px 16px !important; }
+          .auth-card { padding: 20px 12px !important; }
         }
       `}</style>
     </div>

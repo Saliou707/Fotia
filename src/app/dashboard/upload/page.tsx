@@ -27,7 +27,7 @@ function StageIndicator({ stage, uploaded, total }: { stage: Stage; uploaded: nu
   return (
     <div style={{ background: '#111111', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px', marginBottom: 24 }}>
       {/* Étapes */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0, marginBottom: 20 }}>
+      <div className="stage-steps" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0, marginBottom: 20 }}>
         {steps.map((s, i) => {
           const isActive = i === currentIdx
           const isDone = i < currentIdx
@@ -40,7 +40,7 @@ function StageIndicator({ stage, uploaded, total }: { stage: Stage; uploaded: nu
                 <span style={{ fontSize: 11, fontWeight: isActive ? 700 : 400, color: isActive ? '#C8482E' : isDone ? '#22C55E' : '#555', whiteSpace: 'nowrap' }}>{s.label}</span>
               </div>
               {i < steps.length - 1 && (
-                <div style={{ width: 60, height: 2, background: i < currentIdx ? '#22C55E' : 'rgba(255,255,255,0.07)', margin: '0 8px 20px', transition: 'background 0.4s', flexShrink: 0 }} />
+                <div className="step-connector" style={{ width: 60, height: 2, background: i < currentIdx ? '#22C55E' : 'rgba(255,255,255,0.07)', margin: '0 8px 20px', transition: 'background 0.4s', flexShrink: 0 }} />
               )}
             </div>
           )
@@ -158,7 +158,7 @@ function UploadPageInner() {
   const hasErrors = files.some(f => f.status === 'erreur')
 
   return (
-    <div style={{ minHeight: 'calc(100vh - 58px)', padding: '28px', maxWidth: 900, margin: '0 auto' }}>
+    <div className="upload-page" style={{ minHeight: 'calc(100vh - 58px)', padding: '28px', maxWidth: 900, margin: '0 auto' }}>
       <motion.div initial="hidden" animate="show" variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08 } } }}>
 
         {/* Header */}
@@ -289,6 +289,19 @@ export default function UploadPage() {
   return (
     <Suspense fallback={<div style={{ padding: 28, color: '#555' }}>Chargement…</div>}>
       <UploadPageInner />
+      {uploadPageResponsive}
     </Suspense>
   )
 }
+
+// ── Responsive (style JSX injecté avec la page) ──────────────────────────────
+const uploadPageResponsive = (
+  <style>{`
+    @media (max-width: 640px) {
+      .upload-page { padding: 16px !important; }
+      .upload-page .stage-steps { flex-wrap: wrap !important; }
+      .upload-page .stage-steps > div { flex-shrink: 0 !important; }
+      .upload-page .step-connector { width: 24px !important; margin: 0 4px 20px !important; }
+    }
+  `}</style>
+)

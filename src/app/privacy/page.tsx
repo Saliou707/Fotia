@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 
 export default function PrivacyPolicyPage() {
   return (
-    <div style={{ background: '#080808', color: '#F5F0EB', minHeight: '100vh', fontFamily: 'var(--font-inter, Inter, sans-serif)', padding: '60px 24px' }}>
+    <div className="privacy-page" style={{ background: '#080808', color: '#F5F0EB', minHeight: '100vh', fontFamily: 'var(--font-inter, Inter, sans-serif)', padding: '60px 24px' }}>
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
         <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#A09890', textDecoration: 'none', marginBottom: 40, fontWeight: 500 }}>
           <ArrowLeft size={16} /> Retour à l'accueil
@@ -82,6 +82,18 @@ export default function PrivacyPolicyPage() {
 
         </div>
       </div>
+      <style>{`
+        @media (max-width: 640px) {
+          .privacy-page { padding: 40px 16px !important; }
+          .privacy-page h1 { font-size: 28px !important; }
+          .privacy-page h2 { font-size: 20px !important; }
+          .privacy-page section { font-size: 14px !important; }
+        }
+        @media (max-width: 380px) {
+          .privacy-page { padding: 32px 14px !important; }
+          .privacy-page h1 { font-size: 24px !important; }
+        }
+      `}</style>
     </div>
   )
 }

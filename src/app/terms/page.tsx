@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 
 export default function TermsOfUsePage() {
   return (
-    <div style={{ background: '#080808', color: '#F5F0EB', minHeight: '100vh', fontFamily: 'var(--font-inter, Inter, sans-serif)', padding: '60px 24px' }}>
+    <div className="terms-page" style={{ background: '#080808', color: '#F5F0EB', minHeight: '100vh', fontFamily: 'var(--font-inter, Inter, sans-serif)', padding: '60px 24px' }}>
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
         <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#A09890', textDecoration: 'none', marginBottom: 40, fontWeight: 500 }}>
           <ArrowLeft size={16} /> Retour à l'accueil
@@ -76,6 +76,18 @@ export default function TermsOfUsePage() {
 
         </div>
       </div>
+      <style>{`
+        @media (max-width: 640px) {
+          .terms-page { padding: 40px 16px !important; }
+          .terms-page h1 { font-size: 28px !important; }
+          .terms-page h2 { font-size: 20px !important; }
+          .terms-page section { font-size: 14px !important; }
+        }
+        @media (max-width: 380px) {
+          .terms-page { padding: 32px 14px !important; }
+          .terms-page h1 { font-size: 24px !important; }
+        }
+      `}</style>
     </div>
   )
 }

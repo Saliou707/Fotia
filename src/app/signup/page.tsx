@@ -74,8 +74,8 @@ export default function SignupPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#15171A', color: '#F2EDE4', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px 24px', fontFamily: 'var(--font-inter, Inter, sans-serif)', position: 'relative', overflow: 'hidden' }} className="auth-page">
-      <Link href="/" style={{ position: 'fixed', top: 16, left: 14, display: 'inline-flex', alignItems: 'center', gap: 8, color: '#A1A1AA', textDecoration: 'none', fontWeight: 500, fontSize: 14, zIndex: 50, padding: '8px 12px', background: 'rgba(21,23,26,0.85)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }} className="auth-back-btn">
+    <div className="auth-page" style={{ minHeight: '100vh', background: '#15171A', color: '#F2EDE4', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 24px 24px', fontFamily: 'var(--font-inter, Inter, sans-serif)', position: 'relative', overflow: 'hidden' }}>
+      <Link href="/" className="auth-back-btn" style={{ position: 'fixed', top: 16, left: 14, display: 'inline-flex', alignItems: 'center', gap: 8, color: '#A1A1AA', textDecoration: 'none', fontWeight: 500, fontSize: 14, zIndex: 50, padding: '8px 12px', background: 'rgba(21,23,26,0.85)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }}>
         <ArrowLeft size={16} /> <span className="auth-back-label">Retour</span>
       </Link>
 
@@ -87,7 +87,7 @@ export default function SignupPage() {
           <img src="/logo.png" alt="Fotia Logo" width={120} style={{ objectFit: 'contain' }} />
         </div>
 
-        <div style={{ background: '#111111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: 32 }}>
+        <div className="auth-card" style={{ background: '#111111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: 32 }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.03em', marginBottom: 6, textAlign: 'center' }}>Créer un compte</h1>
           <p style={{ color: '#A1A1AA', fontSize: 14, textAlign: 'center', marginBottom: 28 }}>Rejoignez 500+ photographes sur Fotia</p>
 
@@ -168,8 +168,13 @@ export default function SignupPage() {
       <style>{`
         @media (max-width: 640px) {
           .auth-page { padding: 70px 12px 24px !important; }
-          .auth-back-btn { padding: 6px 10px !important; font-size: 13px !important; }
+          .auth-back-btn { padding: 6px 10px !important; font-size: 13px !important; position: absolute !important; top: 12px !important; left: 10px !important; }
           .auth-back-label { display: none !important; }
+          .auth-card { padding: 24px 18px !important; }
+        }
+        @media (max-width: 380px) {
+          .auth-page { padding: 60px 8px 16px !important; }
+          .auth-card { padding: 20px 12px !important; }
         }
       `}</style>
     </div>

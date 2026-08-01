@@ -110,6 +110,7 @@ export default function OnboardingPage() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        className="onboarding-card"
         style={{ width: '100%', maxWidth: 520, background: '#111111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: 40, boxShadow: '0 25px 60px rgba(0,0,0,0.5)' }}
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
@@ -152,7 +153,7 @@ export default function OnboardingPage() {
             <textarea placeholder="Photographe spécialisé en..." value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="onboarding-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <label style={{ fontSize: 13, fontWeight: 600, color: '#E4E4E7', display: 'flex', alignItems: 'center', gap: 6 }}><Phone size={14} /> WhatsApp</label>
               <input placeholder="+33 6..." value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} style={inputStyle} />
@@ -197,6 +198,14 @@ export default function OnboardingPage() {
           input:focus, textarea:focus {
             border-color: #C8482E !important;
             background: rgba(200,72,46,0.05) !important;
+          }
+          @media (max-width: 640px) {
+            .onboarding-card { padding: 24px !important; }
+            .onboarding-card h1 { font-size: 22px !important; }
+            .onboarding-card .onboarding-grid-2 { grid-template-columns: 1fr !important; gap: 14px !important; }
+          }
+          @media (max-width: 380px) {
+            .onboarding-card { padding: 18px !important; }
           }
         `}</style>
       </motion.div>

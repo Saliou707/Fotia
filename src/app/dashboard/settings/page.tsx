@@ -408,6 +408,7 @@ export default function SettingsPage() {
                   <button
                     key={id}
                     onClick={() => setActiveTab(id)}
+                    className={active ? 'settings-tab-btn active' : 'settings-tab-btn'}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10,
                       width: '100%', padding: '11px 16px',
@@ -847,6 +848,7 @@ export default function SettingsPage() {
               exit={{ opacity: 0, scale: 0.92, y: 20 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
               onClick={e => e.stopPropagation()}
+              className="settings-modal-card"
               style={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: 28, width: '100%', maxWidth: 400, position: 'relative' }}
             >
               <button onClick={() => setPwdModal(false)} style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: 8, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#787068' }}>
@@ -895,6 +897,7 @@ export default function SettingsPage() {
               exit={{ opacity: 0, scale: 0.92, y: 20 }}
               transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
               onClick={e => e.stopPropagation()}
+              className="settings-modal-card"
               style={{
                 background: '#111', border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: 22, padding: 28, width: '100%', maxWidth: 420, position: 'relative',
@@ -1012,14 +1015,18 @@ export default function SettingsPage() {
         @media (max-width: 768px) {
           .settings-tab-layout { flex-direction: column !important; }
           .settings-tab-sidebar { width: 100% !important; }
-          .settings-tab-sidebar > div { display: flex !important; overflow-x: auto !important; gap: 0 !important; padding: 4px !important; }
+          .settings-tab-sidebar > div { display: flex !important; overflow-x: auto !important; gap: 0 !important; padding: 4px !important; scrollbar-width: none !important; }
+          .settings-tab-sidebar > div::-webkit-scrollbar { display: none !important; }
           .settings-tab-sidebar button { white-space: nowrap !important; border-left: none !important; border-bottom: 2px solid transparent !important; padding: 10px 14px !important; flex: 0 0 auto !important; }
-          .settings-tab-sidebar button span { display: none !important; }
+          .settings-tab-sidebar button.active { border-bottom: 2px solid #C8482E !important; background: rgba(200,72,46,0.1) !important; color: #F2EDE4 !important; }
+          .settings-tab-sidebar button.active svg { color: #C8482E !important; }
           .settings-tab-content { min-width: 0 !important; }
           .settings-hero-card { flex-direction: column !important; text-align: center !important; align-items: center !important; }
         }
         @media (max-width: 480px) {
           .settings-page-inner { padding: 20px 12px 60px !important; }
+          .settings-page-inner h1 { font-size: 24px !important; }
+          .settings-modal-card { padding: 20px !important; }
         }
       `}</style>
     </div>

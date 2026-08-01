@@ -179,7 +179,7 @@ export default function FavoritesPage() {
         <motion.div initial="hidden" animate="show" variants={stagger}>
 
           {/* ── HEADER ── */}
-          <motion.div variants={fadeUp} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
+          <motion.div variants={fadeUp} className="favorites-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
             <div>
               {/* Breadcrumb si drill */}
               {drillGallery && (
@@ -216,9 +216,9 @@ export default function FavoritesPage() {
             {/* Contrôles sélection si drill */}
             {drillGallery && contextPhotos.length > 0 && (
               <button
+                className="favorites-drill-controls hover:bg-white/[0.08]"
                 onClick={() => allSelected ? setSelected(new Set()) : setSelected(new Set(contextPhotos.map(p => p.id)))}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: '#F2EDE4', fontSize: 13, fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s' }}
-                className="hover:bg-white/[0.08]"
               >
                 {allSelected ? <><CheckSquare size={14} /> Tout désélectionner</> : <><Square size={14} /> Tout sélectionner</>}
               </button>
@@ -227,7 +227,7 @@ export default function FavoritesPage() {
 
           {/* ── CONTENU ── */}
           {loading ? (
-            <div style={{ columns: '5 160px', gap: 12 }}>
+            <div className="favorites-masonry" style={{ columns: '5 160px', gap: 12 }}>
               {Array.from({ length: 15 }).map((_, i) => <div key={i} style={{ marginBottom: 12, breakInside: 'avoid' }}><Skeleton h={i % 3 === 0 ? 180 : 130} /></div>)}
             </div>
           ) : photos.length === 0 ? (
@@ -255,7 +255,7 @@ export default function FavoritesPage() {
                     <p style={{ color: '#8E8E93', fontSize: 14 }}>Aucun favori dans cette galerie.</p>
                   </div>
                 ) : (
-                  <div style={{ columns: '5 160px', gap: 12 }}>
+                  <div className="favorites-masonry" style={{ columns: '5 160px', gap: 12 }}>
                     {contextPhotos.map(photo => (
                       <div
                         key={photo.id}
@@ -303,7 +303,7 @@ export default function FavoritesPage() {
 
           ) : tab === 0 ? (
             /* ══ ONGLET 0 : Flux global ══ */
-            <motion.div variants={stagger} style={{ columns: '5 160px', gap: 12 }}>
+            <motion.div variants={stagger} className="favorites-masonry" style={{ columns: '5 160px', gap: 12 }}>
               <AnimatePresence>
                 {photos.map(photo => (
                   <motion.div
@@ -362,7 +362,7 @@ export default function FavoritesPage() {
                   {/* Cover image */}
                   <div style={{ height: 130, overflow: 'hidden', background: '#0d0d0d', position: 'relative' }}>
                     {g.cover ? (
-                      <img src={getImageUrl(g.cover)} alt={g.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={getImageUrl(g.cover)} alt={g.title} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Heart size={32} color="rgba(255,255,255,0.07)" fill="rgba(255,255,255,0.07)" />

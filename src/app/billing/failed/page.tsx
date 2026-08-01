@@ -169,6 +169,10 @@ export default function BillingFailedPage() {
           .billing-card-fail { padding: 32px 20px !important; }
           .billing-card-fail h1 { font-size: 26px !important; }
         }
+        @media (max-width: 380px) {
+          .billing-card-fail { padding: 24px 14px !important; }
+          .billing-card-fail h1 { font-size: 22px !important; }
+        }
       `}</style>
     </div>
   )

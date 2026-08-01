@@ -453,7 +453,7 @@ export default function StatisticsPage() {
             </div>
           </div>
 
-          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden' }}>
+          <div className="stats-table-scroll" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden' }}>
             {/* Entête */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr repeat(3, 80px)', padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: 11, color: '#555', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
               <span>Galerie</span>
@@ -567,7 +567,10 @@ export default function StatisticsPage() {
           .stats-page .stats-filters-row { flex-direction: column !important; align-items: stretch !important; }
           .stats-page .stats-filters-row > div { width: 100% !important; }
           .stats-page .stats-filters-row button { width: 100% !important; justify-content: space-between !important; }
-          .stats-page .stats-table-header { display: none !important; }
+          .stats-table-scroll { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+          .stats-table-scroll > div { min-width: 460px !important; }
+          .stats-table-scroll .table-row > div:first-child { flex-wrap: wrap !important; }
+          .stats-page .stats-filters-row div[style*="position:absolute"] { max-width: calc(100vw - 48px) !important; }
         }
         @media (max-width: 480px) {
           .stats-page .stats-kpi-grid { grid-template-columns: 1fr !important; }

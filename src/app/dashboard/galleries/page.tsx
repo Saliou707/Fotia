@@ -193,7 +193,7 @@ export default function GalleriesPage() {
                   style={{ position: 'relative', aspectRatio: '16/10', overflow: 'hidden', background: '#0A0A0A', cursor: 'pointer' }}
                 >
                   {g.cover_image_url ? (
-                    <img src={g.cover_image_url} alt={g.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s cubic-bezier(0.16,1,0.3,1)' }}
+                    <img src={g.cover_image_url} alt={g.title} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s cubic-bezier(0.16,1,0.3,1)' }}
                       onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.07)')}
                       onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
                     />
@@ -275,7 +275,7 @@ export default function GalleriesPage() {
 
       ) : (
         /* ── Vue liste ── */
-        <motion.div initial="hidden" animate="show" variants={stagger}
+        <motion.div initial="hidden" animate="show" variants={stagger} className="galleries-list-view"
           style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, overflow: 'hidden' }}
         >
           {/* Entête */}
@@ -293,7 +293,7 @@ export default function GalleriesPage() {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                 {g.cover_image_url ? (
-                  <img src={g.cover_image_url} alt={g.title} style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+                  <img src={g.cover_image_url} alt={g.title} loading="lazy" decoding="async" style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
                 ) : (
                   <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(200,72,46,0.07)', border: '1px solid rgba(200,72,46,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <ImageIcon size={17} color="#C8482E" />
@@ -337,6 +337,7 @@ export default function GalleriesPage() {
               initial={{ scale: 0.93, y: 24, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.93, y: 12, opacity: 0 }}
               transition={{ ease: [0.16, 1, 0.3, 1], duration: 0.35 }}
               onClick={e => e.stopPropagation()}
+              className="galleries-create-modal"
               style={{ background: '#0f0f0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 24, padding: '32px', width: '100%', maxWidth: 460, position: 'relative', overflow: 'hidden', boxShadow: '0 40px 100px rgba(0,0,0,0.9)' }}
             >
               {/* Glow */}
@@ -427,7 +428,12 @@ export default function GalleriesPage() {
           .galleries-header button { width: 100% !important; justify-content: center !important; }
           .galleries-filter-wrap { flex-direction: column !important; }
           .galleries-filter-wrap > div:first-child { max-width: none !important; width: 100% !important; }
-          .galleries-list-view { display: none !important; }
+          .galleries-list-view { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+          .galleries-list-view > div { min-width: 560px !important; }
+        }
+        @media (max-width: 380px) {
+          .galleries-page { padding: 14px 10px !important; }
+          .galleries-create-modal { padding: 22px 16px !important; }
         }
       `}</style>
     </div>

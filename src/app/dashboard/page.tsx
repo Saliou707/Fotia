@@ -62,7 +62,7 @@ function GalleryCard({ g, onDelete, index }: { g: Gallery; onDelete: (id: string
       >
         {g.cover_image_url ? (
           <img
-            src={g.cover_image_url} alt={g.title}
+            src={g.cover_image_url} alt={g.title} loading="lazy" decoding="async"
             style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s cubic-bezier(0.16,1,0.3,1)' }}
             onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.07)')}
             onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
@@ -546,6 +546,11 @@ export default function DashboardPage() {
           .dash-actions a { flex: 1 1 auto !important; min-width: 0 !important; }
           .dash-galleries { padding: 0 16px 32px !important; }
           .create-modal-padding { padding: 24px 20px !important; }
+        }
+        @media (max-width: 380px) {
+          .dash-hero { padding: 18px 10px 0 !important; }
+          .dash-hero h1 { font-size: 22px !important; }
+          .dash-actions { padding: 12px 8px !important; }
         }
       `}</style>
     </div>

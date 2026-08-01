@@ -122,7 +122,7 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div style={{ background: '#111111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '32px 24px', width: '100%', boxSizing: 'border-box' }}>
+        <div className="auth-card" style={{ background: '#111111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '32px 24px', width: '100%', boxSizing: 'border-box' }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.03em', marginBottom: 6, textAlign: 'center' }}>
             {mode === 'login' ? `Bon retour 👋` : 'Créer un compte'}
           </h1>
@@ -210,12 +210,16 @@ export default function LoginPage() {
           En continuant, vous acceptez nos <Link href="/terms" style={{ color: '#C8482E', textDecoration: 'none' }}>Conditions</Link> et notre <Link href="/privacy" style={{ color: '#C8482E', textDecoration: 'none' }}>Politique de confidentialité</Link>
         </p>
       </motion.div>
-      {/* Responsive styles */}
       <style>{`
         @media (max-width: 640px) {
           .auth-page { padding: 70px 12px 24px !important; }
           .auth-back-btn { top: 12px !important; left: 10px !important; padding: 6px 10px !important; font-size: 13px !important; }
           .auth-back-label { display: none !important; }
+          .auth-card { padding: 24px 18px !important; }
+        }
+        @media (max-width: 380px) {
+          .auth-page { padding: 60px 8px 16px !important; }
+          .auth-card { padding: 20px 12px !important; }
         }
       `}</style>
     </div>

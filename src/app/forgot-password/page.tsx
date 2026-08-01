@@ -57,7 +57,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         {/* Card */}
-        <div style={{ background: '#111111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '32px 24px', width: '100%', boxSizing: 'border-box' }}>
+        <div className="auth-card" style={{ background: '#111111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '32px 24px', width: '100%', boxSizing: 'border-box' }}>
           {sent ? (
             /* Success state */
             <div style={{ textAlign: 'center' }}>
@@ -136,6 +136,11 @@ export default function ForgotPasswordPage() {
           .auth-page { padding: 70px 12px 24px !important; }
           .auth-back-btn { top: 12px !important; left: 10px !important; padding: 6px 10px !important; font-size: 13px !important; }
           .auth-back-label { display: none !important; }
+          .auth-card { padding: 24px 18px !important; }
+        }
+        @media (max-width: 380px) {
+          .auth-page { padding: 60px 8px 16px !important; }
+          .auth-card { padding: 20px 12px !important; }
         }
       `}</style>
     </div>

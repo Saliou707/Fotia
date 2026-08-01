@@ -252,7 +252,7 @@ export default function GalleryManageClient({ gallery, initialImages, userId }: 
         </div>
       </div>
 
-      <div style={{ padding: '24px', maxWidth: 1040, margin: '0 auto' }}>
+      <div className="gmc-content" style={{ padding: '24px', maxWidth: 1040, margin: '0 auto' }}>
         
         {/* ── STATS CARDS GRID ── */}
         <div
@@ -516,6 +516,17 @@ export default function GalleryManageClient({ gallery, initialImages, userId }: 
           onNavigate={(i) => setLightboxIndex(i)}
         />
       )}
+
+      {/* ── Responsive ── */}
+      <style>{`
+        @media (max-width: 640px) {
+          .gmc-content { padding: 16px !important; }
+          .gmc-content .upload-zone { padding: 32px 16px !important; }
+        }
+        @media (max-width: 480px) {
+          .gmc-content .gallery-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 6px !important; }
+        }
+      `}</style>
 
       {/* ── SHARE MODAL ── */}
       <Modal

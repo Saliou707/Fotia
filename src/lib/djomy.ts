@@ -6,6 +6,7 @@
  * Chaque requête authentifiée requiert :
  *   Authorization: Bearer {token}
  *   X-API-KEY: {clientId}:{hmacHex}
+ *   X-PARTNER-DOMAIN: {partnerSecret} (si DJOMY_PARTNER_SECRET est défini)
  *
  * Améliorations v2 :
  *  - URL lue depuis DJOMY_API_URL (prod vs sandbox)
@@ -20,6 +21,7 @@ import crypto from 'crypto'
 // ---- Env ---------------------------------------------------------------
 const DJOMY_CLIENT_ID     = process.env.DJOMY_CLIENT_ID     || ''
 const DJOMY_CLIENT_SECRET = process.env.DJOMY_CLIENT_SECRET || ''
+const DJOMY_PARTNER_SECRET = process.env.DJOMY_PARTNER_SECRET || ''
 
 // URL configurable : production = https://api.djomy.africa
 //                   sandbox   = https://sandbox-api.djomy.africa
@@ -29,13 +31,19 @@ export const DJOMY_BASE_URL =
     ? 'https://api.djomy.africa'
     : 'https://sandbox-api.djomy.africa')
 
-// Partenaire — envoyé via X-PARTNER-DOMAIN sur chaque requête
-// Utilise DJOMY_PARTNER_DOMAIN si défini, sinon extrait le hostname depuis NEXT_PUBLIC_APP_URL
-const DJOMY_PARTNER_DOMAIN =
-  process.env.DJOMY_PARTNER_DOMAIN ||
-  (process.env.NEXT_PUBLIC_APP_URL
-    ? new URL(process.env.NEXT_PUBLIC_APP_URL).hostname
-    : 'localhost')
+/**
+ * Construit les headers de base pour toutes les requêtes Djomy.
+ * X-PARTNER-DOMAIN : clé secrète fournie par Djomy pour whitelister nos requêtes.
+ */
+function baseHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
+  if (DJOMY_PARTNER_SECRET) {
+    headers['X-PARTNER-DOMAIN'] = DJOMY_PARTNER_SECRET
+  }
+  return headers
+}
 
 // ---- Types -------------------------------------------------------------
 
@@ -157,9 +165,8 @@ export async function getDjomyAccessToken(retries = 2): Promise<string> {
         {
           method: 'POST',
           headers: {
+            ...baseHeaders(),
             'X-API-KEY': apiKey,
-            'X-PARTNER-DOMAIN': DJOMY_PARTNER_DOMAIN,
-            'Content-Type': 'application/json',
           },
         },
         8000
@@ -210,10 +217,9 @@ async function authHeaders(): Promise<Record<string, string>> {
     Promise.resolve(buildApiKeyHeader()),
   ])
   return {
+    ...baseHeaders(),
     Authorization: `Bearer ${accessToken}`,
     'X-API-KEY': apiKey,
-    'X-PARTNER-DOMAIN': DJOMY_PARTNER_DOMAIN,
-    'Content-Type': 'application/json',
   }
 }
 
