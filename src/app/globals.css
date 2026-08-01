@@ -663,6 +663,55 @@ input:focus { border-color: rgba(255,107,53,0.5) !important; }
 }
 
 /* ============================================================
+   HERO PHONE MOCKUPS — SSR-first responsive (LCP mobile)
+   Les deux mockups sont rendus dans le HTML initial ;
+   l'affichage est piloté par CSS, pas par du JS.
+   ============================================================ */
+
+.hero-section {
+  flex-direction: row;
+  padding: 130px 60px 80px;
+  gap: 0;
+}
+
+.hero-mockup-desktop {
+  display: flex;
+}
+.hero-mockup-mobile {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .hero-section {
+    flex-direction: column;
+    padding: 120px 20px 60px;
+    gap: 48px;
+  }
+  .hero-mockup-desktop {
+    display: none !important;
+  }
+  .hero-mockup-mobile {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .hero-mockup-mobile {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   CONTENT VISIBILITY — rendu différé des sections hors-écran
+   Réduit les tâches longues et le travail de rendu initial.
+   ============================================================ */
+
+.cv-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1200px;
+}
+
+/* ============================================================
    DASHBOARD RESPONSIVE
    ============================================================ */
 .dashboard-stats-grid {

@@ -1,26 +1,25 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import Image from 'next/image'
 import { LazyMotion, domAnimation, m, AnimatePresence, useInView } from 'framer-motion'
 import {
   ArrowRight, Upload, Share2, Heart, Download,
-  Star, CheckCircle, Zap, MessageSquare, Shield,
+  Star, CheckCircle, Zap, MessageSquare,
   Smartphone, Menu, X, Camera, BarChart3, Play,
   Globe, Mail
 } from 'lucide-react'
 import { fadeUp, stagger } from '@/lib/animations'
+import { HERO_PHOTOS } from '@/lib/hero-photos'
+
+// Modal de démo chargé à la demande — hors bundle initial (~16 Kio d'JS + images)
+const DemoModal = dynamic(() => import('@/components/landing/DemoModal'), {
+  ssr: false,
+  loading: () => null,
+})
 
 const fade = fadeUp
-
-const HERO_PHOTOS = [
-  '/media__1784566765630.webp', // Mariage Banquet & Gâteau
-  '/media__1784567428078.webp', // Mariage Arche de Fleurs
-  '/media__1784567428152.webp', // Soirée Amis & Fête
-  '/media__1784567428163.webp', // Nightclub & DJ Selfie
-  '/concert_stage_photo_1784566103244.webp', // Concert Live
-  '/corporate_gala_photo_1784566134178.webp', // Gala Événement Pro
-]
 
 const TRUSTED_BY = [
   { name: 'Klala Photography', style: 'italic' },
@@ -275,18 +274,15 @@ export default function LandingPage() {
       </AnimatePresence>
 
       {/* ===== HERO ===== */}
-      <section style={{
+      <section className="hero-section" style={{
         minHeight: '100vh',
         display: 'flex',
-        flexDirection: isMobile ? 'column' : 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: isMobile ? '120px 20px 60px' : '130px 60px 80px',
         position: 'relative',
         overflow: 'hidden',
         maxWidth: 1400,
         margin: '0 auto',
-        gap: isMobile ? 48 : 0,
       }}>
         <div style={{ position: 'absolute', top: '30%', left: '25%', transform: 'translate(-50%,-50%)', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,107,53,0.09) 0%, transparent 65%)', pointerEvents: 'none', filter: 'blur(80px)' }} />
 
@@ -388,14 +384,14 @@ export default function LandingPage() {
           </m.div>
         </m.div>
 
-        {/* RIGHT — Phone mockup (Desktop) */}
-        {!isMobile && (
-          <m.div
-            initial={{ opacity: 0, x: 60, y: 20 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 10, paddingTop: 40 }}
-          >
+        {/* RIGHT — Phone mockup (Desktop) — visible ≥768px via CSS */}
+        <m.div
+          className="hero-mockup-desktop"
+          initial={{ opacity: 0, x: 60, y: 20 }}
+          animate={{ opacity: 1, x: 0, y: 0 }}
+          transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 10, paddingTop: 40 }}
+        >
             {isDesktop && (
               <m.div
                 animate={{ y: [0, -8, 0] }}
@@ -594,16 +590,15 @@ export default function LandingPage() {
               </div>
             </div>
           </m.div>
-        )}
 
-        {/* Mobile Phone */}
-        {isMobile && (
-          <m.div
-            initial={{ opacity: 0, y: 50, scale: 0.92 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', position: 'relative', paddingBottom: 16 }}
-          >
+        {/* Mobile Phone — visible <768px via CSS */}
+        <m.div
+          className="hero-mockup-mobile"
+          initial={{ y: 40, scale: 0.96 }}
+          animate={{ y: 0, scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', position: 'relative', paddingBottom: 16 }}
+        >
             <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'radial-gradient(ellipse at 50% 60%, rgba(200,72,46,0.18) 0%, transparent 65%)', filter: 'blur(40px)', pointerEvents: 'none' }} />
             <div style={{
               width: 240, height: 510, borderRadius: 46,
@@ -633,7 +628,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div style={{ position: 'relative', height: 130, overflow: 'hidden' }}>
-                    <Image src="/media__1784566765630.webp" alt="" fill sizes="220px" style={{ objectFit: 'cover', objectPosition: 'center top' }} />
+                    <Image src="/media__1784566765630.webp" alt="" fill sizes="220px" priority style={{ objectFit: 'cover', objectPosition: 'center top' }} />
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(15,15,15,0.9) 100%)' }} />
                     <div style={{ position: 'absolute', bottom: 8, left: 12, display: 'flex', alignItems: 'center', gap: 5 }}>
                       <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'linear-gradient(135deg,#DF5438,#C8482E)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -679,11 +674,10 @@ export default function LandingPage() {
               </div>
             </div>
           </m.div>
-        )}
       </section>
 
       {/* ===== TRUSTED BY ===== */}
-      <section style={{ padding: isMobile ? '36px 20px 44px' : '44px 32px 56px', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)', background: '#080808', overflow: 'hidden' }}>
+      <section className="cv-section" style={{ padding: isMobile ? '36px 20px 44px' : '44px 32px 56px', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)', background: '#080808', overflow: 'hidden' }}>
         <m.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: isMobile ? 24 : 32, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
             <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.06))' }} />
@@ -719,7 +713,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== FEATURES ===== */}
-      <section id="features" style={{ padding: isMobile ? '80px 20px 60px' : '120px 40px 100px', maxWidth: 1200, margin: '0 auto', position: 'relative' }}>
+      <section id="features" className="cv-section" style={{ padding: isMobile ? '80px 20px 60px' : '120px 40px 100px', maxWidth: 1200, margin: '0 auto', position: 'relative' }}>
         <div style={{ position: 'absolute', top: '10%', right: '5%', width: 350, height: 350, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,107,53,0.04) 0%, transparent 70%)', pointerEvents: 'none', filter: 'blur(60px)' }} />
         <m.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
           <m.div variants={fade} style={{ textAlign: 'center', marginBottom: 72 }}>
@@ -746,7 +740,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== CLIENT EXPERIENCE ===== */}
-      <section style={{ padding: isMobile ? '80px 20px' : '120px 40px', background: '#0a0a0a', borderTop: '1px solid rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+      <section className="cv-section" style={{ padding: isMobile ? '80px 20px' : '120px 40px', background: '#0a0a0a', borderTop: '1px solid rgba(255,255,255,0.04)', overflow: 'hidden' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', gap: isMobile ? 48 : 80 }}>
           <m.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', width: '100%', minHeight: isMobile ? 500 : 600 }}>
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,107,53,0.10) 0%, transparent 65%)', filter: 'blur(60px)', pointerEvents: 'none' }} />
@@ -844,7 +838,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== HOW IT WORKS ===== */}
-      <section id="workflow" style={{ padding: isMobile ? '80px 20px' : '120px 40px', borderTop: '1px solid rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+      <section id="workflow" className="cv-section" style={{ padding: isMobile ? '80px 20px' : '120px 40px', borderTop: '1px solid rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
         <div style={{ maxWidth: 880, margin: '0 auto' }}>
           <m.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
             <m.div variants={fade} style={{ textAlign: 'center', marginBottom: 70 }}>
@@ -867,7 +861,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== STATS ===== */}
-      <section style={{ padding: isMobile ? '60px 20px' : '90px 40px', background: '#0a0a0a', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+      <section className="cv-section" style={{ padding: isMobile ? '60px 20px' : '90px 40px', background: '#0a0a0a', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto', display: 'grid', gridTemplateColumns: `repeat(${isMobile ? 2 : 4}, 1fr)`, gap: isMobile ? 32 : 0 }}>
           {[
             { value: 1200, suffix: '+', label: 'Photographes' },
@@ -886,7 +880,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== WHATSAPP CTA ===== */}
-      <section id="whatsapp" style={{ padding: isMobile ? '80px 20px' : '120px 40px', position: 'relative' }}>
+      <section id="whatsapp" className="cv-section" style={{ padding: isMobile ? '80px 20px' : '120px 40px', position: 'relative' }}>
         <div style={{ position: 'absolute', bottom: '15%', left: '50%', transform: 'translateX(-50%)', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(37,211,102,0.04) 0%, transparent 65%)', pointerEvents: 'none', filter: 'blur(60px)' }} />
         <m.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger} style={{ maxWidth: 820, margin: '0 auto', textAlign: 'center' }}>
           <m.div variants={fade} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 18px', borderRadius: 99, background: 'rgba(37,211,102,0.08)', border: '1px solid rgba(37,211,102,0.2)', marginBottom: 28, fontSize: 13, color: '#25D366', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -910,7 +904,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== PRICING ===== */}
-      <section id="pricing" style={{ padding: isMobile ? '80px 20px' : '140px 40px', background: '#0a0a0a', borderTop: '1px solid rgba(255,255,255,0.04)', position: 'relative', overflow: 'hidden' }}>
+      <section id="pricing" className="cv-section" style={{ padding: isMobile ? '80px 20px' : '140px 40px', background: '#0a0a0a', borderTop: '1px solid rgba(255,255,255,0.04)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '20%', right: '10%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,107,53,0.05) 0%, transparent 70%)', pointerEvents: 'none', filter: 'blur(80px)' }} />
         <div style={{ maxWidth: 1020, margin: '0 auto', position: 'relative' }}>
           <m.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
@@ -999,7 +993,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== FINAL CTA BANNER ===== */}
-      <section style={{ padding: isMobile ? '60px 20px' : '80px 40px', position: 'relative', overflow: 'hidden' }}>
+      <section className="cv-section" style={{ padding: isMobile ? '60px 20px' : '80px 40px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,107,53,0.04) 0%, transparent 60%)', pointerEvents: 'none' }} />
         <m.div
           initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
@@ -1065,7 +1059,7 @@ export default function LandingPage() {
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#444', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 18 }}>Légal</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <Link href="/privacy" style={{ fontSize: 14, color: '#787068', textDecoration: 'none' }}>Confidentialité</Link>
-                  <Link href="/terms" style={{ fontSize: 14, color: '#787068', textDecoration: 'none' }}>Conditions d'utilisation</Link>
+                  <Link href="/terms" style={{ fontSize: 14, color: '#787068', textDecoration: 'none' }}>Conditions d&apos;utilisation</Link>
                   <a href="https://wa.me/79962131741" target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, color: '#C8482E', textDecoration: 'none', fontWeight: 500 }}>Support WhatsApp</a>
                 </div>
               </div>
@@ -1098,161 +1092,15 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* ===== INTERACTIVE DEMO MODAL ===== */}
+      {/* ===== INTERACTIVE DEMO MODAL — lazy-loaded (chunk chargé au clic seulement) ===== */}
       <AnimatePresence>
         {showDemoModal && (
-          <m.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed', inset: 0, zIndex: 9999,
-              background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(16px)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: isMobile ? 12 : 24,
-            }}
-            onClick={() => setShowDemoModal(false)}
-          >
-            <m.div
-              initial={{ scale: 0.9, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 20, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              onClick={e => e.stopPropagation()}
-              style={{
-                background: '#121316', border: '1px solid rgba(255,107,53,0.3)',
-                borderRadius: 24, width: '100%', maxWidth: 940, maxHeight: '90vh',
-                overflow: 'hidden', display: 'flex', flexDirection: 'column',
-                boxShadow: '0 30px 90px rgba(0,0,0,0.9), 0 0 40px rgba(200,72,46,0.25)',
-              }}
-            >
-              {/* Header */}
-              <div style={{
-                padding: '16px 24px', background: 'rgba(255,255,255,0.03)',
-                borderBottom: '1px solid rgba(255,255,255,0.08)',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                flexWrap: 'wrap', gap: 12,
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ fontSize: 22 }}>📸</span>
-                  <div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: '#F2EDE4' }}>
-                      Galerie Démo Client : Mariage de Fatima & Ibrahima
-                    </div>
-                    <div style={{ fontSize: 12, color: '#A09890' }}>
-                      Testez l'expérience exacte qu'auront vos futurs clients
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Link
-                    href="/signup"
-                    onClick={() => setShowDemoModal(false)}
-                    style={{
-                      padding: '8px 16px', borderRadius: 10, background: '#C8482E',
-                      color: '#fff', textDecoration: 'none', fontWeight: 600, fontSize: 13,
-                      display: 'inline-flex', alignItems: 'center', gap: 6,
-                    }}
-                  >
-                    Créer la mienne <ArrowRight size={14} />
-                  </Link>
-                  <button
-                    onClick={() => setShowDemoModal(false)}
-                    style={{
-                      background: 'rgba(255,255,255,0.08)', border: 'none',
-                      borderRadius: 10, padding: 8, color: '#F2EDE4', cursor: 'pointer',
-                    }}
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Body Content */}
-              <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
-                {/* Banner alert */}
-                <div style={{
-                  padding: '12px 18px', borderRadius: 14, background: 'rgba(255,107,53,0.1)',
-                  border: '1px solid rgba(255,107,53,0.25)', marginBottom: 20,
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
-                }}>
-                  <div style={{ fontSize: 13, color: '#F2EDE4', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Heart size={15} color="#C8482E" fill="#C8482E" />
-                    <strong>Essayez de cliquer sur le coeur ❤️ pour aimer une photo en direct !</strong>
-                  </div>
-                  <span style={{ fontSize: 12, background: 'rgba(255,255,255,0.1)', padding: '3px 10px', borderRadius: 99, color: '#DF5438', fontWeight: 600 }}>
-                    {Object.keys(demoLikes).filter(k => demoLikes[Number(k)]).length} favori(s) sélectionné(s)
-                  </span>
-                </div>
-
-                {/* Grid of sample photos */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
-                  gap: 14,
-                }}>
-                  {HERO_PHOTOS.map((src, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        position: 'relative', borderRadius: 14, overflow: 'hidden',
-                        aspectRatio: '4/3', background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.08)',
-                      }}
-                    >
-                      <Image src={src} alt={`Demo photo ${i + 1}`} fill sizes="300px" style={{ objectFit: 'cover' }} />
-                      <div style={{
-                        position: 'absolute', inset: 0,
-                        background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%)',
-                        display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
-                        padding: 10,
-                      }}>
-                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontFamily: 'monospace' }}>
-                          #IMG_{1040 + i}
-                        </span>
-                        <button
-                          onClick={() => setDemoLikes(prev => ({ ...prev, [i]: !prev[i] }))}
-                          style={{
-                            background: demoLikes[i] ? '#C8482E' : 'rgba(0,0,0,0.6)',
-                            border: demoLikes[i] ? 'none' : '1px solid rgba(255,255,255,0.3)',
-                            borderRadius: '50%', width: 32, height: 32,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            cursor: 'pointer', transition: 'all 0.2s ease',
-                          }}
-                        >
-                          <Heart size={15} color="#fff" fill={demoLikes[i] ? '#fff' : 'transparent'} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Footer CTA */}
-              <div style={{
-                padding: '16px 24px', background: 'rgba(255,255,255,0.02)',
-                borderTop: '1px solid rgba(255,255,255,0.08)',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                flexWrap: 'wrap', gap: 14,
-              }}>
-                <div style={{ fontSize: 13, color: '#A09890' }}>
-                  Vos clients peuvent télécharger leurs favoris en 1 clic au format ZIP HD.
-                </div>
-                <Link
-                  href="/signup"
-                  onClick={() => setShowDemoModal(false)}
-                  style={{
-                    padding: '12px 24px', borderRadius: 12,
-                    background: 'linear-gradient(135deg, #DF5438 0%, #C8482E 100%)',
-                    color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: 14,
-                    boxShadow: '0 4px 16px rgba(255,107,53,0.35)',
-                  }}
-                >
-                  Démarrer gratuitement maintenant →
-                </Link>
-              </div>
-            </m.div>
-          </m.div>
+          <DemoModal
+            isMobile={isMobile}
+            demoLikes={demoLikes}
+            onToggleLike={(i) => setDemoLikes(prev => ({ ...prev, [i]: !prev[i] }))}
+            onClose={() => setShowDemoModal(false)}
+          />
         )}
       </AnimatePresence>
     </div>
