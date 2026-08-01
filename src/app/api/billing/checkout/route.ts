@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
   const amount = PLAN_PRICE_GNF[plan]
   const reference = `SUB_${generateId(16)}`
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const returnUrl = `${appUrl}/billing/success`
+  const returnUrl = `${appUrl}/billing/success?ref=${reference}`
   const cancelUrl  = `${appUrl}/billing/failed`
 
   console.log(`[Checkout] Initiating payment — user: ${user.id}, plan: ${plan}, amount: ${amount} GNF`)
