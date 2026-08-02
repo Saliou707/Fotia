@@ -1,6 +1,8 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
+
+export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { CheckCircle, ArrowRight, Sparkles, Loader2, AlertCircle } from 'lucide-react'
