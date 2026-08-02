@@ -7,10 +7,11 @@ import {
   Plus, Eye, Heart, Image as ImageIcon, ArrowRight,
   MoreHorizontal, Pencil, Trash2, Calendar, FileImage,
   Upload, Share2, Sparkles, Zap, TrendingUp, BarChart3,
-  X, ChevronRight, Activity
+  X, ChevronRight, Activity, Crown, CheckCircle2, Infinity
 } from 'lucide-react'
 import { fadeUp, stagger } from '@/lib/animations'
 import { fetchGalleries, fetchDashboardStats, createGallery, fmtNumber, fmtDate, type Gallery } from '@/lib/api'
+import { createClient } from '@/lib/supabase/client'
 
 // ─── Animated counter ─────────────────────────────────────────────────────────
 function AnimatedNumber({ value }: { value: number }) {
@@ -181,9 +182,18 @@ export default function DashboardPage() {
   const [clientName, setClientName] = useState('')
   const [creating, setCreating] = useState(false)
 
+  const supabase = createClient()
+  const [userPlan, setUserPlan] = useState<'free' | 'pro' | 'studio'>('free')
+  const [subExpiresAt, setSubExpiresAt] = useState<string | null>(null)
+
   const hour = new Date().getHours()
   const greeting = hour < 5 ? 'Bonne nuit' : hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir'
   const greetingEmoji = hour < 5 ? '🌙' : hour < 12 ? '☀️' : hour < 18 ? '👋' : '🌆'
+  const isPro = userPlan === 'pro' || userPlan === 'studio'
+
+  const daysLeft = subExpiresAt
+    ? Math.max(0, Math.ceil((new Date(subExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0
 
   useEffect(() => {
     Promise.all([fetchGalleries(), fetchDashboardStats()]).then(([g, s]) => {
@@ -191,6 +201,23 @@ export default function DashboardPage() {
       if (s) setStats({ totalGalleries: s.totalGalleries, totalViews: s.totalViews, totalFavorites: s.totalFavorites })
       setLoading(false)
     })
+
+    // Fetch plan & subscription for Pro banner
+    ;(async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: p } = await supabase.from('profiles').select('plan').eq('id', user.id).single()
+        if (p) setUserPlan((p.plan as any) || 'free')
+
+        try {
+          const subRes = await fetch('/api/billing/subscription')
+          if (subRes.ok) {
+            const { subscription: sub } = await subRes.json()
+            if (sub?.expires_at) setSubExpiresAt(sub.expires_at)
+          }
+        } catch { /* ignore */ }
+      }
+    })()
   }, [])
 
   const handleCreate = async () => {
@@ -284,6 +311,91 @@ export default function DashboardPage() {
             Nouvelle galerie
           </motion.button>
         </div>
+
+        {/* ── Pro Banner ── */}
+        {isPro && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.18 }}
+            style={{
+              marginBottom: 36,
+              padding: '18px 22px',
+              borderRadius: 16,
+              background: 'linear-gradient(135deg, rgba(251,191,36,0.1) 0%, rgba(245,158,11,0.04) 50%, rgba(17,17,17,0.6) 100%)',
+              border: '1px solid rgba(251,191,36,0.22)',
+              display: 'flex', alignItems: 'center', gap: 16,
+              flexWrap: 'wrap',
+              position: 'relative',
+              overflow: 'hidden',
+              boxShadow: '0 4px 24px rgba(251,191,36,0.06)',
+            }}
+          >
+            {/* Background glow */}
+            <div style={{ position: 'absolute', top: -40, right: -30, width: 200, height: 150, borderRadius: '50%', background: 'radial-gradient(circle, rgba(251,191,36,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+            {/* Icon */}
+            <div style={{
+              width: 44, height: 44, borderRadius: 13,
+              background: 'linear-gradient(135deg, rgba(251,191,36,0.22), rgba(245,158,11,0.1))',
+              border: '1px solid rgba(251,191,36,0.35)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+              boxShadow: '0 0 20px rgba(251,191,36,0.15)',
+            }}>
+              <Crown size={20} color="#FBBF24" />
+            </div>
+
+            {/* Info */}
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 15, fontWeight: 700, color: '#FBBF24', letterSpacing: '-0.01em' }}>Plan Premium Pro</span>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99,
+                  background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.2)',
+                  color: '#22C55E', letterSpacing: '0.06em', textTransform: 'uppercase',
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                }}>
+                  <CheckCircle2 size={9} /> Actif
+                </span>
+              </div>
+              <div style={{ fontSize: 12.5, color: '#A09890', lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Infinity size={11} color="#FBBF24" /> Galeries illimitées
+                </span>
+                <span>·</span>
+                <span>Téléchargement HD</span>
+                <span>·</span>
+                <span>Stats avancées</span>
+                {daysLeft > 0 && (
+                  <>
+                    <span>·</span>
+                    <span style={{ color: daysLeft <= 7 ? '#F59E0B' : '#787068', fontWeight: daysLeft <= 7 ? 600 : 400 }}>
+                      {daysLeft <= 7 ? `⏳ Expire dans ${daysLeft} jour${daysLeft > 1 ? 's' : ''}` : `Renouvellement dans ${daysLeft} jours`}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* CTA */}
+            <Link
+              href="/dashboard/settings"
+              style={{
+                padding: '8px 16px', borderRadius: 10,
+                background: 'rgba(251,191,36,0.1)',
+                border: '1px solid rgba(251,191,36,0.25)',
+                color: '#FBBF24', fontSize: 12.5, fontWeight: 600,
+                textDecoration: 'none', whiteSpace: 'nowrap',
+                transition: 'all 0.2s',
+                display: 'flex', alignItems: 'center', gap: 5,
+              }}
+              className="hover:bg-[#FBBF24]/20"
+            >
+              Gérer <ChevronRight size={12} />
+            </Link>
+          </motion.div>
+        )}
 
         {/* KPI Cards */}
         <motion.div

@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import {
   Users, TrendingUp, Image, HardDrive,
   DollarSign, Crown, Activity, UserPlus,
-  AlertCircle, RefreshCw
+  AlertCircle, RefreshCw, Clock, UserCheck, CreditCard, ImageIcon
 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -29,6 +29,14 @@ interface DashboardData {
     signups: { date: string; value: number }[]
     revenue: { date: string; value: number }[]
   }
+  recentActivity?: {
+    type: string
+    label: string
+    detail: string
+    timestamp: string
+    accent: string
+    icon: string
+  }[]
 }
 
 // ─── Custom Tooltip ────────────────────────────────────────────────────────
@@ -120,6 +128,12 @@ export default function AdminDashboardClient({ data: initialData }: { data: Dash
   const signupData = charts.signups.map(d => ({ ...d, date: formatChartDate(d.date) }))
   const revenueData = charts.revenue.map(d => ({ ...d, date: formatChartDate(d.date) }))
 
+  const recentActivity = data?.recentActivity || []
+
+  const activityIcons: Record<string, React.ElementType> = {
+    user: UserCheck, payment: CreditCard, gallery: ImageIcon, webhook: Clock,
+  }
+
   const AXIS_TICK = { fill: 'rgba(247,247,245,0.25)', fontSize: 10, fontFamily: 'Inter' }
 
   return (
@@ -174,7 +188,7 @@ export default function AdminDashboardClient({ data: initialData }: { data: Dash
             />
             <AdminCard
               label="Revenu du mois"
-              value={isLoading ? '—' : `${(kpis!.monthlyRevenue ?? 0).toLocaleString()} XOF`}
+              value={isLoading ? '—' : `${(kpis!.monthlyRevenue ?? 0).toLocaleString()} GNF`}
               sub="Paiements réussis"
               icon={DollarSign}
               loading={isLoading}
@@ -265,12 +279,12 @@ export default function AdminDashboardClient({ data: initialData }: { data: Dash
               <div className="mb-5 flex items-start justify-between">
                 <div>
                   <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
-                    Revenus (XOF)
+                    Revenus (GNF)
                   </h3>
                   <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>30 derniers jours</p>
                 </div>
                 <div className="text-lg font-bold" style={{ color: '#10b981' }}>
-                  {isLoading ? '—' : `${revenueData.reduce((s, d) => s + d.value, 0).toLocaleString()} XOF`}
+                  {isLoading ? '—' : `${revenueData.reduce((s, d) => s + d.value, 0).toLocaleString()} GNF`}
                 </div>
               </div>
               {isLoading ? (
@@ -281,7 +295,7 @@ export default function AdminDashboardClient({ data: initialData }: { data: Dash
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
                     <XAxis dataKey="date" tick={AXIS_TICK} axisLine={false} tickLine={false} interval={4} />
                     <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} />
-                    <Tooltip content={<ChartTooltip unit=" XOF" />} />
+                    <Tooltip content={<ChartTooltip unit=" GNF" />} />
                     <Bar dataKey="value" fill="#10b981" fillOpacity={0.8} radius={[3, 3, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -294,7 +308,7 @@ export default function AdminDashboardClient({ data: initialData }: { data: Dash
             {[
               {
                 label: 'Revenu moyen / utilisateur Pro',
-                value: kpis && kpis.proUsers > 0 ? `${Math.round(kpis.monthlyRevenue / kpis.proUsers).toLocaleString()} XOF` : '—',
+                value: kpis && kpis.proUsers > 0 ? `${Math.round(kpis.monthlyRevenue / kpis.proUsers).toLocaleString()} GNF` : '—',
                 icon: '💰',
               },
               {
@@ -323,6 +337,36 @@ export default function AdminDashboardClient({ data: initialData }: { data: Dash
               </div>
             ))}
           </div>
+
+          {/* Recent Activity Feed */}
+          {recentActivity.length > 0 && (
+            <div className="rounded-xl border p-5" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
+              <h2 className="font-semibold text-sm mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                <Clock className="w-4 h-4" style={{ color: 'var(--fotia-orange)' }} />
+                Activité récente
+              </h2>
+              <div className="space-y-2">
+                {recentActivity.slice(0, 12).map((a, i) => {
+                  const Icon = activityIcons[a.icon] || Clock
+                  return (
+                    <div key={i} className="flex items-center gap-3 py-2 text-sm border-b last:border-0" style={{ borderColor: 'var(--bg-overlay)' }}>
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${a.accent}15` }}>
+                        <Icon className="w-4 h-4" style={{ color: a.accent }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span style={{ color: 'var(--text-primary)' }}>{a.label}</span>
+                        <span className="ml-2 text-xs" style={{ color: 'var(--text-muted)' }}>{a.detail}</span>
+                      </div>
+                      <span className="text-xs flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
+                        {new Date(a.timestamp).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}{' '}
+                        {new Date(a.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

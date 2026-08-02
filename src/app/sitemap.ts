@@ -1,9 +1,14 @@
 import { MetadataRoute } from 'next'
+import { createClient } from '@/lib/supabase/server'
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://myfotia.com' // Replace with your actual domain
+// Cache le sitemap 1h pour éviter de requêter Supabase à chaque crawl
+export const revalidate = 3600
 
-  return [
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = 'https://myfotia.com'
+
+  // Pages statiques
+  const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -11,7 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: `${baseUrl}/pricing`, // Assuming you have or will have a pricing page
+      url: `${baseUrl}/pricing`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,
@@ -29,4 +34,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     },
   ]
+
+  // Galeries publiques dynamiques
+  let galleryPages: MetadataRoute.Sitemap = []
+  try {
+    const supabase = await createClient()
+    const { data: galleries } = await supabase
+      .from('galleries')
+      .select('slug, updated_at')
+      .eq('status', 'active')
+      .eq('is_public', true)
+      .order('updated_at', { ascending: false })
+      .limit(500)
+
+    if (galleries) {
+      galleryPages = galleries.map((g) => ({
+        url: `${baseUrl}/g/${g.slug}`,
+        lastModified: g.updated_at ? new Date(g.updated_at) : new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      }))
+    }
+  } catch (err) {
+    // Sitemap non-bloquant : si Supabase est down, on renvoie juste les pages statiques
+    console.warn('[sitemap] Failed to fetch galleries:', err)
+  }
+
+  return [...staticPages, ...galleryPages]
 }

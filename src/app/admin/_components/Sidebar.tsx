@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Users, CreditCard, DollarSign,
   Image, HardDrive, Settings, ChevronRight,
-  LogOut, Menu, X, Activity, Shield
+  LogOut, Menu, X, Activity, Shield, Webhook
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -16,6 +16,7 @@ const navItems = [
   { href: '/admin/payments', label: 'Paiements', icon: DollarSign },
   { href: '/admin/galleries', label: 'Galeries', icon: Image },
   { href: '/admin/storage', label: 'Stockage', icon: HardDrive },
+  { href: '/admin/webhooks', label: 'Webhooks', icon: Webhook },
   { href: '/admin/settings', label: 'Paramètres', icon: Settings },
 ]
 

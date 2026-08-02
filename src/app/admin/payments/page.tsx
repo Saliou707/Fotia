@@ -36,9 +36,10 @@ export default function PaymentsPage() {
 
   const exportCSV = () => {
     const rows = [
-      ['Référence', 'Utilisateur', 'Email', 'Montant', 'Devise', 'Statut', 'Date'],
+      ['Référence', 'Tx Djomy', 'Utilisateur', 'Email', 'Montant', 'Devise', 'Statut', 'Date'],
       ...payments.map(p => [
         p.provider_reference || '',
+        p.provider_payment_id || '',
         p.profiles?.display_name || '',
         p.profiles?.email || '',
         p.amount,
@@ -95,7 +96,7 @@ export default function PaymentsPage() {
             Revenu total cumulé
           </div>
           <div className="text-2xl font-bold mt-0.5" style={{ color: 'var(--text-primary)' }}>
-            {loading ? '...' : `${totalRevenue.toLocaleString()} XOF`}
+            {loading ? '...' : `${totalRevenue.toLocaleString()} GNF`}
           </div>
         </div>
       </div>
@@ -112,9 +113,9 @@ export default function PaymentsPage() {
         onChange={(v) => { setStatus(v); setPage(1) }}
       />
 
-      <DataTable headers={['Référence', 'Utilisateur', 'Montant', 'Devise', 'Statut', 'Date']}>
+      <DataTable headers={['Référence', 'Tx Djomy', 'Utilisateur', 'Montant', 'Devise', 'Statut', 'Date']}>
         {loading ? (
-          <TableSkeleton cols={6} rows={8} />
+          <TableSkeleton cols={7} rows={8} />
         ) : payments.length === 0 ? (
           <EmptyState icon={DollarSign} title="Aucun paiement trouvé" />
         ) : (
@@ -129,6 +130,11 @@ export default function PaymentsPage() {
               <td className="px-5 py-3.5">
                 <span className="font-mono text-xs px-2 py-0.5 rounded" style={{ background: 'var(--bg-overlay)', color: 'var(--text-muted)' }}>
                   {p.provider_reference?.slice(0, 18) || '—'}
+                </span>
+              </td>
+              <td className="px-5 py-3.5">
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded truncate block max-w-[120px]" style={{ background: 'var(--bg-overlay)', color: 'var(--text-muted)' }}>
+                  {p.provider_payment_id?.slice(0, 14) || '—'}
                 </span>
               </td>
               <td className="px-5 py-3.5">

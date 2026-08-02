@@ -6,7 +6,7 @@ import {
   Bell, ChevronDown, ImageIcon, ChevronRight,
   CreditCard, Sparkles, Zap, Check, X, ArrowUpRight
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PLAN_LIMITS, PlanType } from '@/lib/limits'
@@ -85,6 +85,17 @@ export default function DashboardShell({
   const [proModalStep, setProModalStep] = useState<'plan' | 'form'>('plan')
   const [proPhone, setProPhone]       = useState('')
   const [billingLoading, setBillingLoading] = useState(false)
+  const [subExpiresAt, setSubExpiresAt] = useState<string | null>(null)
+
+  // Fetch subscription expiry for Pro card
+  useEffect(() => {
+    if (userPlan === 'pro' || userPlan === 'studio') {
+      fetch('/api/billing/subscription')
+        .then(r => r.ok ? r.json() : null)
+        .then(data => { if (data?.subscription?.expires_at) setSubExpiresAt(data.subscription.expires_at) })
+        .catch(() => {})
+    }
+  }, [userPlan])
 
   const isActive = (href: string, exact?: boolean) => exact ? path === href : path.startsWith(href)
 
@@ -215,7 +226,12 @@ export default function DashboardShell({
                 <Sparkles size={13} color="#FBBF24" />
                 <span style={{ fontSize: 12, fontWeight: 700, color: '#FBBF24' }}>Plan Premium Pro</span>
               </div>
-              <div style={{ fontSize: 11.5, color: '#787068', marginBottom: 10 }}>Galeries illimitées activées</div>
+              <div style={{ fontSize: 11.5, color: '#787068', marginBottom: subExpiresAt ? 6 : 10 }}>Galeries illimitées activées</div>
+              {subExpiresAt && (
+                <div style={{ fontSize: 10.5, color: '#FBBF24', marginBottom: 10, opacity: 0.75, fontWeight: 500 }}>
+                  Expire le {new Date(subExpiresAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </div>
+              )}
               <Link href="/dashboard/settings" style={{ textDecoration: 'none' }}>
                 <span style={{ fontSize: 12, color: '#FBBF24', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }} className="hover:underline">
                   Gérer l&apos;abonnement <ChevronRight size={12} />

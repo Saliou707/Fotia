@@ -2,6 +2,64 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/admin'
 
+function buildRecentActivity(
+  recentUsers: any[] | null,
+  recentPayments: any[] | null,
+  recentGalleries: any[] | null,
+  recentWebhooks: any[] | null,
+) {
+  const activity: { type: string; label: string; detail: string; timestamp: string; accent: string; icon: string }[] = []
+
+  ;(recentUsers || []).forEach((u: any) => {
+    activity.push({
+      type: 'user',
+      label: `${u.display_name || u.email?.split('@')[0]} s'est inscrit`,
+      detail: u.plan === 'pro' ? 'Premium Pro' : 'Essentiel',
+      timestamp: u.created_at,
+      accent: '#3b82f6',
+      icon: 'user',
+    })
+  })
+
+  ;(recentPayments || []).forEach((p: any) => {
+    const name = p.profiles?.display_name || p.profiles?.email?.split('@')[0] || 'Utilisateur'
+    activity.push({
+      type: 'payment',
+      label: `Paiement ${p.status === 'success' ? 'réussi' : p.status}`,
+      detail: `${name} · ${Number(p.amount).toLocaleString()} ${p.currency}`,
+      timestamp: p.created_at,
+      accent: p.status === 'success' ? '#10b981' : '#ef4444',
+      icon: 'payment',
+    })
+  })
+
+  ;(recentGalleries || []).forEach((g: any) => {
+    const name = g.profiles?.display_name || g.profiles?.email?.split('@')[0] || 'Utilisateur'
+    activity.push({
+      type: 'gallery',
+      label: `Galerie créée`,
+      detail: `${g.title} par ${name}`,
+      timestamp: g.created_at,
+      accent: '#f59e0b',
+      icon: 'gallery',
+    })
+  })
+
+  ;(recentWebhooks || []).forEach((w: any) => {
+    const isSuccess = ['payment.success', 'payment.completed', 'payment.captured'].includes(w.event_type)
+    activity.push({
+      type: 'webhook',
+      label: `Webhook ${w.event_type}`,
+      detail: isSuccess ? 'Succès' : 'Événement',
+      timestamp: w.processed_at,
+      accent: isSuccess ? '#10b981' : '#f59e0b',
+      icon: 'webhook',
+    })
+  })
+
+  return activity.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 15)
+}
+
 export async function GET() {
   await requireAdmin()
   const supabase = createAdminClient()
@@ -20,6 +78,10 @@ export async function GET() {
     { count: newUsersThisMonth },
     { data: signupTrend },
     { data: revenueTrend },
+    { data: recentUsers },
+    { data: recentPayments },
+    { data: recentGalleries },
+    { data: recentWebhooks },
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('plan', 'pro'),
@@ -29,6 +91,10 @@ export async function GET() {
     supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', startOfMonth),
     supabase.from('profiles').select('created_at').gte('created_at', startOfLast30Days).order('created_at'),
     supabase.from('payments').select('amount, created_at').eq('status', 'success').gte('created_at', startOfLast30Days).order('created_at'),
+    supabase.from('profiles').select('email, display_name, plan, created_at').order('created_at', { ascending: false }).limit(5),
+    supabase.from('payments').select('amount, currency, status, created_at, profiles(email, display_name)').order('created_at', { ascending: false }).limit(5),
+    supabase.from('galleries').select('title, created_at, profiles(email, display_name)').order('created_at', { ascending: false }).limit(5),
+    supabase.from('webhook_events').select('event_type, processed_at').order('processed_at', { ascending: false }).limit(5),
   ])
 
   const totalStorageBytes = (storageData || []).reduce((acc: number, p: any) => acc + (p.storage_used_bytes || 0), 0)
@@ -73,5 +139,6 @@ export async function GET() {
       signups: signupChart,
       revenue: revenueChart,
     },
+    recentActivity: buildRecentActivity(recentUsers, recentPayments, recentGalleries, recentWebhooks),
   })
 }

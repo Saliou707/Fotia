@@ -59,6 +59,7 @@ export default function SubscriptionsPage() {
         tabs={[
           { value: '', label: 'Tous' },
           { value: 'active', label: '✓ Actifs' },
+          { value: 'pending', label: '⏳ En attente' },
           { value: 'expired', label: '✕ Expirés' },
           { value: 'canceled', label: '○ Annulés' },
         ]}

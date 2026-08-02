@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     description: 'Livrez vos photos professionnellement avec Fotia. Galeries élégantes, sélection de favoris et partage facile.',
     images: [
       {
-        url: '/og-image.png',
+        url: '/og-image.webp',
         width: 1200,
         height: 630,
         alt: 'Fotia - Plateforme pour photographes',
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     title: 'Fotia — Galeries photo professionnelles',
     description: 'Créez des galeries élégantes et partagez-les avec vos clients facilement.',
     creator: '@fotia_app', // Assuming a Twitter handle
-    images: ['/og-image.png'], // Same image as OG
+    images: ['/og-image.webp'], // Same image as OG
   },
   robots: {
     index: true,
@@ -80,8 +80,34 @@ export const viewport: Viewport = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'Fotia',
+    url: 'https://myfotia.com',
+    description: 'Plateforme SaaS pour photographes. Créez des galeries élégantes, partagez via WhatsApp et laissez vos clients sélectionner leurs favoris.',
+    applicationCategory: 'Multimedia',
+    operatingSystem: 'All',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'GNF',
+    },
+    author: {
+      '@type': 'Organization',
+      name: 'Fotia',
+      url: 'https://myfotia.com',
+    },
+  }
+
   return (
     <html lang="fr" className={`${inter.variable} ${bigShoulders.variable} ${plexMono.variable} ${playfair.variable}`} data-scroll-behavior="smooth">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body style={{ margin: 0, padding: 0, background: '#15171A', color: '#F2EDE4', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
         {/* Preconnect hints — les polices next/font sont auto-hébergées (pas besoin de Google Fonts)
             mais on préconnecte les origines externes utilisées au chargement (Unsplash, Supabase, CDN) */}
