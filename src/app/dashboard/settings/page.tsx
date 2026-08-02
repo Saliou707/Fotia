@@ -3,10 +3,10 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  User, Bell, Shield, CreditCard, Globe, Check, ChevronRight,
+  User, Bell, Shield, CreditCard, Check, ChevronRight,
   Loader2, Sparkles, Zap, Camera, ExternalLink,
   Phone, Lock, AlertTriangle, X, ChevronLeft,
-  Star, HardDrive
+  Star, HardDrive, CheckCircle2
 } from 'lucide-react'
 import { fadeUp as fade, stagger } from '@/lib/animations'
 import { createClient } from '@/lib/supabase/client'
@@ -104,7 +104,6 @@ const TABS = [
   { id: 'notifs',   label: 'Notifications', icon: Bell },
   { id: 'security', label: 'Sécurité',      icon: Shield },
   { id: 'billing',  label: 'Abonnement',    icon: CreditCard },
-  { id: 'language', label: 'Langue',        icon: Globe },
 ] as const
 type TabId = typeof TABS[number]['id']
 
@@ -223,6 +222,10 @@ export default function SettingsPage() {
   })
 
   const [pwdModal, setPwdModal] = useState(false)
+  const [pwdEmail, setPwdEmail] = useState('')
+  const [pwdLoading, setPwdLoading] = useState(false)
+  const [pwdError, setPwdError] = useState('')
+  const [pwdSent, setPwdSent] = useState(false)
   const [proModal, setProModal] = useState(false)
 
   // Djomy Gateway — redirect vers le portail Djomy
@@ -804,29 +807,7 @@ export default function SettingsPage() {
                   </div>
                 )}
 
-                {/* ══ LANGUE ══ */}
-                {activeTab === 'language' && (
-                  <Card>
-                    <SectionHeader label="Langue & région" icon={Globe} />
-                    <div style={{ padding: 24 }}>
-                      <div style={{ marginBottom: 20 }}>
-                        <div style={{ fontSize: 14, color: '#E5DDD6', fontWeight: 500, marginBottom: 6 }}>Langue de l'interface</div>
-                        <div style={{ fontSize: 12, color: '#787068', marginBottom: 16 }}>Ce réglage s'applique à toutes les pages de Fotia</div>
-                        <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(200,72,46,0.08)', border: '1px solid rgba(200,72,46,0.2)', fontSize: 13, color: '#C8482E' }}>
-                          🇫🇷 Le site est actuellement disponible uniquement en français.
-                        </div>
-                      </div>
-                      <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '20px 0' }} />
-                      <div>
-                        <div style={{ fontSize: 14, color: '#E5DDD6', fontWeight: 500, marginBottom: 6 }}>Format de date</div>
-                        <select style={{ ...inputStyle, cursor: 'pointer' }}>
-                          <option>JJ/MM/AAAA (Français)</option>
-                          <option>MM/DD/YYYY (Anglais)</option>
-                        </select>
-                      </div>
-                    </div>
-                  </Card>
-                )}
+
 
               </motion.div>
             </AnimatePresence>
@@ -860,24 +841,76 @@ export default function SettingsPage() {
                 </div>
                 <h3 style={{ fontSize: 18, fontWeight: 700 }}>Changer le mot de passe</h3>
               </div>
-              <p style={{ color: '#787068', fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
-                Vous recevrez un lien par email pour réinitialiser votre mot de passe en toute sécurité.
-              </p>
-              <input
-                type="email" placeholder="Votre email actuel"
-                style={{ ...inputStyle, marginBottom: 16 }}
-                onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'rgba(200,72,46,0.5)'}
-                onBlur={e => (e.target as HTMLInputElement).style.borderColor = 'rgba(255,255,255,0.10)'}
-              />
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={() => setPwdModal(false)} style={{ flex: 1, padding: '12px', borderRadius: 10, background: 'rgba(255,255,255,0.06)', color: '#F2EDE4', border: '1px solid rgba(255,255,255,0.08)', fontSize: 14, cursor: 'pointer' }}>Annuler</button>
-                <button
-                  onClick={() => { setPwdModal(false); alert('Email de réinitialisation envoyé !') }}
-                  style={{ flex: 1, padding: '12px', borderRadius: 10, background: 'linear-gradient(135deg, #DF5D43, #C8482E)', color: '#fff', border: 'none', fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(200,72,46,0.3)' }}
-                >
-                  Envoyer
-                </button>
-              </div>
+              {pwdSent ? (
+                <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+                    <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <CheckCircle2 size={26} color="#22c55e" />
+                    </div>
+                  </div>
+                  <p style={{ color: '#A1A1AA', fontSize: 13, marginBottom: 18, lineHeight: 1.6 }}>
+                    Si un compte existe avec <strong style={{ color: '#F2EDE4' }}>{pwdEmail}</strong>, vous recevrez un lien de réinitialisation.
+                  </p>
+                  <button
+                    onClick={() => { setPwdModal(false); setPwdSent(false); setPwdEmail(''); }}
+                    style={{ padding: '10px 20px', borderRadius: 10, background: 'rgba(255,255,255,0.06)', color: '#F2EDE4', border: '1px solid rgba(255,255,255,0.08)', fontSize: 13, cursor: 'pointer' }}
+                  >
+                    Fermer
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <p style={{ color: '#787068', fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>
+                    Vous recevrez un lien par email pour réinitialiser votre mot de passe en toute sécurité.
+                  </p>
+
+                  {pwdError && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', marginBottom: 14, color: '#ef4444', fontSize: 12 }}>
+                      <AlertTriangle size={14} /> {pwdError}
+                    </div>
+                  )}
+
+                  <input
+                    type="email" placeholder="Votre email actuel"
+                    value={pwdEmail}
+                    onChange={e => { setPwdEmail(e.target.value); setPwdError(''); }}
+                    style={{ ...inputStyle, marginBottom: 16 }}
+                    onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'rgba(200,72,46,0.5)'}
+                    onBlur={e => (e.target as HTMLInputElement).style.borderColor = 'rgba(255,255,255,0.10)'}
+                  />
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <button
+                      onClick={() => { setPwdModal(false); setPwdError(''); setPwdEmail(''); }}
+                      style={{ flex: 1, padding: '12px', borderRadius: 10, background: 'rgba(255,255,255,0.06)', color: '#F2EDE4', border: '1px solid rgba(255,255,255,0.08)', fontSize: 14, cursor: 'pointer' }}
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!pwdEmail.trim()) { setPwdError('Veuillez entrer votre adresse email.'); return }
+                        setPwdLoading(true)
+                        setPwdError('')
+                        try {
+                          const { error } = await supabase.auth.resetPasswordForEmail(pwdEmail.trim(), {
+                            redirectTo: `${window.location.origin}/reset-password`,
+                          })
+                          if (error) throw error
+                          setPwdSent(true)
+                        } catch (err: unknown) {
+                          const message = err instanceof Error ? err.message : 'Erreur lors de l\'envoi.'
+                          setPwdError(message)
+                        } finally {
+                          setPwdLoading(false)
+                        }
+                      }}
+                      disabled={pwdLoading}
+                      style={{ flex: 1, padding: '12px', borderRadius: 10, background: pwdLoading ? 'rgba(100,100,100,0.5)' : 'linear-gradient(135deg, #DF5D43, #C8482E)', color: pwdLoading ? '#888' : '#fff', border: 'none', fontSize: 14, fontWeight: 700, cursor: pwdLoading ? 'not-allowed' : 'pointer', boxShadow: pwdLoading ? 'none' : '0 4px 14px rgba(200,72,46,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                    >
+                      {pwdLoading ? <><Loader2 size={14} className="animate-spin" /> Envoi...</> : 'Envoyer'}
+                    </button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}
