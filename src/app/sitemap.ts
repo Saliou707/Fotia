@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next'
 import { createClient } from '@/lib/supabase/server'
 
-// Cache le sitemap 1h pour éviter de requêter Supabase à chaque crawl
-export const revalidate = 3600
+// Force le rendu dynamique (pas de static generation au build, car on utilise cookies() + Supabase)
+export const dynamic = 'force-dynamic'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://myfotia.com'

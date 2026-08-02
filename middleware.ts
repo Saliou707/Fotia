@@ -52,9 +52,10 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Exclut les fichiers statiques Next.js et les ressources publiques.
+     * Exclut les fichiers statiques Next.js, ressources publiques,
+     * sitemap et robots (pas besoin de session Supabase pour les crawlers).
      * Couvre toutes les routes applicatives dont /dashboard/:path*.
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
