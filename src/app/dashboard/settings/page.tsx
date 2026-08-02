@@ -63,7 +63,7 @@ function SettingRow({
         <div style={{ fontSize: 14, color: '#E5DDD6', fontWeight: 500 }}>{label}</div>
         {hint && <div style={{ fontSize: 12, color: '#787068', marginTop: 2 }}>{hint}</div>}
       </div>
-      <div style={{ flex: '0 0 auto', maxWidth: 280, width: '100%' }}>{children}</div>
+      <div className="settings-row-control" style={{ flex: '0 0 auto', maxWidth: 280, width: '100%' }}>{children}</div>
     </div>
   )
 }
@@ -252,27 +252,6 @@ export default function SettingsPage() {
     }
   }
 
-  const handleCancelSubscription = async () => {
-    if (!confirm('Êtes-vous sûr de vouloir annuler votre abonnement Premium Pro ? Vous repasserez immédiatement au plan Essentiel.')) return
-    setBillingLoading(true)
-    try {
-      const res = await fetch('/api/billing/cancel', {
-        method: 'POST'
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || 'Failed to cancel subscription')
-      }
-      alert('Votre abonnement a été annulé avec succès.')
-      window.location.reload()
-    } catch (err: any) {
-      console.error(err)
-      alert(err.message || 'Erreur lors de l\'annulation de l\'abonnement.')
-    } finally {
-      setBillingLoading(false)
-    }
-  }
-
   const save = async () => {
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
@@ -380,7 +359,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Storage mini bar */}
-              <div style={{ minWidth: 160, maxWidth: 220, flex: 1 }}>
+              <div className="settings-hero-storage" style={{ minWidth: 160, maxWidth: 220, flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#787068', marginBottom: 6 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><HardDrive size={10} />Stockage</span>
                   <span style={{ fontFamily: 'monospace' }}>{storageGB} Go / {maxStorageGB} Go</span>
@@ -436,6 +415,7 @@ export default function SettingsPage() {
 
           {/* ── Tab content ── */}
           <motion.div
+            className="settings-tab-content"
             initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.12 }}
             style={{ flex: 1, minWidth: 280 }}
@@ -514,7 +494,7 @@ export default function SettingsPage() {
                         </Card>
 
                         {/* Save */}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <div className="settings-save-row" style={{ display: 'flex', justifyContent: 'flex-end' }}>
                           <button
                             onClick={save} disabled={saving}
                             style={{
@@ -590,9 +570,9 @@ export default function SettingsPage() {
                     </Card>
 
                     {/* Danger zone */}
-                    <Card style={{ border: '1px solid rgba(239,68,68,0.15)' }}>
+                    <Card className="settings-danger-zone" style={{ border: '1px solid rgba(239,68,68,0.15)' }}>
                       <SectionHeader label="Zone de danger" icon={AlertTriangle} />
-                      <div style={{ padding: '20px' }}>
+                      <div className="settings-danger-content" style={{ padding: '20px' }}>
                         <div style={{ fontSize: 13, color: '#787068', marginBottom: 16, lineHeight: 1.6 }}>
                           La suppression de votre compte est irréversible. Toutes vos galeries, photos et données seront effacées définitivement.
                         </div>
@@ -618,8 +598,8 @@ export default function SettingsPage() {
                         : 'linear-gradient(135deg, rgba(251,191,36,0.07) 0%, rgba(17,17,17,0.95) 60%)',
                       border: plan === 'free' ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(251,191,36,0.2)',
                     }}>
-                      <div style={{ padding: '24px 24px 20px' }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                      <div className="settings-billing-header" style={{ padding: '24px 24px 20px' }}>
+                        <div className="settings-billing-plan-row" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                             <div style={{
                               width: 48, height: 48, borderRadius: 14, flexShrink: 0,
@@ -663,20 +643,7 @@ export default function SettingsPage() {
                               <Sparkles size={14} />
                               {billingLoading ? 'Chargement...' : 'Passer au Pro'}
                             </button>
-                          ) : (
-                            <button
-                              onClick={handleCancelSubscription}
-                              disabled={billingLoading}
-                              style={{
-                                padding: '10px 18px', borderRadius: 10,
-                                background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.18)',
-                                color: '#EF4444', fontSize: 13, fontWeight: 600,
-                                cursor: billingLoading ? 'not-allowed' : 'pointer',
-                              }}
-                            >
-                              {billingLoading ? 'Chargement...' : 'Annuler l\'abonnement'}
-                            </button>
-                          )}
+                          ) : null}
                         </div>
                       </div>
 
@@ -773,7 +740,7 @@ export default function SettingsPage() {
                     {plan === 'free' && (
                       <Card>
                         <SectionHeader label="Fonctionnalités Pro" icon={Star} />
-                        <div style={{ padding: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div className="settings-feature-grid" style={{ padding: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                           {[
                             { icon: '∞', label: 'Galeries illimitées' },
                             { icon: '📷', label: '1000 photos/galerie' },
@@ -959,7 +926,7 @@ export default function SettingsPage() {
                     <p style={{ color: '#787068', fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>Profitez de toutes les fonctionnalités premium !</p>
 
                     <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(200,72,46,0.08), rgba(200,72,46,0.04))', borderRadius: 14, marginBottom: 20, border: '1px solid rgba(200,72,46,0.15)' }}>
-                      <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 4 }}>1 000 <span style={{ fontSize: 15, fontWeight: 500, color: '#787068' }}>GNF/mois</span></div>
+                      <div className="settings-pro-price" style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 4 }}>1 000 <span style={{ fontSize: 15, fontWeight: 500, color: '#787068' }}>GNF/mois</span></div>
                       <ul style={{ fontSize: 13, color: '#E5DDD6', margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 7 }}>
                         {['Galeries illimitées', '1000 photos / galerie', 'Téléchargement HD', 'Filigrane personnalisé', 'Support prioritaire'].map(f => (
                           <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1045,21 +1012,51 @@ export default function SettingsPage() {
       </AnimatePresence>
 
       <style>{`
+        /* ── Tablette ── */
         @media (max-width: 768px) {
-          .settings-tab-layout { flex-direction: column !important; }
+          .settings-tab-layout { flex-direction: column !important; align-items: stretch !important; }
           .settings-tab-sidebar { width: 100% !important; }
           .settings-tab-sidebar > div { display: flex !important; overflow-x: auto !important; gap: 0 !important; padding: 4px !important; scrollbar-width: none !important; }
           .settings-tab-sidebar > div::-webkit-scrollbar { display: none !important; }
-          .settings-tab-sidebar button { white-space: nowrap !important; border-left: none !important; border-bottom: 2px solid transparent !important; padding: 10px 14px !important; flex: 0 0 auto !important; }
+          .settings-tab-sidebar button { white-space: nowrap !important; border-left: none !important; border-bottom: 2px solid transparent !important; padding: 10px 14px !important; flex: 0 0 auto !important; font-size: 13px !important; }
           .settings-tab-sidebar button.active { border-bottom: 2px solid #C8482E !important; background: rgba(200,72,46,0.1) !important; color: #F2EDE4 !important; }
           .settings-tab-sidebar button.active svg { color: #C8482E !important; }
-          .settings-tab-content { min-width: 0 !important; }
-          .settings-hero-card { flex-direction: column !important; text-align: center !important; align-items: center !important; }
+          .settings-tab-sidebar button svg { display: none !important; }
+          .settings-tab-content { width: 100% !important; min-width: 0 !important; overflow: visible !important; }
+          .settings-hero-card { flex-direction: column !important; text-align: center !important; align-items: center !important; padding: 20px !important; }
+          .settings-hero-storage { min-width: 100% !important; max-width: 100% !important; }
+          .settings-row-control { max-width: 100% !important; }
+          .settings-billing-plan-row { flex-direction: column !important; align-items: stretch !important; }
+          .settings-billing-plan-row > button { width: 100% !important; justify-content: center !important; }
+          .settings-billing-header { padding: 16px !important; }
+          .settings-feature-grid { grid-template-columns: 1fr !important; }
+          .settings-save-row { justify-content: stretch !important; }
+          .settings-save-row button { width: 100% !important; justify-content: center !important; }
+          .settings-danger-content { padding: 14px !important; }
+          .settings-danger-content button { width: 100% !important; }
         }
+
+        /* ── Mobile ── */
         @media (max-width: 480px) {
-          .settings-page-inner { padding: 20px 12px 60px !important; }
-          .settings-page-inner h1 { font-size: 24px !important; }
-          .settings-modal-card { padding: 20px !important; }
+          .settings-page-inner { padding: 16px 10px 60px !important; }
+          .settings-page-inner h1 { font-size: 22px !important; }
+          .settings-page-inner > div > p { font-size: 13px !important; }
+          .settings-modal-card { padding: 20px !important; margin: 0 8px !important; }
+          .settings-modal-card h3 { font-size: 16px !important; }
+          .settings-hero-card { gap: 14px !important; padding: 16px !important; }
+          .settings-hero-card > div:first-child > div:first-child { width: 64px !important; height: 64px !important; font-size: 22px !important; }
+          .settings-hero-card span[style*="font-size:20"] { font-size: 17px !important; }
+          .settings-pro-price { font-size: 26px !important; }
+          .settings-tab-sidebar button { padding: 8px 12px !important; font-size: 12px !important; }
+          .settings-tab-layout { gap: 10px !important; }
+        }
+
+        /* ── Très petit écran ── */
+        @media (max-width: 380px) {
+          .settings-page-inner { padding: 12px 6px 60px !important; }
+          .settings-modal-card { padding: 16px !important; border-radius: 16px !important; }
+          .settings-hero-card { padding: 14px !important; }
+          .settings-hero-card > div:first-child > div:first-child { width: 56px !important; height: 56px !important; }
         }
       `}</style>
     </div>

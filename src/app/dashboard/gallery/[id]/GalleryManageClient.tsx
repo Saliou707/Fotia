@@ -522,9 +522,15 @@ export default function GalleryManageClient({ gallery, initialImages, userId }: 
         @media (max-width: 640px) {
           .gmc-content { padding: 16px !important; }
           .gmc-content .upload-zone { padding: 32px 16px !important; }
+          .gmc-content .gallery-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 4px !important; }
+          .gmc-content .gallery-grid .photo-card { border-radius: 8px !important; }
         }
         @media (max-width: 480px) {
-          .gmc-content .gallery-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 6px !important; }
+          .gmc-content .gallery-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 3px !important; }
+          .gmc-content .gallery-grid .photo-card { border-radius: 6px !important; }
+        }
+        @media (max-width: 380px) {
+          .gmc-content .gallery-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 4px !important; }
         }
       `}</style>
 

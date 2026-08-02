@@ -562,13 +562,19 @@ export default function FavoritesPage() {
         @media (max-width: 640px) {
           .favorites-tabs { overflow-x: auto !important; width: 100% !important; }
           .favorites-tabs > div { flex-shrink: 0 !important; }
-          .favorites-masonry { columns: 2 130px !important; gap: 8px !important; }
+          .favorites-masonry { columns: 3 110px !important; gap: 4px !important; }
+          .favorites-masonry > div { margin-bottom: 4px !important; border-radius: 8px !important; }
           .favorites-header { flex-direction: column !important; align-items: flex-start !important; }
           .favorites-drill-controls { width: 100% !important; }
           .favorites-drill-controls button { flex: 1 !important; }
         }
         @media (max-width: 480px) {
-          .favorites-masonry { columns: 1 !important; }
+          .favorites-masonry { columns: 3 100px !important; gap: 3px !important; }
+          .favorites-masonry > div { margin-bottom: 3px !important; border-radius: 6px !important; }
+        }
+        @media (max-width: 380px) {
+          .favorites-masonry { columns: 2 140px !important; gap: 4px !important; }
+          .favorites-masonry > div { margin-bottom: 4px !important; }
         }
       `}</style>
     </div>
