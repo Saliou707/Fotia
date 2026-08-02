@@ -129,6 +129,30 @@ export async function POST(request: NextRequest) {
 
     console.log(`[VerifySubscription] ✅ Activated — user: ${user.id}, plan: pro`)
 
+    // 8. Envoyer l'email de confirmation (meilleur effort, non-bloquant)
+    const { data: userProfile } = await supabase
+      .from('profiles')
+      .select('email, display_name')
+      .eq('id', user.id)
+      .single()
+
+    if (userProfile?.email) {
+      supabase.functions.invoke('send-email', {
+        body: {
+          type: 'payment-success',
+          to: userProfile.email,
+          userId: user.id,
+          data: {
+            userName: userProfile.display_name || userProfile.email.split('@')[0],
+            plan: 'pro',
+            amount: verified.paidAmount,
+            currency: verified.currency || 'GNF',
+            expiresAt: expiresAt.toISOString(),
+          },
+        },
+      }).catch(err => console.error('[VerifySubscription] Email send failed:', err))
+    }
+
     return NextResponse.json({
       success: true,
       status: 'active',
