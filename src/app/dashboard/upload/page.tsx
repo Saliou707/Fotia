@@ -1,10 +1,9 @@
 'use client'
 import { useState, useRef, useCallback, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { CloudUpload, X, Check, ArrowRight, Image as ImageIcon, Folder } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import { updateGallery, fmtBytes } from '@/lib/api'
+import { fetchGallery, updateGallery } from '@/lib/api'
 
 interface UpFile {
   id: string; file: File; name: string; sizeBytes: number
@@ -77,22 +76,18 @@ function UploadPageInner() {
   const galleryId = searchParams.get('gallery')
 
   const [galleryTitle, setGalleryTitle] = useState<string>('')
-  const [gallerySlug, setGallerySlug] = useState<string>('')
   const [files, setFiles] = useState<UpFile[]>([])
   const [dragging, setDragging] = useState(false)
   const [stage, setStage] = useState<Stage>('idle')
-  const [uploaded, setUploaded] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const folderRef = useRef<HTMLInputElement>(null)
   const abortRef = useRef(false)
 
   useEffect(() => {
     if (!galleryId) return
-    const supabase = createClient()
-    supabase.from('galleries').select('title, slug').eq('id', galleryId).single()
-      .then(({ data }) => {
-        if (data) { setGalleryTitle(data.title); setGallerySlug(data.slug) }
-      })
+    fetchGallery(galleryId).then(g => {
+      if (g) { setGalleryTitle(g.title) }
+    })
   }, [galleryId])
 
   const addAndUpload = useCallback(async (newFiles: File[]) => {
@@ -106,7 +101,6 @@ function UploadPageInner() {
     }))
     setFiles(prev => [...prev, ...mapped])
     setStage('uploading')
-    setUploaded(0)
     abortRef.current = false
 
     let done = 0
@@ -131,7 +125,6 @@ function UploadPageInner() {
 
         setFiles(prev => prev.map(x => x.id === f.id ? { ...x, status: 'terminé', progress: 100 } : x))
         done++
-        setUploaded(done)
       } catch {
         setFiles(prev => prev.map(x => x.id === f.id ? { ...x, status: 'erreur', progress: 0 } : x))
       }
@@ -196,7 +189,7 @@ function UploadPageInner() {
             {hasErrors && <p style={{ fontSize: 13, color: '#ef4444', marginBottom: 8 }}>⚠️ Certains fichiers ont échoué — réessayez-les manuellement.</p>}
             <p style={{ fontSize: 14, color: '#555', marginBottom: 32 }}>Vous pouvez maintenant partager votre galerie avec votre client.</p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button onClick={() => { setFiles([]); setStage('idle'); setUploaded(0) }}
+              <button onClick={() => { setFiles([]); setStage('idle') }}
                 style={{ padding: '12px 20px', borderRadius: 10, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: '#A1A1AA', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
                 + Ajouter des photos
               </button>
@@ -219,7 +212,7 @@ function UploadPageInner() {
                 <input ref={inputRef} type="file" multiple accept="image/*,video/mp4" style={{ display: 'none' }}
                   onChange={e => addAndUpload(Array.from(e.target.files ?? []))} />
                 <input ref={folderRef} type="file" multiple accept="image/*" style={{ display: 'none' }}
-                  // @ts-ignore
+                  // @ts-expect-error - webkitdirectory n'existe pas dans le typage standard HTML
                   webkitdirectory="true"
                   onChange={e => addAndUpload(Array.from(e.target.files ?? []))} />
                 <div style={{ width: 64, height: 64, borderRadius: 18, background: 'rgba(200,72,46,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>

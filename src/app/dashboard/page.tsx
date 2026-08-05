@@ -1,23 +1,22 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, Eye, Heart, Image as ImageIcon, ArrowRight,
-  MoreHorizontal, Pencil, Trash2, Calendar, FileImage,
+  MoreHorizontal, Pencil, Trash2, Calendar,
   Upload, Share2, Sparkles, Zap, TrendingUp, BarChart3,
   X, ChevronRight, Activity, Crown, CheckCircle2, Infinity
 } from 'lucide-react'
-import { fadeUp, stagger } from '@/lib/animations'
-import { fetchGalleries, fetchDashboardStats, createGallery, fmtNumber, fmtDate, type Gallery } from '@/lib/api'
-import { createClient } from '@/lib/supabase/client'
+import { stagger } from '@/lib/animations'
+import { fetchGalleries, fetchProfile, createGallery, fmtNumber, fmtDate, type Gallery } from '@/lib/api'
 
 // ─── Animated counter ─────────────────────────────────────────────────────────
 function AnimatedNumber({ value }: { value: number }) {
   const [display, setDisplay] = useState(0)
   useEffect(() => {
-    let start = 0
+    const start = 0
     const end = value
     if (start === end) return
     const dur = 900
@@ -182,42 +181,35 @@ export default function DashboardPage() {
   const [clientName, setClientName] = useState('')
   const [creating, setCreating] = useState(false)
 
-  const supabase = createClient()
   const [userPlan, setUserPlan] = useState<'free' | 'pro' | 'studio'>('free')
-  const [subExpiresAt, setSubExpiresAt] = useState<string | null>(null)
+  const [daysLeft, setDaysLeft] = useState(0)
 
   const hour = new Date().getHours()
   const greeting = hour < 5 ? 'Bonne nuit' : hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir'
   const greetingEmoji = hour < 5 ? '🌙' : hour < 12 ? '☀️' : hour < 18 ? '👋' : '🌆'
   const isPro = userPlan === 'pro' || userPlan === 'studio'
 
-  const daysLeft = subExpiresAt
-    ? Math.max(0, Math.ceil((new Date(subExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-    : 0
-
   useEffect(() => {
-    Promise.all([fetchGalleries(), fetchDashboardStats()]).then(([g, s]) => {
+    Promise.all([fetchGalleries(), fetchProfile()]).then(([g, profile]) => {
       setGalleries(g)
-      if (s) setStats({ totalGalleries: s.totalGalleries, totalViews: s.totalViews, totalFavorites: s.totalFavorites })
+      if (profile) setUserPlan((profile.plan as 'free' | 'pro' | 'studio') || 'free')
+      setStats({
+        totalGalleries: g.length,
+        totalViews: g.reduce((s, x) => s + (x.view_count ?? 0), 0),
+        totalFavorites: g.reduce((s, x) => s + (x.favorite_count ?? 0), 0),
+      })
       setLoading(false)
     })
 
-    // Fetch plan & subscription for Pro banner
-    ;(async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: p } = await supabase.from('profiles').select('plan').eq('id', user.id).single()
-        if (p) setUserPlan((p.plan as any) || 'free')
-
-        try {
-          const subRes = await fetch('/api/billing/subscription')
-          if (subRes.ok) {
-            const { subscription: sub } = await subRes.json()
-            if (sub?.expires_at) setSubExpiresAt(sub.expires_at)
-          }
-        } catch { /* ignore */ }
-      }
-    })()
+    // Fetch subscription for Pro banner
+    fetch('/api/billing/subscription')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.subscription?.expires_at) {
+          setDaysLeft(Math.max(0, Math.ceil((new Date(data.subscription.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))))
+        }
+      })
+      .catch(() => { /* ignore */ })
   }, [])
 
   const handleCreate = async () => {
@@ -227,13 +219,14 @@ export default function DashboardPage() {
     try {
       const g = await createGallery(fullTitle)
       if (g) router.push(`/dashboard/gallery/${g.id}`)
-    } catch (e: any) {
+    } catch (e: unknown) {
       setCreating(false)
-      if (e.cause?.requiresUpgrade) {
+      const err = e as Error & { cause?: { requiresUpgrade?: boolean } }
+      if (err.cause?.requiresUpgrade) {
         alert("Vous avez atteint la limite de 3 galeries du plan gratuit.\n\nPassez au plan Premium Pro pour des galeries illimitées !")
         router.push('/dashboard/settings')
       } else {
-        alert(e.message || "Erreur lors de la création")
+        alert(err.message || "Erreur lors de la création")
       }
     }
   }
@@ -400,7 +393,7 @@ export default function DashboardPage() {
         {/* KPI Cards */}
         <motion.div
           initial="hidden" animate="show" variants={stagger}
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 0 }}
+          style={{ display: 'grid', gap: 14, marginBottom: 0 }}
           className="kpi-grid"
         >
           {KPIS.map((kpi, i) => (
@@ -572,7 +565,7 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <h2 style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.03em', margin: 0, color: '#F2EDE4' }}>Créer une galerie</h2>
-                  <p style={{ fontSize: 13, color: '#787068', margin: 0, marginTop: 2 }}>Vous importerez vos photos à l'étape suivante.</p>
+                  <p style={{ fontSize: 13, color: '#787068', margin: 0, marginTop: 2 }}>Vous importerez vos photos à l&apos;étape suivante.</p>
                 </div>
               </div>
 
@@ -643,7 +636,7 @@ export default function DashboardPage() {
         @keyframes liveDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
 
         .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-        .kpi-grid { }
+        .kpi-grid { grid-template-columns: repeat(3, 1fr); }
 
         @media (max-width: 1024px) {
           .kpi-grid { grid-template-columns: repeat(3, 1fr) !important; }

@@ -46,12 +46,13 @@ export default function GalleriesPage() {
       setGalleries(prev => [g as unknown as Gallery, ...prev])
       router.push(`/dashboard/gallery/${g.id}`)
       setNewTitle(''); setClientName(''); setCreating(false); setShowCreate(false)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setCreating(false)
-      if (err.cause?.requiresUpgrade) {
-        if (confirm(`${err.message}\n\nVoulez-vous passer au plan Pro ?`)) router.push('/dashboard/settings')
+      const e = err as Error & { cause?: { requiresUpgrade?: boolean } }
+      if (e.cause?.requiresUpgrade) {
+        if (confirm(`${e.message}\n\nVoulez-vous passer au plan Pro ?`)) router.push('/dashboard/settings')
       } else {
-        alert(err.message || 'Une erreur est survenue.')
+        alert(e.message || 'Une erreur est survenue.')
       }
     }
   }
@@ -72,11 +73,11 @@ export default function GalleriesPage() {
   }
 
   return (
-    <div className="galleries-page" style={{ padding: '32px 36px', minHeight: 'calc(100vh - 58px)', background: '#15171A', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+    <div className="galleries-page p-8 md:px-12" style={{ minHeight: 'calc(100vh - 58px)', background: '#15171A', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
 
       {/* ── Header ── */}
-      <motion.div className="galleries-header" initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
-        style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}
+      <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="galleries-header flex flex-col sm:flex-row items-start justify-between mb-8 gap-4"
+        style={{}}
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
@@ -107,11 +108,11 @@ export default function GalleriesPage() {
       </motion.div>
 
       {/* ── Filtres ── */}
-      <motion.div className="galleries-filter-wrap" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
-        style={{ display: 'flex', gap: 12, marginBottom: 28, alignItems: 'center', flexWrap: 'wrap' }}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="galleries-filter-wrap flex flex-wrap gap-3 mb-7 items-center"
+        style={{}}
       >
         {/* Recherche */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '9px 16px', flex: 1, maxWidth: 380, transition: 'border 0.2s' }} className="search-focus-wrapper">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '9px 16px', flex: 1, minWidth: '280px', maxWidth: 380, transition: 'border 0.2s' }} className="search-focus-wrapper">
           <Search size={14} color="#555" />
           <input
             value={search} onChange={e => setSearch(e.target.value)}
@@ -179,7 +180,7 @@ export default function GalleriesPage() {
         <motion.div initial="hidden" animate="show" variants={stagger}
           style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}
         >
-          {filtered.map((g, i) => (
+          {filtered.map(g => (
             <motion.div
               key={g.id} variants={fadeUp}
               style={{ position: 'relative', zIndex: menuId === g.id ? 20 : 1, opacity: deleting === g.id ? 0.35 : 1, transition: 'opacity 0.3s' }}
@@ -428,8 +429,12 @@ export default function GalleriesPage() {
           .galleries-header button { width: 100% !important; justify-content: center !important; }
           .galleries-filter-wrap { flex-direction: column !important; }
           .galleries-filter-wrap > div:first-child { max-width: none !important; width: 100% !important; }
-          .galleries-list-view { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
-          .galleries-list-view > div { min-width: 560px !important; }
+          .galleries-list-view > div:first-child { display: none !important; } /* Hide header */
+          .list-row { display: flex !important; flex-wrap: wrap !important; gap: 10px !important; padding: 16px !important; }
+          .list-row > div:first-child { width: 100% !important; margin-bottom: 6px !important; }
+          .list-row > div:nth-child(2), .list-row > div:nth-child(3), .list-row > div:nth-child(4) { flex: 1 1 auto; text-align: left !important; justify-content: flex-start !important; }
+          .list-row > div:last-child { width: 100% !important; justify-content: stretch !important; margin-top: 6px !important; }
+          .list-row > div:last-child > * { flex: 1; justify-content: center !important; }
         }
         @media (max-width: 380px) {
           .galleries-page { padding: 14px 10px !important; }

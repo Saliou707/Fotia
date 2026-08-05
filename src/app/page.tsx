@@ -981,7 +981,7 @@ export default function LandingPage() {
                 >
                   Commencer l’essai gratuit <ArrowRight size={18} />
                 </Link>
-                <p style={{ textAlign: 'center', fontSize: 13, color: '#787068', marginTop: 14 }}>14 jours d’essai gratuit • Sans carte bancaire</p>
+
               </m.div>
             </div>
 

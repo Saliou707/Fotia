@@ -3,24 +3,24 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { XCircle, RefreshCw, ArrowLeft, ShieldAlert } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { fetchProfile } from '@/lib/api'
+
+// Points décoratifs générés une seule fois (hors rendu)
+const DECOR_DOTS = Array.from({ length: 15 }, (_, i) => ({
+  id: i,
+  x: Math.random() * 100,
+  y: Math.random() * 100,
+  size: Math.random() * 3 + 1,
+}))
 
 export default function BillingFailedPage() {
-  const [dots, setDots] = useState<number[]>([])
   const [userName, setUserName] = useState<string>('')
 
   useEffect(() => {
-    setDots(Array.from({ length: 15 }, (_, i) => i))
     const fetchUser = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('name, display_name')
-          .eq('id', user.id)
-          .single()
-        const name = profile?.name || profile?.display_name || user.email?.split('@')[0] || ''
+      const profile = await fetchProfile()
+      if (profile) {
+        const name = profile.display_name || profile.email.split('@')[0] || ''
         setUserName(name)
       }
     }
@@ -43,12 +43,12 @@ export default function BillingFailedPage() {
         filter: 'blur(40px)', pointerEvents: 'none', zIndex: 1
       }} />
 
-      {dots.map((d) => (
-        <div key={d} style={{
+      {DECOR_DOTS.map(d => (
+        <div key={d.id} style={{
           position: 'absolute',
-          width: Math.random() * 3 + 1, height: Math.random() * 3 + 1,
+          width: d.size, height: d.size,
           borderRadius: '50%', background: 'rgba(239,68,68,0.2)',
-          top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%`,
+          top: `${d.y}%`, left: `${d.x}%`,
           pointerEvents: 'none'
         }} />
       ))}

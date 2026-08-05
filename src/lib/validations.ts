@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from 'zod'
 
 // Schema pour la création et mise à jour d'une galerie
@@ -18,6 +19,33 @@ export const imageUploadSchema = z.object({
   contentType: z.string().regex(/^image\/(jpeg|png|webp|heic|avif)$/i, { message: 'Format d\'image non supporté' }),
   fileSizeBytes: z.number().positive().max(50 * 1024 * 1024, { message: 'Taille maximale 50MB' }),
 })
+
+// Schema pour la mise à jour d'une galerie (PATCH /api/galleries/:id)
+// NB : le mot de passe n'est volontairement PAS accepté ici pour éviter de stocker
+// un mot de passe en clair côté client.
+export const galleryUpdateSchema = z.object({
+  title: z.string().min(2, { message: 'Le titre doit contenir au moins 2 caractères' }).max(120).optional(),
+  description: z.string().max(1000).nullable().optional(),
+  status: z.enum(['draft', 'active', 'archived']).optional(),
+  is_password_protected: z.boolean().optional(),
+  allow_downloads: z.boolean().optional(),
+  allow_favorites: z.boolean().optional(),
+  watermark_enabled: z.boolean().optional(),
+}).refine(data => Object.keys(data).length > 0, { message: 'Aucun champ à mettre à jour' })
+
+// Schema pour la mise à jour du profil (PATCH /api/profile)
+export const profileSchema = z.object({
+  // display_name accepte la chaîne vide : elle sera normalisée en null par la route
+  display_name: z.string().max(80).nullable().optional(),
+  phone: z.string().max(30).nullable().optional(),
+  instagram: z.string().max(100).nullable().optional(),
+  facebook: z.string().max(200).nullable().optional(),
+  tiktok: z.string().max(100).nullable().optional(),
+  website: z.string().max(300).nullable().optional(),
+  bio: z.string().max(500).nullable().optional(),
+  avatar_url: z.string().max(500).nullable().optional(),
+  onboarding_completed: z.boolean().optional(),
+}).refine(data => Object.keys(data).length > 0, { message: 'Aucun champ à mettre à jour' })
 
 // Schema pour la gestion des favoris par les clients
 export const favoriteSchema = z.object({

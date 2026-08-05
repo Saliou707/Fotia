@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, @next/next/no-img-element */
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {

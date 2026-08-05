@@ -2,9 +2,8 @@
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Eye, Copy, Check, X, ChevronLeft, ChevronRight, Plus, Heart, Download, Edit2, Save, Loader2, Trash2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import { fetchGalleryImages, getImageUrl, updateGallery, fmtNumber, fmtDate, type Gallery } from '@/lib/api'
+import { ArrowLeft, Eye, Copy, Check, X, ChevronLeft, ChevronRight, Plus, Heart, Download, Edit2, Save, Loader2 } from 'lucide-react'
+import { fetchGallery, fetchGalleryImages, getImageUrl, updateGallery, fmtNumber, fmtDate, type Gallery } from '@/lib/api'
 
 interface GalleryImage { id: string; r2_key: string; original_filename: string; display_order: number }
 
@@ -23,15 +22,10 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
   const [editTitle, setEditTitle] = useState('')
   const [saving, setSaving] = useState(false)
   const [togglingStatus, setTogglingStatus] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     async function load() {
-      const supabase = createClient()
-      const { data } = await supabase
-        .from('galleries')
-        .select('*')
-        .eq('id', id).single()
+      const data = await fetchGallery(id)
       if (data) {
         setGallery(data); setEditTitle(data.title)
         const imgs = await fetchGalleryImages(data.slug)
@@ -144,7 +138,7 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
           </a>
 
           {/* Actions secondaires */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <div className="gallery-manage-actions" style={{ display: 'grid', gap: 10 }}>
             <button onClick={handleCopy}
               style={{ padding: '11px 14px', borderRadius: 10, background: '#111111', border: '1px solid rgba(255,255,255,0.08)', color: '#F7F7F5', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, transition: 'background 0.2s' }}>
               {copied ? <><Check size={14} color="#22C55E" /> Copié !</> : <><Copy size={14} /> Copier le lien</>}
@@ -164,7 +158,7 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
 
         {/* ── Stats ── */}
         <motion.div variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 28 }}>
+          className="gallery-manage-stats" style={{ display: 'grid', gap: 10, marginBottom: 28 }}>
           {[
             { icon: Eye, label: 'Vues', val: fmtNumber(gallery.view_count), color: '#3B82F6' },
             { icon: Heart, label: 'Favoris', val: fmtNumber(gallery.favorite_count), color: '#ec4899' },
@@ -201,12 +195,12 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
               </Link>
             </div>
           ) : (
-            <div style={{ columns: '3 200px', gap: 10 }}>
+            <div className="gallery-manage-photos" style={{ columns: '3 200px', gap: 10 }}>
               {images.map((img, i) => (
                 <div key={img.id}
                   onClick={() => setLightbox(i)}
                   style={{ marginBottom: 10, position: 'relative', borderRadius: 10, overflow: 'hidden', cursor: 'pointer', breakInside: 'avoid' }}>
-                  <img src={getImageUrl(img.r2_key)} alt={img.original_filename} loading="lazy"
+                  <img src={getImageUrl(img.r2_key)} alt={img.original_filename} loading="lazy" decoding="async"
                     style={{ width: '100%', display: 'block', transition: 'transform 0.3s' }}
                     onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.03)')}
                     onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')} />
@@ -238,6 +232,15 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
       <style>{`
         @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        .gallery-manage-actions { grid-template-columns: repeat(3, 1fr); }
+        .gallery-manage-stats { grid-template-columns: repeat(3, 1fr); }
+        @media (max-width: 640px) {
+          .gallery-manage-actions { grid-template-columns: 1fr !important; }
+          .gallery-manage-stats { grid-template-columns: repeat(3, 1fr) !important; gap: 6px !important; }
+          .gallery-manage-stats > div { padding: 10px 8px !important; }
+          .gallery-manage-stats div[style*="font-size: 22"] { font-size: 17px !important; }
+          .gallery-manage-photos { columns: 2 !important; gap: 6px !important; }
+        }
       `}</style>
     </div>
   )

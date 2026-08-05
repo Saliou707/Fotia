@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     description: 'Livrez vos photos professionnellement avec Fotia. Galeries élégantes, sélection de favoris et partage facile.',
     images: [
       {
-        url: '/og-image.webp',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Fotia - Plateforme pour photographes',
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     title: 'Fotia — Galeries photo professionnelles',
     description: 'Créez des galeries élégantes et partagez-les avec vos clients facilement.',
     creator: '@fotia_app', // Assuming a Twitter handle
-    images: ['/og-image.webp'], // Same image as OG
+    images: ['/og-image.png'], // Same image as OG
   },
   robots: {
     index: true,
@@ -62,10 +62,10 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [
-      { url: '/favicon.png', type: 'image/png', sizes: 'any' },
+    icon: '/favicon.png',
+    apple: [
+      { url: '/favicon.png', sizes: '180x180', type: 'image/png' },
     ],
-    apple: '/favicon.png',
     shortcut: '/favicon.png',
   },
   verification: {

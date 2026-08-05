@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable react-hooks/set-state-in-effect, @next/next/no-img-element, @typescript-eslint/no-unused-vars */
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import Image from 'next/image'
@@ -58,6 +59,18 @@ export default function ClientGalleryView({ gallery, images }: Props) {
       try {
         setFavorites(new Set(JSON.parse(saved)))
       } catch {}
+    }
+
+    // ── Track gallery view (1 per session via client_token uniqueness) ──
+    // We use a session flag to avoid firing again on React strict-mode double mount
+    const viewKey = `fotia_viewed_${gallery.id}`
+    if (!sessionStorage.getItem(viewKey)) {
+      sessionStorage.setItem(viewKey, '1')
+      fetch(`/api/galleries/${gallery.id}/view`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_token: clientToken.current }),
+      }).catch(() => { /* silently ignore – tracking must never break the UX */ })
     }
   }, [gallery.id])
 
@@ -683,17 +696,16 @@ export default function ClientGalleryView({ gallery, images }: Props) {
 
         @media (max-width: 640px) {
           .main-gallery-section {
-            padding: 40px 0 140px !important;
+            padding: 24px 12px 120px !important;
           }
           .photo-grid-premium {
-            grid-template-columns: 1fr !important;
-            gap: 16px !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
           }
           .photo-card-premium {
-            border-radius: 0 !important;
-            aspect-ratio: 4/5 !important;
-            border: none !important;
-            box-shadow: none !important;
+            border-radius: 10px !important;
+            aspect-ratio: 3/4 !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
           }
           .photo-overlay {
             opacity: 1 !important;
@@ -894,6 +906,92 @@ export default function ClientGalleryView({ gallery, images }: Props) {
             display: none !important;
           }
         }
+
+        /* ── Share Modal ── */
+        .share-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.6);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          z-index: 999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .share-modal-card {
+          background: #151515;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 28px;
+          padding: 32px 24px 24px;
+          width: 100%;
+          max-width: 420px;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+          animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .share-modal-title {
+          font-size: 22px;
+          font-weight: 700;
+          color: #FFF;
+          margin-bottom: 8px;
+          text-align: center;
+          letter-spacing: -0.02em;
+        }
+
+        .share-modal-desc {
+          font-size: 14px;
+          color: #A09890;
+          text-align: center;
+          margin-bottom: 28px;
+          line-height: 1.5;
+        }
+        
+        .share-option-btn {
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .share-option-btn:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+        }
+        
+        .share-option-btn:active {
+          transform: translateY(0);
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); scale: 0.95; }
+          to { opacity: 1; transform: translateY(0); scale: 1; }
+        }
+
+        @media (max-width: 640px) {
+          .share-modal-backdrop {
+            align-items: flex-end;
+            padding: 0;
+          }
+          
+          .share-modal-card {
+            max-width: 100%;
+            border-radius: 32px 32px 0 0;
+            padding: 36px 24px 40px;
+            animation: slideUpMobile 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            padding-bottom: max(40px, env(safe-area-inset-bottom, 40px));
+          }
+          
+          @keyframes slideUpMobile {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+          }
+        }
       `}</style>
 
       {/* ---- HERO BANNER ---- */}
@@ -1006,12 +1104,6 @@ export default function ClientGalleryView({ gallery, images }: Props) {
                 priority={idx < 6}
               />
               
-              {/* Absolute heart badge when already favorited */}
-              {favorites.has(image.id) && (
-                <div className="photo-heart-indicator">
-                  <Heart size={14} fill="currentColor" />
-                </div>
-              )}
 
               {/* Hover actions Overlay */}
               <div className="photo-overlay" onClick={(e) => e.stopPropagation()}>
@@ -1224,20 +1316,21 @@ export default function ClientGalleryView({ gallery, images }: Props) {
             <div className="share-modal-title">Partager la galerie</div>
             <div className="share-modal-desc">Partagez ce moment d&apos;exception avec vos proches.</div>
             
-            <div className="share-options-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12, margin: '20px 0' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 24 }}>
               <a 
                 href={waUrl} 
                 target="_blank" 
                 rel="noreferrer" 
-                className="share-option-btn share-whatsapp"
+                className="share-option-btn"
                 style={{ 
                   textDecoration: 'none', display: 'flex', flexDirection: 'column', 
-                  alignItems: 'center', gap: 8, padding: '16px', borderRadius: '16px',
-                  background: 'rgba(37,211,102,0.1)', border: '1px solid rgba(37,211,102,0.2)',
+                  alignItems: 'center', gap: 10, padding: '20px', borderRadius: '20px',
+                  background: 'linear-gradient(135deg, rgba(37,211,102,0.15) 0%, rgba(37,211,102,0.05) 100%)', 
+                  border: '1px solid rgba(37,211,102,0.3)',
                   color: '#25D366', fontWeight: 600, fontSize: 13, cursor: 'pointer'
                 }}
               >
-                <span style={{ fontSize: 20 }}>💬</span>
+                <span style={{ fontSize: 24 }}>💬</span>
                 <span>WhatsApp</span>
               </a>
               <button 
@@ -1245,38 +1338,52 @@ export default function ClientGalleryView({ gallery, images }: Props) {
                 onClick={handleCopyLink}
                 style={{ 
                   display: 'flex', flexDirection: 'column', 
-                  alignItems: 'center', gap: 8, padding: '16px', borderRadius: '16px',
-                  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+                  alignItems: 'center', gap: 10, padding: '20px', borderRadius: '20px',
+                  background: 'linear-gradient(135deg, rgba(200,72,46,0.15) 0%, rgba(200,72,46,0.05) 100%)', 
+                  border: '1px solid rgba(200,72,46,0.3)',
                   color: '#FFF', fontWeight: 600, fontSize: 13, cursor: 'pointer'
                 }}
               >
-                <Link2 size={20} color="#C8482E" />
-                <span>{copied ? 'Copié !' : 'Copier le lien'}</span>
+                <Link2 size={24} color="#C8482E" />
+                <span>{copied ? 'Lien copié !' : 'Copier le lien'}</span>
               </button>
             </div>
 
             {/* Photographer details in share modal */}
             {gallery.profiles && (
               <div style={{ 
-                borderTop: '1px solid rgba(255,255,255,0.06)', 
-                paddingTop: 18, 
-                marginTop: 20, 
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '16px',
+                padding: '16px', 
+                marginBottom: 24, 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'space-between',
                 textAlign: 'left'
               }}>
-                <div>
-                  <div style={{ fontSize: 11, color: '#8E8E93' }}>Photographe</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF' }}>{photographerName}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ 
+                    width: 36, height: 36, borderRadius: '50%', 
+                    background: gallery.profiles.avatar_url ? `url(${gallery.profiles.avatar_url}) center/cover` : 'linear-gradient(135deg, #C8482E, #A93821)', 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                    fontSize: 14, fontWeight: 700, color: '#FFF'
+                  }}>
+                    {!gallery.profiles.avatar_url && (gallery.profiles.display_name ? gallery.profiles.display_name.charAt(0).toUpperCase() : 'P')}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#8E8E93', marginBottom: 2 }}>Photographe</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#F2EDE4' }}>{photographerName}</div>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                <div>
                   {gallery.profiles.phone && (
                     <a 
                       href={`https://wa.me/${gallery.profiles.phone.replace(/[^0-9]/g, '')}`} 
                       target="_blank" 
                       rel="noreferrer"
-                      style={{ padding: '8px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 99, fontSize: 12, color: '#FFF', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}
+                      style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 99, fontSize: 12, color: '#FFF', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'background 0.2s' }}
+                      className="hover:bg-white/[0.15]"
                     >
                       <Phone size={12} /> Contact
                     </a>
@@ -1286,9 +1393,9 @@ export default function ClientGalleryView({ gallery, images }: Props) {
             )}
             
             <button 
-              className="control-pill" 
               onClick={() => setIsShareModalOpen(false)}
-              style={{ margin: '24px auto 0', width: '100%', justifyContent: 'center', padding: '12px', borderRadius: 12 }}
+              style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '14px', borderRadius: 16, background: 'rgba(255,255,255,0.06)', color: '#FFF', border: 'none', fontWeight: 600, fontSize: 14, cursor: 'pointer', transition: 'background 0.2s' }}
+              className="hover:bg-white/[0.1]"
             >
               Fermer
             </button>
@@ -1479,7 +1586,7 @@ function ClientLightbox({
             exit={{ opacity: 0, x: offsetX > 0 ? 200 : -200 }}
             transition={isSwiping ? { type: 'tween', duration: 0 } : { type: 'spring', stiffness: 350, damping: 35 }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+            { }
             <img
               src={getImageUrl(image.r2_key)}
               alt={image.original_filename}

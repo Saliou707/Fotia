@@ -1,43 +1,53 @@
-import { createClient } from '@/lib/supabase/client'
 import type { Gallery, GalleryImage } from '@/types'
 
 export type { Gallery, GalleryImage }
 
 export interface UserProfile {
   id: string
-  name: string
   email: string
   plan: string
   storage_used_bytes: number
+  gallery_count?: number
+  display_name?: string | null
+  phone?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  tiktok?: string | null
+  website?: string | null
+  bio?: string | null
+  avatar_url?: string | null
+  onboarding_completed?: boolean
+}
+
+export interface FavoritePhoto {
+  id: string
+  image_id: string
+  gallery_id: string
+  created_at: string
+  r2_key: string
+  original_filename: string
+  gallery_title: string
+}
+
+export interface FavoriteGalleryStat {
+  id: string
+  title: string
+  favorite_count: number
+  cover?: string
 }
 
 // ─── Galeries ──────────────────────────────────────────────────────────────
 
 export async function fetchGalleries(): Promise<Gallery[]> {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return []
-
-  const { data, error } = await supabase
-    .from('galleries')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-
-  if (error) { console.error('[API] fetchGalleries:', error.message); return [] }
-  return data ?? []
+  const res = await fetch('/api/galleries')
+  if (!res.ok) return []
+  return res.json()
 }
 
 export async function fetchGallery(id: string): Promise<Gallery | null> {
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from('galleries')
-    .select('*')
-    .eq('id', id)
-    .single()
-
-  if (error) { console.error('[API] fetchGallery:', error.message); return null }
-  return data
+  const res = await fetch(`/api/galleries/${id}`)
+  if (!res.ok) return null
+  return res.json()
 }
 
 export async function createGallery(title: string, description?: string): Promise<Gallery> {
@@ -53,16 +63,18 @@ export async function createGallery(title: string, description?: string): Promis
   return data
 }
 
-export async function updateGallery(id: string, fields: Partial<{ title: string; description: string; status: 'active' | 'draft' | 'archived' }>): Promise<boolean> {
-  const supabase = createClient()
-  const { error } = await supabase.from('galleries').update(fields).eq('id', id)
-  return !error
+export async function updateGallery(id: string, fields: Partial<{ title: string; description: string | null; status: 'draft' | 'active' | 'archived'; is_password_protected: boolean; allow_downloads: boolean; allow_favorites: boolean; watermark_enabled: boolean }>): Promise<boolean> {
+  const res = await fetch(`/api/galleries/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(fields),
+  })
+  return res.ok
 }
 
 export async function deleteGallery(id: string): Promise<boolean> {
-  const supabase = createClient()
-  const { error } = await supabase.from('galleries').delete().eq('id', id)
-  return !error
+  const res = await fetch(`/api/galleries/${id}`, { method: 'DELETE' })
+  return res.ok
 }
 
 // ─── Images d'une galerie ──────────────────────────────────────────────────
@@ -77,6 +89,41 @@ export async function fetchGalleryImages(slug: string): Promise<GalleryImage[]> 
 export function getImageUrl(r2Key: string): string {
   const publicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || ''
   return `${publicUrl}/${r2Key}`
+}
+
+// ─── Favoris (dashboard photographe) ───────────────────────────────────────
+
+export async function fetchFavorites(): Promise<{ galleries: FavoriteGalleryStat[]; photos: FavoritePhoto[] } | null> {
+  const res = await fetch('/api/favorites')
+  if (!res.ok) return null
+  return res.json()
+}
+
+// ─── Profil ────────────────────────────────────────────────────────────────
+
+export async function fetchProfile(): Promise<UserProfile | null> {
+  const res = await fetch('/api/profile')
+  if (!res.ok) return null
+  return res.json()
+}
+
+export async function updateProfile(fields: Partial<{
+  display_name: string
+  phone: string | null
+  instagram: string | null
+  facebook: string | null
+  tiktok: string | null
+  website: string | null
+  bio: string | null
+  avatar_url: string | null
+  onboarding_completed: boolean
+}>): Promise<boolean> {
+  const res = await fetch('/api/profile', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(fields),
+  })
+  return res.ok
 }
 
 // ─── Upload ────────────────────────────────────────────────────────────────
@@ -132,55 +179,6 @@ export async function removeFavorite(galleryId: string, imageId: string, clientT
     body: JSON.stringify({ image_id: imageId, client_token: clientToken }),
   })
   return res.ok
-}
-
-// ─── Dashboard stats ───────────────────────────────────────────────────────
-
-export async function fetchDashboardStats(): Promise<{
-  totalGalleries: number
-  totalPhotos: number
-  totalViews: number
-  totalFavorites: number
-} | null> {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-
-  const { data, error } = await supabase
-    .from('galleries')
-    .select('photo_count, view_count, favorite_count')
-    .eq('user_id', user.id)
-
-  if (error || !data) return null
-
-  return {
-    totalGalleries: data.length,
-    totalPhotos: data.reduce((s, g) => s + (g.photo_count ?? 0), 0),
-    totalViews: data.reduce((s, g) => s + (g.view_count ?? 0), 0),
-    totalFavorites: data.reduce((s, g) => s + (g.favorite_count ?? 0), 0),
-  }
-}
-
-// ─── Profil utilisateur ────────────────────────────────────────────────────
-
-export async function fetchProfile(): Promise<UserProfile | null> {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-
-  const { data } = await supabase
-    .from('profiles')
-    .select('display_name, plan, storage_used_bytes')
-    .eq('id', user.id)
-    .single()
-
-  return {
-    id: user.id,
-    email: user.email ?? '',
-    name: data?.display_name ?? user.email?.split('@')[0] ?? 'Utilisateur',
-    plan: data?.plan ?? 'free',
-    storage_used_bytes: data?.storage_used_bytes ?? 0,
-  }
 }
 
 // ─── Utilitaire token client (galeries publiques) ─────────────────────────

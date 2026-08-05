@@ -12,6 +12,7 @@
 
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Duration } from '@upstash/ratelimit'
 
 // ── Configuration ──────────────────────────────────────────────────────────

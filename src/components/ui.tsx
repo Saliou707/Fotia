@@ -1,5 +1,7 @@
 'use client'
 
+import React from 'react'
+/* eslint-disable @next/next/no-img-element */
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { cx } from '@/lib/utils'

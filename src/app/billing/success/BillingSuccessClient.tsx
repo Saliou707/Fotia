@@ -4,20 +4,27 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { CheckCircle, ArrowRight, Sparkles, Loader2, AlertCircle } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { fetchProfile } from '@/lib/api'
 
 type VerifyState = 'checking' | 'active' | 'pending' | 'error'
+
+// Étoiles décoratives générées une seule fois (hors rendu)
+const DECOR_DOTS = Array.from({ length: 20 }, (_, i) => ({
+  id: i,
+  x: Math.random() * 100,
+  y: Math.random() * 100,
+  size: Math.random() * 3 + 1,
+}))
 
 export default function BillingSuccessClient() {
   const searchParams = useSearchParams()
   const ref = searchParams.get('ref')
 
-  const [dots, setDots] = useState<number[]>([])
   const [userName, setUserName] = useState<string>('')
   const [verifyState, setVerifyState] = useState<VerifyState>('checking')
   const [verifyMessage, setVerifyMessage] = useState<string>('')
 
-  const verifySubscription = useCallback(async (reference: string) => {
+  const verifySubscription = useCallback(async function verifySubscription(reference: string) {
     setVerifyState('checking')
     try {
       const res = await fetch('/api/billing/verify-subscription', {
@@ -46,22 +53,14 @@ export default function BillingSuccessClient() {
   }, [])
 
   useEffect(() => {
-    setDots(Array.from({ length: 20 }, (_, i) => i))
-
     const init = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('name, display_name, plan')
-          .eq('id', user.id)
-          .single()
-        const name = profile?.name || profile?.display_name || user.email?.split('@')[0] || ''
+      const profile = await fetchProfile()
+      if (profile) {
+        const name = profile.display_name || profile.email.split('@')[0] || ''
         setUserName(name)
 
         // Si le profil est déjà pro, pas besoin de vérifier
-        if (profile?.plan === 'pro') {
+        if (profile.plan === 'pro') {
           setVerifyState('active')
           return
         }
@@ -122,13 +121,13 @@ export default function BillingSuccessClient() {
       }} />
 
       {/* Decorative stars */}
-      {dots.map((d) => (
-        <div key={d} style={{
+      {DECOR_DOTS.map(d => (
+        <div key={d.id} style={{
           position: 'absolute',
-          width: Math.random() * 3 + 1, height: Math.random() * 3 + 1,
+          width: d.size, height: d.size,
           borderRadius: '50%',
           background: 'rgba(200,72,46,0.3)',
-          top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%`,
+          top: `${d.y}%`, left: `${d.x}%`,
           pointerEvents: 'none'
         }} />
       ))}

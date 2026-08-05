@@ -1,6 +1,5 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   User, Bell, Shield, CreditCard, Check, ChevronRight,
@@ -8,8 +7,8 @@ import {
   Phone, Lock, AlertTriangle, X, ChevronLeft,
   Star, HardDrive, CheckCircle2
 } from 'lucide-react'
-import { fadeUp as fade, stagger } from '@/lib/animations'
 import { createClient } from '@/lib/supabase/client'
+import { fetchProfile, updateProfile } from '@/lib/api'
 
 // ─── Shared styles ──────────────────────────────────────────────────────────
 const inputStyle: React.CSSProperties = {
@@ -109,7 +108,6 @@ type TabId = typeof TABS[number]['id']
 
 // ─── Page principale ─────────────────────────────────────────────────────────
 export default function SettingsPage() {
-  const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabId>('profile')
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -129,7 +127,7 @@ export default function SettingsPage() {
   const [plan, setPlan] = useState<'free' | 'pro' | 'studio'>('free')
   const [storageUsedBytes, setStorageUsedBytes] = useState(0)
   const [galleryCount, setGalleryCount] = useState(0)
-  const [subscription, setSubscription] = useState<any>(null)
+  const [subscription, setSubscription] = useState<{ expires_at: string } | null>(null)
   const [billingLoading, setBillingLoading] = useState(false)
 
   // Djomy Gateway flow — saisie numéro uniquement
@@ -138,45 +136,29 @@ export default function SettingsPage() {
 
   useEffect(() => {
     async function loadProfile() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('display_name, phone, instagram, facebook, tiktok, website, bio, avatar_url, plan, storage_used_bytes, gallery_count')
-          .eq('id', user.id)
-          .single()
+      const profile = await fetchProfile()
+      if (profile) {
+        setName(profile.display_name || '')
+        setPhone(profile.phone || '')
+        setInstagram(profile.instagram || '')
+        setFacebook(profile.facebook || '')
+        setTiktok(profile.tiktok || '')
+        setWebsite(profile.website || '')
+        setBio(profile.bio || '')
+        setAvatarUrl(profile.avatar_url || '')
+        setPlan((profile.plan as 'free' | 'pro' | 'studio') || 'free')
+        setStorageUsedBytes(Number(profile.storage_used_bytes || 0))
+        setGalleryCount(profile.gallery_count || 0)
+      }
 
-        if (profile) {
-          setName(profile.display_name || '')
-          setPhone(profile.phone || '')
-          setInstagram(profile.instagram || '')
-          setFacebook(profile.facebook || '')
-          setTiktok(profile.tiktok || '')
-          setWebsite(profile.website || '')
-          setBio(profile.bio || '')
-          setAvatarUrl(profile.avatar_url || '')
-          setPlan((profile.plan as any) || 'free')
-          setStorageUsedBytes(Number(profile.storage_used_bytes || 0))
-
-          // Récupérer le nombre exact de galeries actives
-          const { count } = await supabase
-            .from('galleries')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .eq('status', 'active')
-
-          setGalleryCount(count || 0)
+      try {
+        const subRes = await fetch('/api/billing/subscription')
+        if (subRes.ok) {
+          const { subscription: subData } = await subRes.json()
+          setSubscription(subData)
         }
-
-        try {
-          const subRes = await fetch('/api/billing/subscription')
-          if (subRes.ok) {
-            const { subscription: subData } = await subRes.json()
-            setSubscription(subData)
-          }
-        } catch (e) {
-          console.error('Failed to fetch subscription', e)
-        }
+      } catch (e) {
+        console.error('Failed to fetch subscription', e)
       }
       setLoadingData(false)
     }
@@ -245,30 +227,27 @@ export default function SettingsPage() {
       if (!res.ok) throw new Error(data.error || 'Erreur de paiement')
       // Redirection vers le portail Djomy — Djomy gère OTP/opérateur
       window.location.href = data.checkout_url
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Djomy Checkout]', err)
-      alert(err.message || 'Erreur lors de l\'initiation du paiement.')
+      alert(err instanceof Error ? err.message : "Erreur lors de l'initiation du paiement.")
       setBillingLoading(false)
     }
   }
 
   const save = async () => {
     setSaving(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      await supabase
-        .from('profiles')
-        .update({
-          display_name: name,
-          phone,
-          instagram,
-          facebook,
-          tiktok,
-          website,
-          bio,
-          avatar_url: avatarUrl
-        })
-        .eq('id', user.id)
+    const ok = await updateProfile({
+      display_name: name,
+      phone,
+      instagram,
+      facebook,
+      tiktok,
+      website,
+      bio,
+      avatar_url: avatarUrl,
+    })
+    if (!ok) {
+      alert('Erreur lors de la sauvegarde du profil.')
     }
     setSaving(false)
     setSaved(true)
@@ -279,7 +258,6 @@ export default function SettingsPage() {
   const storageGB = (storageUsedBytes / (1024 ** 3)).toFixed(2)
   const maxStorageGB = plan === 'free' ? 5 : 100
   const storagePercent = Math.min(100, (storageUsedBytes / (maxStorageGB * 1024 ** 3)) * 100)
-  const galleryMax = plan === 'free' ? 3 : Infinity
   const galleryPercent = plan === 'free' ? Math.min(100, (galleryCount / 3) * 100) : 100
   const initials = name ? name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : '?'
 
@@ -560,7 +538,7 @@ export default function SettingsPage() {
                       >
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 500 }}>Changer le mot de passe</div>
-                          <div style={{ fontSize: 12, color: '#787068', marginTop: 2 }}>Envoi d'un lien de réinitialisation par email</div>
+                          <div style={{ fontSize: 12, color: '#787068', marginTop: 2 }}>Envoi d&apos;un lien de réinitialisation par email</div>
                         </div>
                         <ChevronRight size={16} color="#555" />
                       </button>
@@ -1016,10 +994,9 @@ export default function SettingsPage() {
         @media (max-width: 768px) {
           .settings-tab-layout { flex-direction: column !important; align-items: stretch !important; }
           .settings-tab-sidebar { width: 100% !important; }
-          .settings-tab-sidebar > div { display: flex !important; overflow-x: auto !important; gap: 0 !important; padding: 4px !important; scrollbar-width: none !important; }
-          .settings-tab-sidebar > div::-webkit-scrollbar { display: none !important; }
-          .settings-tab-sidebar button { white-space: nowrap !important; border-left: none !important; border-bottom: 2px solid transparent !important; padding: 10px 14px !important; flex: 0 0 auto !important; font-size: 13px !important; }
-          .settings-tab-sidebar button.active { border-bottom: 2px solid #C8482E !important; background: rgba(200,72,46,0.1) !important; color: #F2EDE4 !important; }
+          .settings-tab-sidebar > div { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; padding: 6px !important; }
+          .settings-tab-sidebar button { flex: 1 1 calc(50% - 6px) !important; text-align: center !important; justify-content: center !important; border-radius: 10px !important; padding: 10px !important; white-space: nowrap !important; border: 1px solid rgba(255,255,255,0.05) !important; font-size: 13px !important; }
+          .settings-tab-sidebar button.active { background: rgba(200,72,46,0.1) !important; border-color: rgba(200,72,46,0.3) !important; color: #F2EDE4 !important; }
           .settings-tab-sidebar button.active svg { color: #C8482E !important; }
           .settings-tab-sidebar button svg { display: none !important; }
           .settings-tab-content { width: 100% !important; min-width: 0 !important; overflow: visible !important; }

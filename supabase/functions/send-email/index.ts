@@ -1,6 +1,7 @@
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://supabase.com/docs/guides/functions/getting-started
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import {

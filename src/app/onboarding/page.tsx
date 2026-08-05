@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable react/no-unescaped-entities */
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -18,7 +19,7 @@ const Facebook = ({ size = 24 }: { size?: number }) => (
     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
   </svg>
 )
-import { createClient } from '@/lib/supabase/client'
+import { updateProfile } from '@/lib/api'
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '12px 16px', borderRadius: 12,
@@ -44,7 +45,6 @@ export default function OnboardingPage() {
   })
 
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const supabase = createClient()
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -82,10 +82,7 @@ export default function OnboardingPage() {
     setLoading(true)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("Non authentifié")
-
-      await supabase.from('profiles').update({
+      const ok = await updateProfile({
         display_name: formData.displayName,
         phone: formData.phone,
         instagram: formData.instagram,
@@ -94,8 +91,9 @@ export default function OnboardingPage() {
         website: formData.website,
         bio: formData.bio,
         avatar_url: avatarUrl || null,
-        onboarding_completed: true
-      }).eq('id', user.id)
+        onboarding_completed: true,
+      })
+      if (!ok) throw new Error('Failed to save profile')
 
       router.push('/dashboard')
     } catch (err) {

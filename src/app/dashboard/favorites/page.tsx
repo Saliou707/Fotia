@@ -3,29 +3,13 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Heart, Download, Check, Loader2, Image as ImageIcon,
+  Heart, Download, Check, Loader2,
   ArrowLeft, ChevronRight, FolderOpen, CheckSquare, Square, X
 } from 'lucide-react'
 import { fadeUp, stagger } from '@/lib/animations'
 import { createClient } from '@/lib/supabase/client'
-import { getImageUrl, fmtNumber } from '@/lib/api'
-
-interface FavPhoto {
-  id: string
-  image_id: string
-  gallery_id: string
-  created_at: string
-  r2_key: string
-  original_filename: string
-  gallery_title: string
-}
-
-interface GalleryStat {
-  id: string
-  title: string
-  favorite_count: number
-  cover?: string
-}
+import type { RealtimeChannel } from '@supabase/supabase-js'
+import { fetchFavorites, getImageUrl, fmtNumber, type FavoritePhoto as FavPhoto, type FavoriteGalleryStat as GalleryStat } from '@/lib/api'
 
 function Skeleton({ h = 140 }: { h?: number }) {
   return <div style={{ height: h, borderRadius: 10, background: 'rgba(255,255,255,0.05)', animation: 'pulse 1.5s ease-in-out infinite' }} />
@@ -44,60 +28,23 @@ export default function FavoritesPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    let channel: any = null
+    let channel: RealtimeChannel | null = null
 
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setLoading(false); return }
+      const data = await fetchFavorites()
+      if (!data) { setLoading(false); return }
 
-      const { data: myGalleries } = await supabase
-        .from('galleries')
-        .select('id, title, favorite_count')
-        .eq('user_id', user.id)
-        .order('favorite_count', { ascending: false })
+      setPhotos(data.photos)
+      setGalleries(data.galleries)
+      const galleryIds = data.galleries.map(g => g.id)
 
-      if (!myGalleries || myGalleries.length === 0) { setLoading(false); return }
-
-      const galleryIds = myGalleries.map(g => g.id)
-
-      const { data: favs } = await supabase
-        .from('favorites')
-        .select('id, image_id, gallery_id, created_at, gallery_images(r2_key, original_filename)')
-        .in('gallery_id', galleryIds)
-        .order('created_at', { ascending: false })
-        .limit(500)
-
-      const mapped: FavPhoto[] = (favs ?? [])
-        .filter(f => f.gallery_images)
-        .map(f => {
-          const img = (Array.isArray(f.gallery_images) ? f.gallery_images[0] : f.gallery_images) as { r2_key: string; original_filename: string }
-          const galleryTitle = myGalleries.find(g => g.id === f.gallery_id)?.title ?? '–'
-          return {
-            id: f.id, image_id: f.image_id, gallery_id: f.gallery_id,
-            created_at: f.created_at, r2_key: img.r2_key,
-            original_filename: img.original_filename, gallery_title: galleryTitle,
-          }
-        })
-
-      setPhotos(mapped)
-
-      // Enrichir avec la cover (1ère photo fav)
-      setGalleries(myGalleries.map(g => {
-        const firstFav = mapped.find(p => p.gallery_id === g.id)
-        return { ...g, cover: firstFav?.r2_key }
-      }))
-
-      // Realtime
+      // Realtime : le canal reste côté client (natif), mais toute lecture de données
+      // passe par l'API sécurisée — pas d'accès supabase direct.
       channel = supabase.channel(`realtime_fav_${Date.now()}`)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'favorites' }, async (payload) => {
           if (!galleryIds.includes(payload.new.gallery_id)) return
-          const { data: img } = await supabase.from('gallery_images').select('r2_key, original_filename').eq('id', payload.new.image_id).single()
-          if (img) {
-            const galleryTitle = myGalleries.find(g => g.id === payload.new.gallery_id)?.title ?? '–'
-            const newFav: FavPhoto = { id: payload.new.id, image_id: payload.new.image_id, gallery_id: payload.new.gallery_id, created_at: payload.new.created_at, r2_key: img.r2_key, original_filename: img.original_filename, gallery_title: galleryTitle }
-            setPhotos(prev => [newFav, ...prev])
-            setGalleries(prev => prev.map(g => g.id === payload.new.gallery_id ? { ...g, favorite_count: g.favorite_count + 1, cover: g.cover ?? img.r2_key } : g))
-          }
+          const fresh = await fetchFavorites()
+          if (fresh) { setPhotos(fresh.photos); setGalleries(fresh.galleries) }
         })
         .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'favorites' }, (payload) => {
           setPhotos(prev => prev.filter(p => p.id !== payload.old.id))
@@ -111,10 +58,14 @@ export default function FavoritesPage() {
 
     load()
     return () => { if (channel) supabase.removeChannel(channel) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const toggle = (id: string) => setSelected(prev => {
-    const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next
+    const next = new Set(prev)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    return next
   })
 
   // Photos contextuelles selon la vue active
@@ -204,9 +155,9 @@ export default function FavoritesPage() {
             </div>
 
             {/* Tabs (masqués si drill) */}                    {!drillGallery && (
-              <div className="favorites-tabs" style={{ display: 'flex', gap: 2, background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: 4, border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="favorites-tabs" style={{ display: 'inline-flex', gap: 4, background: 'rgba(0,0,0,0.5)', borderRadius: 10, padding: 4, border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }}>
                 {TABS.map((t, i) => (
-                  <button key={t} onClick={() => setTab(i)} style={{ padding: '6px 14px', borderRadius: 6, border: 'none', fontSize: 13, fontWeight: 500, cursor: 'pointer', background: tab === i ? '#fff' : 'transparent', color: tab === i ? '#000' : '#8E8E93', transition: 'all 0.2s' }}>
+                  <button key={t} onClick={() => setTab(i)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: tab === i ? 'rgba(255,255,255,0.1)' : 'transparent', color: tab === i ? '#fff' : '#8E8E93', transition: 'all 0.2s', boxShadow: tab === i ? '0 2px 8px rgba(0,0,0,0.2)' : 'none' }}>
                     {t}
                   </button>
                 ))}
@@ -235,7 +186,7 @@ export default function FavoritesPage() {
               <Heart size={48} color="rgba(255,255,255,0.1)" style={{ margin: '0 auto 16px' }} />
               <h3 style={{ fontSize: 18, fontWeight: 600, color: '#fff', marginBottom: 8 }}>Aucun favori enregistré</h3>
               <p style={{ fontSize: 14, color: '#8E8E93', maxWidth: 360, margin: '0 auto' }}>
-                Vos clients n'ont pas encore sélectionné de photos dans vos galeries actives.
+                Vos clients n&apos;ont pas encore sélectionné de photos dans vos galeries actives.
               </p>
             </motion.div>
 
@@ -307,7 +258,7 @@ export default function FavoritesPage() {
               <AnimatePresence>
                 {photos.map(photo => (
                   <motion.div
-                    key={photo.id} variants={fadeUp} layout
+                    key={photo.id} variants={fadeUp}
                     style={{
                       marginBottom: 12, position: 'relative', borderRadius: 12, overflow: 'hidden',
                       cursor: 'pointer', breakInside: 'avoid',
@@ -354,13 +305,13 @@ export default function FavoritesPage() {
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.99 }}
                   style={{
-                    background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)',
-                    borderRadius: 14, overflow: 'hidden', cursor: 'pointer', transition: 'border 0.2s, box-shadow 0.2s',
+                    background: 'rgba(14,14,14,0.6)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.07)',
+                    borderRadius: 16, overflow: 'hidden', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
                   }}
                   className="gallery-card"
                 >
                   {/* Cover image */}
-                  <div style={{ height: 130, overflow: 'hidden', background: '#0d0d0d', position: 'relative' }}>
+                  <div style={{ height: 140, overflow: 'hidden', background: '#0d0d0d', position: 'relative' }}>
                     {g.cover ? (
                       <img src={getImageUrl(g.cover)} alt={g.title} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
@@ -370,27 +321,28 @@ export default function FavoritesPage() {
                     )}
                     {/* Badge favoris */}
                     <div style={{
-                      position: 'absolute', top: 10, right: 10,
-                      background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(8px)',
-                      borderRadius: 99, padding: '3px 10px',
-                      display: 'flex', alignItems: 'center', gap: 5,
-                      fontSize: 12, fontWeight: 600, color: '#fff',
-                      border: '1px solid rgba(255,255,255,0.1)',
+                      position: 'absolute', top: 12, right: 12,
+                      background: 'rgba(200,72,46,0.85)', backdropFilter: 'blur(8px)',
+                      borderRadius: 99, padding: '4px 12px',
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      fontSize: 12, fontWeight: 700, color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      boxShadow: '0 4px 12px rgba(200,72,46,0.3)'
                     }}>
-                      <Heart size={11} color="#C8482E" fill="#C8482E" />
+                      <Heart size={12} color="#fff" fill="#fff" />
                       {g.favorite_count}
                     </div>
                   </div>
 
                   {/* Footer */}
-                  <div style={{ padding: '14px 16px' }}>
-                    <div style={{ fontWeight: 600, fontSize: 14, color: '#F2EDE4', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 12 }}>
+                  <div style={{ padding: '16px' }}>
+                    <div style={{ fontWeight: 600, fontSize: 14.5, color: '#F2EDE4', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 12 }}>
                       {g.title}
                     </div>
 
                     {/* Barre de progression relative */}
-                    <div style={{ height: 3, borderRadius: 99, background: 'rgba(255,255,255,0.06)', marginBottom: 14, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${(g.favorite_count / maxFav) * 100}%`, background: 'linear-gradient(90deg, #C8482E, #DF5438)', borderRadius: 99, transition: 'width 0.4s ease' }} />
+                    <div style={{ height: 2, borderRadius: 99, background: 'rgba(255,255,255,0.05)', marginBottom: 16, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${(g.favorite_count / maxFav) * 100}%`, background: 'linear-gradient(90deg, rgba(200,72,46,0.4), #C8482E)', borderRadius: 99, transition: 'width 0.4s ease' }} />
                     </div>
 
                     {/* Actions */}
@@ -398,23 +350,23 @@ export default function FavoritesPage() {
                       <button
                         onClick={() => openDrill(g.id)}
                         style={{
-                          flex: 1, padding: '9px 0', borderRadius: 8,
-                          background: 'linear-gradient(135deg, rgba(200,72,46,0.15), rgba(200,72,46,0.08))',
-                          border: '1px solid rgba(200,72,46,0.25)', color: '#C8482E',
-                          fontWeight: 600, fontSize: 12.5, cursor: 'pointer', transition: 'all 0.2s',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                          flex: 1, padding: '10px 0', borderRadius: 10,
+                          background: 'rgba(200,72,46,0.08)',
+                          border: '1px solid rgba(200,72,46,0.2)', color: '#DF5438',
+                          fontWeight: 600, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                         }}
                         className="hover:bg-red-500/20"
                       >
-                        <Heart size={12} fill="#C8482E" color="#C8482E" />
+                        <Heart size={12} fill="#DF5438" color="#DF5438" />
                         Voir les favoris
                       </button>
                       <Link href={`/dashboard/gallery/${g.id}`} style={{ textDecoration: 'none' }} onClick={e => e.stopPropagation()}>
                         <button
                           style={{
-                            padding: '9px 12px', borderRadius: 8,
+                            padding: '10px 14px', borderRadius: 10,
                             background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-                            color: '#8E8E93', fontWeight: 500, fontSize: 12.5, cursor: 'pointer', transition: 'all 0.2s',
+                            color: '#8E8E93', fontWeight: 500, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                           }}
                           className="hover:bg-white/[0.08] hover:text-white"
@@ -441,12 +393,13 @@ export default function FavoritesPage() {
       <div className="page-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         {/* Volumétrie */}
-        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>
+        <div style={{ position: 'relative', background: 'rgba(14,14,14,0.6)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: -30, right: -30, width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(200,72,46,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, position: 'relative' }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#F2EDE4' }}>
               {drillGallery ? 'Galerie sélectionnée' : 'Volumétrie'}
             </span>
-            <Heart size={16} color="#C8482E" fill="#C8482E" />
+            <Heart size={16} color="#DF5438" fill="#DF5438" />
           </div>
           {loading ? <Skeleton h={80} /> : (
             <>
@@ -480,12 +433,15 @@ export default function FavoritesPage() {
         </div>
 
         {/* Action téléchargement */}
-        <div style={{ background: '#fff', borderRadius: 12, padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <Download size={18} color="#000" />
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#000' }}>Exportation</span>
+        <div style={{ background: 'linear-gradient(135deg, rgba(200,72,46,0.12) 0%, rgba(200,72,46,0.03) 100%)', border: '1px solid rgba(200,72,46,0.25)', borderRadius: 16, padding: '24px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', bottom: -20, left: -20, width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(200,72,46,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, position: 'relative' }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(200,72,46,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Download size={18} color="#DF5438" />
+            </div>
+            <span style={{ fontSize: 15, fontWeight: 700, color: '#F2EDE4', letterSpacing: '-0.01em' }}>Exportation</span>
           </div>
-          <p style={{ fontSize: 13, color: '#555', marginBottom: 20, lineHeight: 1.5 }}>
+          <p style={{ fontSize: 13, color: '#A09890', marginBottom: 24, lineHeight: 1.6, position: 'relative' }}>
             {selected.size > 0
               ? `${selected.size} photo${selected.size !== 1 ? 's' : ''} sélectionnée${selected.size !== 1 ? 's' : ''}.`
               : drillGallery
@@ -496,12 +452,13 @@ export default function FavoritesPage() {
             onClick={handleDownload}
             disabled={downloading || done || (drillGallery ? contextPhotos.length === 0 : photos.length === 0)}
             style={{
-              width: '100%', padding: '12px', borderRadius: 8, border: 'none',
-              fontWeight: 600, fontSize: 14,
+              width: '100%', padding: '14px', borderRadius: 12, border: 'none',
+              fontWeight: 700, fontSize: 14, position: 'relative',
               cursor: (drillGallery ? contextPhotos.length === 0 : photos.length === 0) ? 'not-allowed' : 'pointer',
-              background: done ? '#22C55E' : '#000', color: '#fff',
+              background: done ? '#22C55E' : 'linear-gradient(135deg, #DF5438, #C8482E)', color: '#fff',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               transition: 'all 0.2s',
+              boxShadow: done ? 'none' : '0 4px 16px rgba(200,72,46,0.4)',
               opacity: (drillGallery ? contextPhotos.length === 0 : photos.length === 0) ? 0.5 : 1,
             }}
           >
@@ -515,8 +472,8 @@ export default function FavoritesPage() {
           {selected.size > 0 && (
             <button
               onClick={() => setSelected(new Set())}
-              style={{ background: 'none', border: 'none', color: '#555', fontSize: 12, fontWeight: 500, width: '100%', marginTop: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
-              className="hover:underline"
+              style={{ background: 'none', border: 'none', color: '#8E8E93', fontSize: 12, fontWeight: 500, width: '100%', marginTop: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, position: 'relative' }}
+              className="hover:underline hover:text-white"
             >
               <X size={12} /> Désélectionner tout
             </button>
@@ -561,20 +518,16 @@ export default function FavoritesPage() {
         }
         @media (max-width: 640px) {
           .favorites-tabs { overflow-x: auto !important; width: 100% !important; }
-          .favorites-tabs > div { flex-shrink: 0 !important; }
-          .favorites-masonry { columns: 3 110px !important; gap: 4px !important; }
-          .favorites-masonry > div { margin-bottom: 4px !important; border-radius: 8px !important; }
+          .favorites-tabs > button { flex-shrink: 0 !important; }
+          .favorites-masonry { columns: 2 !important; gap: 8px !important; }
+          .favorites-masonry > div { margin-bottom: 8px !important; border-radius: 8px !important; }
           .favorites-header { flex-direction: column !important; align-items: flex-start !important; }
           .favorites-drill-controls { width: 100% !important; }
           .favorites-drill-controls button { flex: 1 !important; }
         }
         @media (max-width: 480px) {
-          .favorites-masonry { columns: 3 100px !important; gap: 3px !important; }
-          .favorites-masonry > div { margin-bottom: 3px !important; border-radius: 6px !important; }
-        }
-        @media (max-width: 380px) {
-          .favorites-masonry { columns: 2 140px !important; gap: 4px !important; }
-          .favorites-masonry > div { margin-bottom: 4px !important; }
+          .favorites-masonry { columns: 2 !important; gap: 6px !important; }
+          .favorites-masonry > div { margin-bottom: 6px !important; border-radius: 6px !important; }
         }
       `}</style>
     </div>

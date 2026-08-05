@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, FormEvent, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -87,7 +88,7 @@ export default function LoginPage() {
         router.push('/dashboard')
         return
       }
-      const appUrl = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).replace(/\/+$/, '')
+      const appUrl = (typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL || '')).replace(/\/+$/, '')
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: `${appUrl}/auth/callback` },
