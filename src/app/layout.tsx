@@ -107,6 +107,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {/* PWA */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#15171A" />
+
         {/* Preconnect hints */}
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://hbntvpgxypwwkgiupves.supabase.co" crossOrigin="anonymous" />

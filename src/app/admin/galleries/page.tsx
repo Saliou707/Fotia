@@ -153,7 +153,7 @@ export default function GalleriesPage() {
               <td className="px-5 py-3.5">
                 <div className="flex items-center gap-1">
                   <a
-                    href={`/g/${g.slug}`}
+                    href={`/galerie/${g.slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="p-1.5 rounded-md transition-colors hover:bg-white/10"

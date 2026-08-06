@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
+import { verifyOrigin } from '@/lib/csrf'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -7,6 +8,9 @@ interface RouteParams {
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
   const { id: gallery_id } = await params
+  const csrfError = verifyOrigin(request)
+  if (csrfError) return csrfError
+
   const body = await request.json()
   const { platform } = body
 

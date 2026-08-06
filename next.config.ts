@@ -105,6 +105,17 @@ const nextConfig: NextConfig = {
       },
     ]
   },
+  // Redirect 301 : ancien schema /g/[slug] → /galerie/[slug]
+  async redirects() {
+    return [
+      {
+        source: '/g/:slug',
+        destination: '/galerie/:slug',
+        permanent: true,
+      },
+    ]
+  },
+
   // Allow server actions + gros fichiers (photos)
   experimental: {
     serverActions: {

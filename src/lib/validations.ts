@@ -5,6 +5,7 @@ import { z } from 'zod'
 export const gallerySchema = z.object({
   title: z.string().min(2, { message: 'Le titre doit contenir au moins 2 caractères' }).max(120),
   description: z.string().max(1000).optional().nullable(),
+  slug: z.string().min(3).max(80).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: "Slug invalide (minuscules, chiffres, tirets uniquement)" }).optional(),
   is_password_protected: z.boolean().optional().default(false),
   password: z.string().min(4, { message: 'Le mot de passe doit faire au moins 4 caractères' }).optional().nullable(),
   allow_downloads: z.boolean().optional().default(true),
@@ -26,6 +27,7 @@ export const imageUploadSchema = z.object({
 export const galleryUpdateSchema = z.object({
   title: z.string().min(2, { message: 'Le titre doit contenir au moins 2 caractères' }).max(120).optional(),
   description: z.string().max(1000).nullable().optional(),
+  slug: z.string().min(3).max(80).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: 'Slug invalide (minuscules, chiffres, tirets uniquement)' }).optional(),
   status: z.enum(['draft', 'active', 'archived']).optional(),
   is_password_protected: z.boolean().optional(),
   allow_downloads: z.boolean().optional(),

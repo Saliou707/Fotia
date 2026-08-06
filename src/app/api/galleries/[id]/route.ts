@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import { galleryUpdateSchema, validatePayload } from '@/lib/validations'
+import { getUserPlan } from '@/lib/limits'
+import { verifyOrigin } from '@/lib/csrf'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -32,6 +34,9 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 // PATCH /api/galleries/:id
 // Met à jour une galerie (titre, statut, options…) — validation Zod + propriété.
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  const csrfError = verifyOrigin(request)
+  if (csrfError) return csrfError
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -57,6 +62,26 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 
   const fields = validation.data
+
+  // Slug personnalise : reserve aux plans Pro et Studio
+  if (fields.slug) {
+    const plan = await getUserPlan(supabase, user.id)
+    if (plan !== 'pro' && plan !== 'studio') {
+      return NextResponse.json({ error: 'La personnalisation du slug est reservee aux plans Pro et Studio.' }, { status: 403 })
+    }
+
+    // Verifier l'unicite du slug
+    const { data: conflict } = await supabase
+      .from('galleries')
+      .select('id')
+      .eq('slug', fields.slug)
+      .neq('id', id)
+      .maybeSingle()
+
+    if (conflict) {
+      return NextResponse.json({ error: 'Ce slug est deja utilise par une autre galerie.' }, { status: 409 })
+    }
+  }
 
   // Normalisation : description vide → null
   const cleanFields: Record<string, unknown> = { ...fields }
@@ -84,6 +109,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/galleries/:id
 // Supprime une galerie (les images DB sont supprimées en cascade ; le nettoyage R2 est assuré par le cron).
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+  const csrfError = verifyOrigin(_request)
+  if (csrfError) return csrfError
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

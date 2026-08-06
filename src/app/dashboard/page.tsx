@@ -126,7 +126,7 @@ function GalleryCard({ g, onDelete, index }: { g: Gallery; onDelete: (id: string
             <Link href={`/dashboard/gallery/${g.id}`} onClick={() => setMenu(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', color: '#F2EDE4', fontSize: 13, textDecoration: 'none', borderRadius: 9, fontWeight: 500 }} className="hover:bg-white/[0.05]">
               <Pencil size={13} color="#C8482E" /> Gérer
             </Link>
-            <Link href={`/g/${g.slug}`} target="_blank" onClick={() => setMenu(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', color: '#F2EDE4', fontSize: 13, textDecoration: 'none', borderRadius: 9, fontWeight: 500 }} className="hover:bg-white/[0.05]">
+            <Link href={`/galerie/${g.slug}`} target="_blank" onClick={() => setMenu(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', color: '#F2EDE4', fontSize: 13, textDecoration: 'none', borderRadius: 9, fontWeight: 500 }} className="hover:bg-white/[0.05]">
               <Share2 size={13} color="#3B82F6" /> Vue client
             </Link>
             <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />

@@ -1,6 +1,11 @@
 -- ============================================================
--- FOTIA — PostgreSQL Schema
--- Run in Supabase SQL Editor
+-- FOTIA — PostgreSQL Schema (REFERENCE / MASTER)
+--
+-- ⚠️ Ce fichier est le schéma de référence complet.
+--    Pour les déploiements incrémentaux, utiliser les migrations
+--    dans supabase/migrations/ qui contiennent les deltas.
+--
+-- Exécuter dans Supabase SQL Editor pour une installation fraîche.
 -- ============================================================
 
 -- Enable extensions

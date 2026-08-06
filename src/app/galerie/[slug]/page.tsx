@@ -12,7 +12,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .from('galleries')
     .select('title, description, cover_image_url, profiles(display_name)')
     .eq('slug', slug)
-    .single()
+    .eq('status', 'active')
+    .limit(1)
+    .maybeSingle()
 
   if (!gallery) {
     return { title: 'Galerie introuvable' }
@@ -73,11 +75,14 @@ export default async function PublicGalleryPage({ params }: { params: Promise<{ 
   const supabase = await createClient()
 
   // Load gallery (full columns needed)
+  // .eq('status','active') + .limit(1) evite les collisions de slug entre comptes
   const { data: rawGallery } = await supabase
     .from('galleries')
     .select('id, title, slug, user_id, status, photo_count, allow_downloads, allow_favorites, description, cover_image_url')
     .eq('slug', slug)
-    .single()
+    .eq('status', 'active')
+    .limit(1)
+    .maybeSingle()
 
   if (!rawGallery) {
     notFound()
@@ -105,8 +110,8 @@ export default async function PublicGalleryPage({ params }: { params: Promise<{ 
 
   if (dbImages && dbImages.length > 0) {
     images = dbImages
-  } else {
-    // Fallback to R2 bucket listing
+  } else if (gallery.photo_count > 0) {
+    // Fallback to R2 bucket listing for legacy galleries ONLY
     const folder = gallery.title ? gallery.title.toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 80) : gallery.id
     const prefix = `photos/${folder}/`
     try {

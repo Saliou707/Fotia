@@ -379,32 +379,32 @@ h1, h2, h3, h4, h5, h6, .font-title {
    PHOTO GALLERY
    ============================================================ */
 
-.gallery-grid {
+.gallery-masonry {
   columns: 3;
   column-gap: 8px;
 }
 
-.gallery-grid > * {
+.gallery-masonry > * {
   break-inside: avoid;
   margin-bottom: 8px;
 }
 
 @media (max-width: 768px) {
-  .gallery-grid {
+  .gallery-masonry {
     columns: 2;
     column-gap: 6px;
   }
-  .gallery-grid > * {
+  .gallery-masonry > * {
     margin-bottom: 6px;
   }
 }
 
 @media (max-width: 480px) {
-  .gallery-grid {
+  .gallery-masonry {
     columns: 2;
     column-gap: 4px;
   }
-  .gallery-grid > * {
+  .gallery-masonry > * {
     margin-bottom: 4px;
   }
 }
@@ -601,54 +601,16 @@ h1, h2, h3, h4, h5, h6, .font-title {
 }
 
 /* ============================================================
-   GLOBAL RESETS & UTILITIES
+   GLOBAL UTILITIES (no duplicates)
    ============================================================ */
 
-*, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 img { max-width: 100%; height: auto; }
 button { font-family: inherit; }
 a { color: inherit; }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
-
-/* Selection */
-::selection { background: rgba(255,107,53,0.3); color: #F7F7F5; }
-
-/* Focus visible */
-:focus-visible { outline: 2px solid #FF6B35; outline-offset: 2px; }
-
-/* Input styles */
-input::placeholder { color: rgba(255,255,255,0.25); }
-input:focus { border-color: rgba(255,107,53,0.5) !important; }
-
 /* Transitions */
 .transition { transition: all 0.2s ease; }
 .hover-scale:hover { transform: scale(1.02); }
-
-/* ============================================================
-   FRAMER MOTION HELPERS
-   ============================================================ */
-[data-framer-appear-id] { }
-
-/* ============================================================
-   PHOTO MASONRY GRID
-   ============================================================ */
-.photo-masonry {
-  columns: 3;
-  column-gap: 8px;
-}
-@media (max-width: 640px) {
-  .photo-masonry { columns: 2; }
-}
-@media (max-width: 380px) {
-  .photo-masonry { columns: 1; }
-}
 
 /* ============================================================
    GALLERY RESPONSIVE GRID

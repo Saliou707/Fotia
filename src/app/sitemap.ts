@@ -43,13 +43,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from('galleries')
       .select('slug, updated_at')
       .eq('status', 'active')
-      .eq('is_public', true)
       .order('updated_at', { ascending: false })
       .limit(500)
 
     if (galleries) {
       galleryPages = galleries.map((g) => ({
-        url: `${baseUrl}/g/${g.slug}`,
+        url: `${baseUrl}/galerie/${g.slug}`,
         lastModified: g.updated_at ? new Date(g.updated_at) : new Date(),
         changeFrequency: 'weekly' as const,
         priority: 0.7,
@@ -57,7 +56,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   } catch (err) {
     // Sitemap non-bloquant : si Supabase est down, on renvoie juste les pages statiques
-    console.warn('[sitemap] Failed to fetch galleries:', err)
   }
 
   return [...staticPages, ...galleryPages]

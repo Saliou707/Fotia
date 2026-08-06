@@ -1,0 +1,24 @@
+{
+  "name": "Fotia — Galeries photo professionnelles",
+  "short_name": "Fotia",
+  "description": "Plateforme SaaS pour photographes. Créez des galeries élégantes et partagez-les avec vos clients.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#15171A",
+  "theme_color": "#15171A",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "lang": "fr",
+  "categories": ["photography", "productivity", "utilities"]
+}

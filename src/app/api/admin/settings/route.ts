@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin, logAdminAction } from '@/lib/admin'
+import { verifyOrigin } from '@/lib/csrf'
 
 // Platform settings — in a real app these might be in a DB table.
 // For now, we read/write from a dedicated supabase table `platform_settings`.
@@ -23,6 +24,9 @@ export async function GET() {
 }
 
 export async function PATCH(request: NextRequest) {
+  const csrfError = verifyOrigin(request)
+  if (csrfError) return csrfError
+
   const admin = await requireAdmin(['super_admin'])
   const updates = await request.json()
 

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin, logAdminAction } from '@/lib/admin'
+import { verifyOrigin } from '@/lib/csrf'
 
 export async function GET(request: NextRequest) {
   const admin = await requireAdmin(['super_admin', 'admin', 'support'])
@@ -31,6 +32,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  const csrfError = verifyOrigin(request)
+  if (csrfError) return csrfError
+
   const admin = await requireAdmin(['super_admin', 'admin'])
   const supabase = createAdminClient()
   const { userId, updates } = await request.json()
@@ -53,6 +57,9 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const csrfError = verifyOrigin(request)
+  if (csrfError) return csrfError
+
   const admin = await requireAdmin(['super_admin'])
   const supabase = createAdminClient()
   const { userId } = await request.json()

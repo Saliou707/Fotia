@@ -6,11 +6,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const supabase = await createClient()
 
   // Get gallery (server-side, bypasses RLS)
+  // .eq('status','active') evite les collisions de slug entre comptes
   const { data: gallery } = await supabase
     .from('galleries')
     .select('id, title, description, photo_count, status')
     .eq('slug', slug)
-    .single()
+    .eq('status', 'active')
+    .limit(1)
+    .maybeSingle()
 
   if (!gallery) {
     return NextResponse.json({ error: 'Gallery not found' }, { status: 404 })

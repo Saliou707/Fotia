@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
+import { verifyOrigin } from '@/lib/csrf'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -8,6 +9,9 @@ interface RouteParams {
 // POST /api/galleries/:id/favorites
 export async function POST(request: NextRequest, { params }: RouteParams) {
   const { id: gallery_id } = await params
+  const csrfError = verifyOrigin(request)
+  if (csrfError) return csrfError
+
   const body = await request.json()
   const { image_id, client_token } = body
 
@@ -34,6 +38,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/galleries/:id/favorites
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   const { id: gallery_id } = await params
+  const csrfError = verifyOrigin(request)
+  if (csrfError) return csrfError
+
   const body = await request.json()
   const { image_id, client_token } = body
 

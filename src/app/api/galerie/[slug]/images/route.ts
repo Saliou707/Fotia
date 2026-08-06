@@ -13,12 +13,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  // Get gallery first
+  // Get gallery first (active only + limit 1 evite les collisions de slug)
   const { data: gallery, error: galleryError } = await supabase
     .from('galleries')
     .select('id, title, slug, user_id, status, photo_count, allow_downloads, allow_favorites, description, cover_image_url')
     .eq('slug', slug)
-    .single();
+    .eq('status', 'active')
+    .limit(1)
+    .maybeSingle();
 
   if (!gallery) {
     console.error('[API images] Gallery not found for slug:', slug, 'Error:', galleryError)
@@ -58,35 +60,35 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ gallery, images })
   }
 
-  // 2. Fallback: list images from R2 directly
-  // Build prefix to search: photos/{folder}/
-  const folder = gallery.title ? gallery.title.toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 80) : gallery.id;
-  const prefix = `photos/${folder}/`;
+  // Fallback for legacy galleries (uploaded before gallery_images was implemented)
+  if (gallery.photo_count > 0) {
+    const folder = gallery.title ? gallery.title.toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 80) : gallery.id;
+    const prefix = `photos/${folder}/`;
 
-  console.log('[API] Listing images from R2 with prefix:', prefix)
+    console.log('[API] Listing legacy images from R2 with prefix:', prefix)
 
-  try {
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('R2 listing timed out after 6s')), 6000)
-    )
-    const r2Images = await Promise.race([
-      listImages(prefix),
-      timeoutPromise,
-    ]) as Awaited<ReturnType<typeof listImages>>
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('R2 listing timed out after 6s')), 6000)
+      )
+      const r2Images = await Promise.race([
+        listImages(prefix),
+        timeoutPromise,
+      ]) as Awaited<ReturnType<typeof listImages>>
 
-    console.log('[API] R2 images found:', r2Images.length)
+      console.log('[API] R2 images found:', r2Images.length)
 
-    images = r2Images.map((obj, index) => {
-      const key = obj.key
-      const filename = key.split('/').pop() || `image-${index}.jpg`
-      const id = `img-${index}-${key.replace(/[^a-zA-Z0-9]/g, '').substring(0, 15)}`
-      return { id, r2_key: key, original_filename: filename }
-    })
-
-    return NextResponse.json({ gallery, images })
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    console.warn('[API] R2 fallback failed/timed out:', msg)
-    return NextResponse.json({ gallery, images: [] })
+      images = r2Images.map((obj, index) => {
+        const key = obj.key
+        const filename = key.split('/').pop() || `image-${index}.jpg`
+        const id = `img-${index}-${key.replace(/[^a-zA-Z0-9]/g, '').substring(0, 15)}`
+        return { id, r2_key: key, original_filename: filename }
+      })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.warn('[API] R2 fallback failed/timed out:', msg)
+    }
   }
+
+  return NextResponse.json({ gallery, images })
 }

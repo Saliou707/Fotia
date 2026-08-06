@@ -63,8 +63,8 @@ export default function GalleryManageClient({ gallery, initialImages, userId }: 
   }, [gallery.id])
 
   const galleryUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/g/${gallery.slug}`
-    : `https://fotia.app/g/${gallery.slug}`
+    ? `${window.location.origin}/galerie/${gallery.slug}`
+    : `https://fotia.app/galerie/${gallery.slug}`
 
   const waUrl = buildWhatsAppUrl(galleryUrl)
 
@@ -236,7 +236,7 @@ export default function GalleryManageClient({ gallery, initialImages, userId }: 
         </div>
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <Link href={`/g/${gallery.slug}`} target="_blank" style={{ textDecoration: 'none' }}>
+          <Link href={`/galerie/${gallery.slug}`} target="_blank" style={{ textDecoration: 'none' }}>
             <Button variant="secondary" size="sm">
               <Eye size={13} style={{ marginRight: 6 }} /> Prévisualiser
             </Button>

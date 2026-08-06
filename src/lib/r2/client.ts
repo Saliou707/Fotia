@@ -31,17 +31,15 @@ export async function listImages(prefix: string): Promise<{ key: string; size: n
   }))
 }
 
-// Format: photos/{galleryTitle}/{imageId}.ext
-// Using galleryTitle as folder makes R2 human-readable
+// Format: photos/{galleryId}/{imageId}.ext
+// Using galleryId guarantees uniqueness even if multiple galleries share the same title
 export function buildImageKey(userId: string, galleryId: string, imageId: string, filename: string, galleryTitle?: string) {
   const ext = filename.split('.').pop() ?? 'jpg'
-  const folder = galleryTitle ? slugToSafeFolder(galleryTitle) : galleryId
-  return `photos/${folder}/${imageId}.${ext}`
+  return `photos/${galleryId}/${imageId}.${ext}`
 }
 
 export function buildThumbnailKey(userId: string, galleryId: string, imageId: string, galleryTitle?: string) {
-  const folder = galleryTitle ? slugToSafeFolder(galleryTitle) : galleryId
-  return `thumbnails/${folder}/${imageId}.webp`
+  return `thumbnails/${galleryId}/${imageId}.webp`
 }
 
 // Sanitize slug to be safe as a folder name

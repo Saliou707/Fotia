@@ -50,11 +50,11 @@ export async function fetchGallery(id: string): Promise<Gallery | null> {
   return res.json()
 }
 
-export async function createGallery(title: string, description?: string): Promise<Gallery> {
+export async function createGallery(title: string, description?: string, slug?: string): Promise<Gallery> {
   const res = await fetch('/api/galleries/create', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, description }),
+    body: JSON.stringify({ title, description, slug }),
   })
   const data = await res.json()
   if (!res.ok) {
@@ -63,7 +63,7 @@ export async function createGallery(title: string, description?: string): Promis
   return data
 }
 
-export async function updateGallery(id: string, fields: Partial<{ title: string; description: string | null; status: 'draft' | 'active' | 'archived'; is_password_protected: boolean; allow_downloads: boolean; allow_favorites: boolean; watermark_enabled: boolean }>): Promise<boolean> {
+export async function updateGallery(id: string, fields: Partial<{ title: string; description: string | null; slug: string; status: 'draft' | 'active' | 'archived'; is_password_protected: boolean; allow_downloads: boolean; allow_favorites: boolean; watermark_enabled: boolean }>): Promise<boolean> {
   const res = await fetch(`/api/galleries/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -80,7 +80,7 @@ export async function deleteGallery(id: string): Promise<boolean> {
 // ─── Images d'une galerie ──────────────────────────────────────────────────
 
 export async function fetchGalleryImages(slug: string): Promise<GalleryImage[]> {
-  const res = await fetch(`/api/gallery/${slug}/images`)
+  const res = await fetch(`/api/galerie/${slug}/images`)
   if (!res.ok) return []
   const data = await res.json()
   return data.images ?? []

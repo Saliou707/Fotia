@@ -2,8 +2,9 @@
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Eye, Copy, Check, X, ChevronLeft, ChevronRight, Plus, Heart, Download, Edit2, Save, Loader2 } from 'lucide-react'
-import { fetchGallery, fetchGalleryImages, getImageUrl, updateGallery, fmtNumber, fmtDate, type Gallery } from '@/lib/api'
+import { ArrowLeft, Eye, Copy, Check, X, ChevronLeft, ChevronRight, Plus, Heart, Download, Edit2, Save, Loader2, Link2 } from 'lucide-react'
+import { fetchGallery, fetchGalleryImages, getImageUrl, updateGallery, fmtNumber, fmtDate, fetchProfile, type Gallery } from '@/lib/api'
+import { slugify } from '@/lib/utils'
 
 interface GalleryImage { id: string; r2_key: string; original_filename: string; display_order: number }
 
@@ -22,14 +23,22 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
   const [editTitle, setEditTitle] = useState('')
   const [saving, setSaving] = useState(false)
   const [togglingStatus, setTogglingStatus] = useState(false)
+  const [editingSlug, setEditingSlug] = useState(false)
+  const [editSlug, setEditSlug] = useState('')
+  const [slugError, setSlugError] = useState('')
+  const [userPlan, setUserPlan] = useState<'free' | 'pro' | 'studio'>('free')
+  const isPro = userPlan === 'pro' || userPlan === 'studio'
 
   useEffect(() => {
     async function load() {
-      const data = await fetchGallery(id)
+      const [data, profile] = await Promise.all([fetchGallery(id), fetchProfile()])
       if (data) {
-        setGallery(data); setEditTitle(data.title)
+        setGallery(data); setEditTitle(data.title); setEditSlug(data.slug)
         const imgs = await fetchGalleryImages(data.slug)
         setImages(imgs as GalleryImage[])
+      }
+      if (profile) {
+        setUserPlan((profile.plan as 'free' | 'pro' | 'studio') || 'free')
       }
       setLoading(false)
     }
@@ -37,7 +46,7 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
   }, [id])
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://fotia.co'
-  const galleryUrl = gallery ? `${origin}/g/${gallery.slug}` : ''
+  const galleryUrl = gallery ? `${origin}/galerie/${gallery.slug}` : ''
   const whatsappMsg = encodeURIComponent(
     `Bonjour ✨\n\nVos photos sont prêtes.\n\nVoici votre galerie :\n${galleryUrl}`
   )
@@ -53,6 +62,28 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
     await updateGallery(gallery.id, { title: editTitle.trim() })
     setGallery(prev => prev ? { ...prev, title: editTitle.trim() } : prev)
     setSaving(false); setEditingTitle(false)
+  }
+
+  const handleSaveSlug = async () => {
+    if (!gallery || !editSlug.trim()) return
+    const cleaned = slugify(editSlug.trim())
+    if (!cleaned || cleaned.length < 3) {
+      setSlugError('Slug trop court (min. 3 caracteres)')
+      return
+    }
+    if (cleaned === gallery.slug) {
+      setEditingSlug(false); setSlugError('')
+      return
+    }
+    setSaving(true); setSlugError('')
+    const ok = await updateGallery(gallery.id, { slug: cleaned })
+    if (ok) {
+      setGallery(prev => prev ? { ...prev, slug: cleaned } : prev)
+      setEditingSlug(false)
+    } else {
+      setSlugError('Ce slug est deja utilise ou invalide.')
+    }
+    setSaving(false)
   }
 
   const handleToggleStatus = async () => {
@@ -137,13 +168,48 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
             </button>
           </a>
 
+          {/* ── Lien public éditable (Pro uniquement) ── */}
+          {isPro && (
+            <div style={{ marginBottom: 12, background: '#111111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: '14px 16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: editingSlug ? 10 : 0 }}>
+                <Link2 size={14} color="#C8482E" style={{ flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: '#555', fontWeight: 500, flexShrink: 0 }}>{origin}/galerie/</span>
+                {editingSlug ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+                    <input
+                      autoFocus
+                      value={editSlug}
+                      onChange={e => { setEditSlug(e.target.value); setSlugError('') }}
+                      onKeyDown={e => { if (e.key === 'Enter') handleSaveSlug(); if (e.key === 'Escape') { setEditingSlug(false); setSlugError('') } }}
+                      style={{ flex: 1, padding: '5px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: `1.5px solid ${slugError ? '#ef4444' : '#C8482E'}`, color: '#F7F7F5', fontSize: 13, outline: 'none', fontFamily: 'monospace' }}
+                    />
+                    <button onClick={handleSaveSlug} disabled={saving} style={{ padding: '5px 12px', borderRadius: 7, background: '#C8482E', color: '#fff', border: 'none', fontWeight: 700, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                      {saving ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : 'OK'}
+                    </button>
+                    <button onClick={() => { setEditingSlug(false); setSlugError(''); setEditSlug(gallery.slug) }} style={{ padding: '5px 8px', borderRadius: 7, background: 'rgba(255,255,255,0.06)', color: '#666', border: 'none', cursor: 'pointer', fontSize: 12 }}>✕</button>
+                  </div>
+                ) : (
+                  <>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: '#F7F7F5', fontFamily: 'monospace', letterSpacing: '-0.01em' }}>{gallery.slug}</span>
+                    <button onClick={() => { setEditingSlug(true); setSlugError('') }} style={{ background: 'none', border: 'none', color: '#444', cursor: 'pointer', padding: 2, display: 'flex' }} title="Modifier le slug">
+                      <Edit2 size={12} />
+                    </button>
+                  </>
+                )}
+              </div>
+              {slugError && (
+                <div style={{ fontSize: 11.5, color: '#ef4444', fontWeight: 500, paddingLeft: 22 }}>{slugError}</div>
+              )}
+            </div>
+          )}
+
           {/* Actions secondaires */}
           <div className="gallery-manage-actions" style={{ display: 'grid', gap: 10 }}>
             <button onClick={handleCopy}
               style={{ padding: '11px 14px', borderRadius: 10, background: '#111111', border: '1px solid rgba(255,255,255,0.08)', color: '#F7F7F5', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, transition: 'background 0.2s' }}>
               {copied ? <><Check size={14} color="#22C55E" /> Copié !</> : <><Copy size={14} /> Copier le lien</>}
             </button>
-            <Link href={`/g/${gallery.slug}`} target="_blank" style={{ textDecoration: 'none' }}>
+            <Link href={`/galerie/${gallery.slug}`} target="_blank" style={{ textDecoration: 'none' }}>
               <button style={{ width: '100%', padding: '11px 14px', borderRadius: 10, background: '#111111', border: '1px solid rgba(255,255,255,0.08)', color: '#F7F7F5', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
                 <Eye size={14} /> Vue client
               </button>

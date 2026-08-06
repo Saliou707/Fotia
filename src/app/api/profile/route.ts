@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import { profileSchema, validatePayload } from '@/lib/validations'
+import { verifyOrigin } from '@/lib/csrf'
 
 // GET /api/profile
 // Retourne le profil complet de l'utilisateur connecté (incl. compteur de galeries actives).
@@ -35,6 +36,9 @@ export async function GET() {
 // PATCH /api/profile
 // Met à jour le profil (infos publiques, avatar, onboarding…).
 export async function PATCH(request: NextRequest) {
+  const csrfError = verifyOrigin(request)
+  if (csrfError) return csrfError
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

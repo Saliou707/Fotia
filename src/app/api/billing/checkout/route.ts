@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import { generateId } from '@/lib/utils'
 import { defaultPaymentProvider } from '@/lib/payment-provider'
+import { verifyOrigin } from '@/lib/csrf'
 
 // Prix en GNF (Francs Guinéens) — Mode Test Production
 const PLAN_PRICE_GNF: Record<string, number> = {
@@ -9,6 +10,9 @@ const PLAN_PRICE_GNF: Record<string, number> = {
 }
 
 export async function POST(request: NextRequest) {
+  const csrfError = verifyOrigin(request)
+  if (csrfError) return csrfError
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 

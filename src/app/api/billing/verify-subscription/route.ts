@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import { defaultPaymentProvider } from '@/lib/payment-provider'
+import { verifyOrigin } from '@/lib/csrf'
 
 /**
  * Vérification et activation d'abonnement côté succès (fallback webhook).
@@ -10,6 +11,9 @@ import { defaultPaymentProvider } from '@/lib/payment-provider'
  * Idempotent : peut être appelée plusieurs fois sans effet de bord.
  */
 export async function POST(request: NextRequest) {
+  const csrfError = verifyOrigin(request)
+  if (csrfError) return csrfError
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { verifyOrigin } from '@/lib/csrf'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -10,6 +11,9 @@ interface RouteParams {
 // Utilise client_token pour garantir l'unicité : 1 vue par session.
 export async function POST(request: NextRequest, { params }: RouteParams) {
   const { id: gallery_id } = await params
+
+  const csrfError = verifyOrigin(request)
+  if (csrfError) return csrfError
 
   const body = await request.json().catch(() => ({}))
   const { client_token } = body as { client_token?: string }

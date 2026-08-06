@@ -3,8 +3,12 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { buildImageKey, uploadBuffer } from '@/lib/r2/client'
 import { generateId } from '@/lib/utils'
 import { checkCanCreateGallery, checkCanUploadPhoto } from '@/lib/limits'
+import { verifyOrigin } from '@/lib/csrf'
 
 export async function POST(request: NextRequest) {
+  const csrfError = verifyOrigin(request)
+  if (csrfError) return csrfError
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 

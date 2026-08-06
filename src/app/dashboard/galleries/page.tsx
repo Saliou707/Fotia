@@ -260,7 +260,7 @@ export default function GalleriesPage() {
                     <button onClick={() => handleToggleStatus(g)} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px 12px', color: '#F2EDE4', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', borderRadius: 9, fontWeight: 500, transition: 'background 0.15s' }} className="hover:bg-white/[0.05]">
                       {g.status === 'active' ? <><Zap size={13} color="#555" /> Mettre en brouillon</> : <><Zap size={13} color="#22C55E" /> Publier</>}
                     </button>
-                    <Link href={`/g/${g.slug}`} target="_blank" style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px 12px', color: '#F2EDE4', fontSize: 13, textDecoration: 'none', borderRadius: 9, fontWeight: 500, transition: 'background 0.15s' }} className="hover:bg-white/[0.05]">
+                    <Link href={`/galerie/${g.slug}`} target="_blank" style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px 12px', color: '#F2EDE4', fontSize: 13, textDecoration: 'none', borderRadius: 9, fontWeight: 500, transition: 'background 0.15s' }} className="hover:bg-white/[0.05]">
                       <Share2 size={13} color="#3B82F6" /> Vue client
                     </Link>
                     <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />

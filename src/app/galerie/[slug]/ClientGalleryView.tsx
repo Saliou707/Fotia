@@ -586,16 +586,6 @@ export default function ClientGalleryView({ gallery, images }: Props) {
           width: 100%;
         }
 
-        .photo-name {
-          font-size: 13px;
-          font-weight: 500;
-          color: #FFF;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          max-width: 70%;
-        }
-
         .photo-download-btn {
           width: 44px;
           height: 44px;
@@ -711,11 +701,6 @@ export default function ClientGalleryView({ gallery, images }: Props) {
             opacity: 1 !important;
             background: linear-gradient(to top, rgba(8,8,8,0.75) 0%, transparent 40%) !important;
             padding: 20px !important;
-          }
-          .photo-name {
-            font-size: 14px !important;
-            max-width: 60% !important;
-            font-weight: 600 !important;
           }
           .photo-card-heart-btn {
             width: 48px !important;
@@ -1119,7 +1104,7 @@ export default function ClientGalleryView({ gallery, images }: Props) {
 
                 {/* Bottom row actions inside card */}
                 <div className="photo-card-meta-bottom" onClick={() => setLightboxIndex(idx)}>
-                  <div className="photo-name">{image.original_filename.split('.')[0]}</div>
+                  <div />
                   {gallery.allow_downloads && (
                     <button 
                       className="photo-download-btn"
