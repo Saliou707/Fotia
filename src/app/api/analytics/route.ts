@@ -13,7 +13,7 @@ export async function GET() {
     .eq('user_id', user.id)
     .order('view_count', { ascending: false })
 
-  if (!galleries) return NextResponse.json({ galleries: [], totals: null })
+  if (!galleries) return NextResponse.json({ galleries: [], totals: null, recentViews: [], recentFavorites: [] })
 
   const totals = {
     views: galleries.reduce((s, g) => s + (g.view_count ?? 0), 0),

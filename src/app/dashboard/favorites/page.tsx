@@ -224,10 +224,10 @@ export default function FavoritesPage() {
                         {/* Badge sélection */}
                         <div style={{
                           position: 'absolute', top: 8, right: 8, width: 22, height: 22, borderRadius: '50%',
-                          background: selected.has(photo.id) ? '#C8482E' : 'rgba(0,0,0,0.52)',
-                          border: selected.has(photo.id) ? 'none' : '1.5px solid rgba(255,255,255,0.35)',
+                          background: selected.has(photo.id) ? '#C8482E' : 'rgba(17,17,17,0.7)',
+                          border: selected.has(photo.id) ? 'none' : '1.5px solid rgba(255,255,255,0.4)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          transition: 'all 0.18s', backdropFilter: 'blur(4px)',
+                          transition: 'all 0.18s',
                         }}>
                           {selected.has(photo.id) && <Check size={12} color="#fff" strokeWidth={3} />}
                         </div>

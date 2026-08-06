@@ -235,7 +235,7 @@ export default function StatisticsPage() {
   // ── Filtrage ──
   const filteredGalleries = useMemo(() => {
     if (!data) return []
-    let list = data.galleries
+    let list = data.galleries || []
 
     if (galleryFilter !== 'all') {
       list = list.filter(g => g.id === galleryFilter)
@@ -259,8 +259,8 @@ export default function StatisticsPage() {
   const timelineEvents = useMemo(() => {
     if (!data) return []
     const events: TimelineEvent[] = [
-      ...data.recentViews.map((v, i) => ({ id: `v-${i}-${v.created_at}`, type: 'view' as const, gallery_title: v.galleries?.title || 'Galerie supprimée', created_at: v.created_at })),
-      ...data.recentFavorites.map((f, i) => ({ id: `f-${i}-${f.created_at}`, type: 'favorite' as const, gallery_title: f.galleries?.title || 'Galerie supprimée', created_at: f.created_at }))
+      ...(data.recentViews || []).map((v, i) => ({ id: `v-${i}-${v.created_at}`, type: 'view' as const, gallery_title: v.galleries?.title || 'Galerie supprimée', created_at: v.created_at })),
+      ...(data.recentFavorites || []).map((f, i) => ({ id: `f-${i}-${f.created_at}`, type: 'favorite' as const, gallery_title: f.galleries?.title || 'Galerie supprimée', created_at: f.created_at }))
     ]
     events.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     return events.slice(0, 15) // Garder les 15 plus récents
