@@ -13,7 +13,9 @@ const CSP_DIRECTIVES: Record<string, string[]> = {
   'connect-src': [
     "'self'",
     'https://*.supabase.co',
+    'wss://*.supabase.co',
     'https://hbntvpgxypwwkgiupves.supabase.co',
+    'wss://hbntvpgxypwwkgiupves.supabase.co',
     'https://api.djomy.africa',
     'https://sandbox-api.djomy.africa',
     'https://*.r2.dev',

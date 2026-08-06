@@ -101,19 +101,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <html lang="fr" className={`${inter.variable} ${bigShoulders.variable} ${plexMono.variable} ${playfair.variable}`} data-scroll-behavior="smooth">
+    <html lang="fr" className={`${inter.variable} ${bigShoulders.variable} ${plexMono.variable} ${playfair.variable}`} data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-      </head>
-      <body style={{ margin: 0, padding: 0, background: '#15171A', color: '#F2EDE4', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-        {/* Preconnect hints — les polices next/font sont auto-hébergées (pas besoin de Google Fonts)
-            mais on préconnecte les origines externes utilisées au chargement (Unsplash, Supabase, CDN) */}
+        {/* Preconnect hints */}
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://hbntvpgxypwwkgiupves.supabase.co" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://cdn.fotia.app" />
+      </head>
+      <body style={{ margin: 0, padding: 0, background: '#15171A', color: '#F2EDE4', fontFamily: 'var(--font-inter, Inter, sans-serif)' }} suppressHydrationWarning>
         {children}
       </body>
     </html>
