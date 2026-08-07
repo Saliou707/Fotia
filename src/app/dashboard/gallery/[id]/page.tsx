@@ -113,7 +113,7 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
   )
 
   return (
-    <div style={{ padding: '24px 28px', minHeight: 'calc(100vh - 58px)', maxWidth: 1100, margin: '0 auto' }}>
+    <div className="manage-container" style={{ minHeight: 'calc(100vh - 58px)', maxWidth: 1100, margin: '0 auto' }}>
       <motion.div initial="hidden" animate="show" variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}>
 
         {/* ── Retour ── */}
@@ -190,8 +190,8 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
                   </div>
                 ) : (
                   <>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: '#F7F7F5', fontFamily: 'monospace', letterSpacing: '-0.01em' }}>{gallery.slug}</span>
-                    <button onClick={() => { setEditingSlug(true); setSlugError('') }} style={{ background: 'none', border: 'none', color: '#444', cursor: 'pointer', padding: 2, display: 'flex' }} title="Modifier le slug">
+                    <span style={{ fontSize: 14, fontWeight: 700, color: '#F7F7F5', fontFamily: 'monospace', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{gallery.slug}</span>
+                    <button onClick={() => { setEditingSlug(true); setSlugError('') }} style={{ background: 'none', border: 'none', color: '#444', cursor: 'pointer', padding: 2, display: 'flex', flexShrink: 0 }} title="Modifier le slug">
                       <Edit2 size={12} />
                     </button>
                   </>
@@ -298,13 +298,16 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
       <style>{`
         @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        .manage-container { padding: 24px 28px; }
         .gallery-manage-actions { grid-template-columns: repeat(3, 1fr); }
         .gallery-manage-stats { grid-template-columns: repeat(3, 1fr); }
         @media (max-width: 640px) {
+          .manage-container { padding: 16px 12px; }
           .gallery-manage-actions { grid-template-columns: 1fr !important; }
           .gallery-manage-stats { grid-template-columns: repeat(3, 1fr) !important; gap: 6px !important; }
-          .gallery-manage-stats > div { padding: 10px 8px !important; }
-          .gallery-manage-stats div[style*="font-size: 22"] { font-size: 17px !important; }
+          .gallery-manage-stats > div { padding: 10px 4px !important; }
+          .gallery-manage-stats div[style*="font-size: 22"] { font-size: 16px !important; }
+          .gallery-manage-stats div[style*="font-size: 11"] { font-size: 10px !important; }
           .gallery-manage-photos { columns: 2 !important; gap: 6px !important; }
         }
       `}</style>
