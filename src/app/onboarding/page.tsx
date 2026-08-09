@@ -5,6 +5,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Camera, ArrowRight, Loader2, Link as LinkIcon, Phone } from 'lucide-react'
+import { toast } from '@/components/ui'
 
 const Instagram = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -24,7 +25,7 @@ import { updateProfile } from '@/lib/api'
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '12px 16px', borderRadius: 12,
   border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)',
-  color: '#F7F7F5', fontSize: 15, outline: 'none', boxSizing: 'border-box',
+  color: '#F2EDE4', fontSize: 15, outline: 'none', boxSizing: 'border-box',
   transition: 'border-color 0.2s'
 }
 
@@ -71,7 +72,7 @@ export default function OnboardingPage() {
       setAvatarUrl(`${publicUrl}/${key}`)
     } catch (err) {
       console.error('Avatar upload failed', err)
-      alert('Erreur lors de l\'upload de la photo.')
+      toast.error('Photo impossible à charger', 'Vérifiez le format et la taille du fichier, puis réessayez.')
     } finally {
       setUploadingAvatar(false)
     }
@@ -98,7 +99,7 @@ export default function OnboardingPage() {
       router.push('/dashboard')
     } catch (err) {
       console.error(err)
-      alert('Erreur lors de la sauvegarde du profil.')
+      toast.error('Sauvegarde impossible', 'Erreur lors de la sauvegarde du profil. Réessayez.')
       setLoading(false)
     }
   }
@@ -113,7 +114,7 @@ export default function OnboardingPage() {
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 8 }}>Complétez votre profil 📸</h1>
-          <p style={{ color: '#A1A1AA', fontSize: 15, lineHeight: 1.5 }}>
+          <p style={{ color: '#A09890', fontSize: 15, lineHeight: 1.5 }}>
             Ces informations apparaîtront sur vos galeries clientes. Aucun champ n'est obligatoire, mais un profil complet donne plus confiance !
           </p>
         </div>
@@ -125,7 +126,7 @@ export default function OnboardingPage() {
               onClick={() => fileInputRef.current?.click()}
               style={{ width: 96, height: 96, borderRadius: '50%', background: avatarUrl ? `url(${avatarUrl}) center/cover` : 'rgba(255,255,255,0.05)', border: '2px dashed rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s', position: 'relative', overflow: 'hidden' }}
             >
-              {!avatarUrl && !uploadingAvatar && <Camera size={32} color="#A1A1AA" />}
+              {!avatarUrl && !uploadingAvatar && <Camera size={32} color="#A09890" />}
               {uploadingAvatar && <Loader2 size={32} color="#C8482E" className="animate-spin" />}
               
               {/* Overlay on hover */}
@@ -135,7 +136,7 @@ export default function OnboardingPage() {
                 </div>
               )}
             </div>
-            <span style={{ fontSize: 13, color: '#A1A1AA', cursor: 'pointer' }} onClick={() => fileInputRef.current?.click()}>
+            <span style={{ fontSize: 13, color: '#A09890', cursor: 'pointer' }} onClick={() => fileInputRef.current?.click()}>
               {avatarUrl ? 'Changer la photo' : 'Ajouter une photo de profil'}
             </span>
             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleAvatarUpload} style={{ display: 'none' }} />
@@ -181,7 +182,7 @@ export default function OnboardingPage() {
           <button 
             type="submit" 
             disabled={loading}
-            style={{ marginTop: 12, width: '100%', padding: '16px', borderRadius: 14, background: '#C8482E', color: '#FFF', fontSize: 16, fontWeight: 700, border: 'none', cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, transition: 'all 0.2s', boxShadow: '0 8px 24px rgba(255, 107, 53, 0.4)' }}
+            style={{ marginTop: 12, width: '100%', padding: '16px', borderRadius: 14, background: '#C8482E', color: '#FFF', fontSize: 16, fontWeight: 700, border: 'none', cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, transition: 'all 0.2s', boxShadow: '0 8px 24px rgba(223, 84, 56, 0.4)' }}
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : (
               <>Continuer vers le tableau de bord <ArrowRight size={20} /></>

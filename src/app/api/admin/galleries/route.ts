@@ -65,7 +65,7 @@ export async function PATCH(request: NextRequest) {
   if (!existingGallery) return NextResponse.json({ error: 'Gallery not found' }, { status: 404 });
 
   // Update gallery fields (title and status if provided)
-  const updates: any = {};
+  const updates: { title?: string; status?: string } = {};
   if (title) updates.title = title;
   if (status) updates.status = status;
   if (Object.keys(updates).length > 0) {

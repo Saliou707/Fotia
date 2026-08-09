@@ -30,7 +30,7 @@ export default function BillingFailedPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#080808', color: '#F5F0EB',
+      background: '#080808', color: '#F2EDE4',
       fontFamily: 'var(--font-inter, Inter, sans-serif)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: 24, position: 'relative', overflow: 'hidden'
@@ -104,7 +104,7 @@ export default function BillingFailedPage() {
 
         <h1 style={{
           fontSize: 32, fontWeight: 800, letterSpacing: '-0.03em',
-          marginBottom: 16, color: '#F7F7F5', lineHeight: 1.1
+          marginBottom: 16, color: '#F2EDE4', lineHeight: 1.1
         }}>
           Paiement{' '}
           <span style={{ color: '#EF4444' }}>échoué</span>
@@ -132,7 +132,7 @@ export default function BillingFailedPage() {
               padding: '16px 24px', borderRadius: 14, textDecoration: 'none',
               fontWeight: 700, fontSize: 16,
               background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
-              color: '#F7F7F5', transition: 'all 0.2s ease'
+              color: '#F2EDE4', transition: 'all 0.2s ease'
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.12)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.08)' }}
@@ -147,10 +147,10 @@ export default function BillingFailedPage() {
               padding: '14px 24px', borderRadius: 14, textDecoration: 'none',
               fontWeight: 600, fontSize: 15,
               border: '1px solid rgba(255,255,255,0.04)',
-              background: 'transparent', color: '#787068', transition: 'all 0.2s ease'
+              background: 'transparent', color: '#A09890', transition: 'all 0.2s ease'
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#A09890' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#787068' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#A09890' }}
           >
             <ArrowLeft size={16} /> Retour au Dashboard
           </Link>

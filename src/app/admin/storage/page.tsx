@@ -4,21 +4,44 @@ import { useState, useEffect } from 'react'
 import { HardDrive, Image, Users, Crown } from 'lucide-react'
 import { PageHeader, RefreshButton, AdminCard, formatBytes } from '../_components/ui'
 
+type StorageData = {
+  totalStorageBytes: number
+  totalPhotos: number
+  topUsersByStorage: {
+    id: string
+    email: string | null
+    display_name: string | null
+    plan: string
+    storage_used_bytes: number
+    gallery_count: number
+  }[]
+  topGalleriesBySize: {
+    id: string
+    title: string
+    photo_count: number
+    view_count: number
+    status: string
+    owner: { email: string | null; display_name: string | null } | null
+  }[]
+}
+
 export default function StoragePage() {
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<StorageData | null>(null)
   const [loading, setLoading] = useState(true)
 
   const fetchData = async () => {
-    setLoading(true)
+    // `loading` démarre à `true` (squelette au premier rendu) ; le refetch conserve l'état courant
     const res = await fetch('/api/admin/storage')
     if (res.ok) setData(await res.json())
     setLoading(false)
   }
 
+  // fetch au montage volontaire (pattern admin) — le setState est asynchrone (après await)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchData() }, [])
 
-  const topUsers: any[] = data?.topUsersByStorage || []
-  const topGalleries: any[] = data?.topGalleriesBySize || []
+  const topUsers = data?.topUsersByStorage || []
+  const topGalleries = data?.topGalleriesBySize || []
   const maxUserStorage = topUsers[0]?.storage_used_bytes || 1
   const maxGalleryPhotos = topGalleries[0]?.photo_count || 1
 
@@ -72,7 +95,7 @@ export default function StoragePage() {
             <p className="text-sm text-center py-8" style={{ color: 'var(--text-muted)' }}>Aucune donnée</p>
           ) : (
             <div className="space-y-4">
-              {topUsers.map((u: any, idx: number) => {
+              {topUsers.map((u, idx: number) => {
                 const pct = (u.storage_used_bytes / maxUserStorage) * 100
                 return (
                   <div key={u.id}>
@@ -127,7 +150,7 @@ export default function StoragePage() {
             <p className="text-sm text-center py-8" style={{ color: 'var(--text-muted)' }}>Aucune donnée</p>
           ) : (
             <div className="space-y-4">
-              {topGalleries.map((g: any, idx: number) => {
+              {topGalleries.map((g, idx: number) => {
                 const pct = (g.photo_count / maxGalleryPhotos) * 100
                 return (
                   <div key={g.id}>
@@ -150,7 +173,7 @@ export default function StoragePage() {
                     <div className="ml-[3.25rem] h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-default)' }}>
                       <div
                         className="h-full rounded-full transition-all"
-                        style={{ width: `${pct}%`, background: '#10b981', opacity: 0.65 }}
+                        style={{ width: `${pct}%`, background: '#22C55E', opacity: 0.65 }}
                       />
                     </div>
                   </div>

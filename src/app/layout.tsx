@@ -1,14 +1,18 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Big_Shoulders, IBM_Plex_Mono, Playfair_Display } from 'next/font/google'
 import './globals.css'
+import ToasterClient from '@/components/ToasterClient'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 const bigShoulders = Big_Shoulders({ subsets: ['latin'], variable: '--font-title', display: 'swap', preload: false, fallback: ['system-ui', 'sans-serif'] })
 const plexMono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-mono', display: 'swap', preload: false })
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair', display: 'swap', preload: false })
 
+// Domaine public unique : configuré via NEXT_PUBLIC_APP_URL (voir .env.example)
+const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://myfotia.com').replace(/\/$/, '')
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://myfotia.com'), // Important for resolving relative URLs in og:image, etc.
+  metadataBase: new URL(SITE_URL), // Important for resolving relative URLs in og:image, etc.
   title: { default: 'Fotia — Galeries photo professionnelles', template: '%s | Fotia' },
   description: 'Fotia est la plateforme SaaS pour photographes. Créez des galeries élégantes, partagez via WhatsApp et laissez vos clients sélectionner leurs favoris.',
   keywords: ['galerie photo', 'photographe', 'livraison photo', 'WhatsApp', 'galeries clients', 'portfolio photographe', 'partage photo', 'SaaS photographie'],
@@ -20,16 +24,11 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  alternates: {
-    canonical: '/',
-    languages: {
-      'en-US': '/en',
-      'fr-FR': '/fr',
-    },
-  },
+  // PAS de canonical global : chaque page doit définir son propre canonical
+  // (un canonical '/' sur toutes les pages empêchait l'indexation des galeries).
   openGraph: {
     type: 'website',
-    url: 'https://myfotia.com',
+    url: SITE_URL,
     siteName: 'Fotia',
     title: 'Fotia — Galeries photo professionnelles',
     description: 'Livrez vos photos professionnellement avec Fotia. Galeries élégantes, sélection de favoris et partage facile.',
@@ -84,7 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
     name: 'Fotia',
-    url: 'https://myfotia.com',
+    url: SITE_URL,
     description: 'Plateforme SaaS pour photographes. Créez des galeries élégantes, partagez via WhatsApp et laissez vos clients sélectionner leurs favoris.',
     applicationCategory: 'Multimedia',
     operatingSystem: 'All',
@@ -96,7 +95,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     author: {
       '@type': 'Organization',
       name: 'Fotia',
-      url: 'https://myfotia.com',
+      url: SITE_URL,
     },
   }
 
@@ -118,6 +117,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body style={{ margin: 0, padding: 0, background: '#15171A', color: '#F2EDE4', fontFamily: 'var(--font-inter, Inter, sans-serif)' }} suppressHydrationWarning>
         {children}
+        <ToasterClient />
       </body>
     </html>
   )

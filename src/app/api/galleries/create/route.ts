@@ -4,6 +4,7 @@ import { generateId, slugify } from '@/lib/utils'
 import { checkCanCreateGallery, getUserPlan } from '@/lib/limits'
 import { gallerySchema, validatePayload } from '@/lib/validations'
 import { verifyOrigin } from '@/lib/csrf'
+import { logger } from '@/lib/logger'
 
 /**
  * Génère un slug unique à partir du titre.
@@ -104,9 +105,9 @@ export async function POST(request: NextRequest) {
       continue
     }
 
-    console.error('[Galleries] Create error:', error)
-    return NextResponse.json({ error: 'Failed to create gallery' }, { status: 500 })
+    logger.error('[Galleries] Create error:', error)
+    return NextResponse.json({ error: 'Erreur lors de la création de la galerie. Veuillez réessayer.' }, { status: 500 })
   }
 
-  return NextResponse.json({ error: 'Failed to create gallery after retries' }, { status: 500 })
+  return NextResponse.json({ error: 'Erreur lors de la création de la galerie. Veuillez réessayer.' }, { status: 500 })
 }

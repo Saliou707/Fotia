@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .maybeSingle()
 
   if (!gallery) {
-    return NextResponse.json({ error: 'Gallery not found' }, { status: 404 })
+    return NextResponse.json({ error: 'Galerie introuvable.' }, { status: 404 })
   }
 
   return NextResponse.json({ gallery })

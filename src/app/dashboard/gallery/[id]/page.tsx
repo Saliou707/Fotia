@@ -1,10 +1,13 @@
 'use client'
+/* eslint-disable @next/next/no-img-element -- images servies directement par le CDN R2 */
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Eye, Copy, Check, X, ChevronLeft, ChevronRight, Plus, Heart, Download, Edit2, Save, Loader2, Link2 } from 'lucide-react'
+import { ArrowLeft, Eye, Copy, Check, X, ChevronLeft, ChevronRight, Plus, Heart, Download, Edit2, Save, Loader2, Link2, Trash2 } from 'lucide-react'
+import { ConfirmDialog, toast } from '@/components/ui'
 import { fetchGallery, fetchGalleryImages, getImageUrl, updateGallery, fmtNumber, fmtDate, fetchProfile, type Gallery } from '@/lib/api'
 import { slugify } from '@/lib/utils'
+import { translateAuthError } from '@/lib/auth-errors'
 
 interface GalleryImage { id: string; r2_key: string; original_filename: string; display_order: number }
 
@@ -28,6 +31,8 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
   const [slugError, setSlugError] = useState('')
   const [userPlan, setUserPlan] = useState<'free' | 'pro' | 'studio'>('free')
   const isPro = userPlan === 'pro' || userPlan === 'studio'
+  const [confirmDelete, setConfirmDelete] = useState<GalleryImage | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -95,6 +100,34 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
     setTogglingStatus(false)
   }
 
+  // ── Suppression d'une photo (réservée au photographe authentifié) ──
+  const handleDeleteImage = async () => {
+    if (!confirmDelete || deleting) return
+    const img = confirmDelete
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/gallery-images/${img.id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null
+        throw new Error(body?.error || `Suppression impossible (${res.status})`)
+      }
+      setImages(prev => prev.filter(x => x.id !== img.id))
+      setGallery(prev => prev ? { ...prev, photo_count: Math.max(0, prev.photo_count - 1) } : prev)
+      toast.success('Photo supprimée', img.original_filename)
+    } catch (err) {
+      toast.error('Suppression impossible', translateAuthError(err instanceof Error ? err.message : 'Une erreur est survenue. Réessayez.'))
+    } finally {
+      setDeleting(false)
+      setConfirmDelete(null)
+    }
+  }
+
+  // Les images de secours « legacy » (importées avant gallery_images) ont un id
+  // préfixé `img-` et aucune ligne en base : la suppression via l'API est
+  // impossible pour elles. NB : on ne teste PAS le format UUID — les ids DB
+  // normaux sont des nanoid (init/confirm) OU des UUID (direct).
+  const isDbImage = (id: string) => !id.startsWith('img-')
+
   if (loading) return (
     <div style={{ padding: '28px' }}>
       <Skeleton h={28} />
@@ -130,7 +163,7 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
             {editingTitle ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
                 <input autoFocus value={editTitle} onChange={e => setEditTitle(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSaveTitle()}
-                  style={{ fontSize: 22, fontWeight: 800, background: 'rgba(255,255,255,0.05)', border: '1.5px solid #C8482E', borderRadius: 10, padding: '6px 12px', color: '#F7F7F5', outline: 'none', flex: 1, minWidth: 200 }} />
+                  style={{ fontSize: 22, fontWeight: 800, background: 'rgba(255,255,255,0.05)', border: '1.5px solid #C8482E', borderRadius: 10, padding: '6px 12px', color: '#F2EDE4', outline: 'none', flex: 1, minWidth: 200 }} />
                 <button onClick={handleSaveTitle} disabled={saving} style={{ padding: '7px 14px', borderRadius: 8, background: '#C8482E', color: '#fff', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                   {saving ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={13} />} OK
                 </button>
@@ -181,7 +214,7 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
                       value={editSlug}
                       onChange={e => { setEditSlug(e.target.value); setSlugError('') }}
                       onKeyDown={e => { if (e.key === 'Enter') handleSaveSlug(); if (e.key === 'Escape') { setEditingSlug(false); setSlugError('') } }}
-                      style={{ flex: 1, padding: '5px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: `1.5px solid ${slugError ? '#ef4444' : '#C8482E'}`, color: '#F7F7F5', fontSize: 13, outline: 'none', fontFamily: 'monospace' }}
+                      style={{ flex: 1, padding: '5px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: `1.5px solid ${slugError ? '#EF4444' : '#C8482E'}`, color: '#F2EDE4', fontSize: 13, outline: 'none', fontFamily: 'monospace' }}
                     />
                     <button onClick={handleSaveSlug} disabled={saving} style={{ padding: '5px 12px', borderRadius: 7, background: '#C8482E', color: '#fff', border: 'none', fontWeight: 700, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                       {saving ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : 'OK'}
@@ -190,7 +223,7 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
                   </div>
                 ) : (
                   <>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: '#F7F7F5', fontFamily: 'monospace', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{gallery.slug}</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: '#F2EDE4', fontFamily: 'monospace', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{gallery.slug}</span>
                     <button onClick={() => { setEditingSlug(true); setSlugError('') }} style={{ background: 'none', border: 'none', color: '#444', cursor: 'pointer', padding: 2, display: 'flex', flexShrink: 0 }} title="Modifier le slug">
                       <Edit2 size={12} />
                     </button>
@@ -198,7 +231,7 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
                 )}
               </div>
               {slugError && (
-                <div style={{ fontSize: 11.5, color: '#ef4444', fontWeight: 500, paddingLeft: 22 }}>{slugError}</div>
+                <div style={{ fontSize: 11.5, color: '#EF4444', fontWeight: 500, paddingLeft: 22 }}>{slugError}</div>
               )}
             </div>
           )}
@@ -206,16 +239,16 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
           {/* Actions secondaires */}
           <div className="gallery-manage-actions" style={{ display: 'grid', gap: 10 }}>
             <button onClick={handleCopy}
-              style={{ padding: '11px 14px', borderRadius: 10, background: '#111111', border: '1px solid rgba(255,255,255,0.08)', color: '#F7F7F5', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, transition: 'background 0.2s' }}>
+              style={{ padding: '11px 14px', borderRadius: 10, background: '#111111', border: '1px solid rgba(255,255,255,0.08)', color: '#F2EDE4', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, transition: 'background 0.2s' }}>
               {copied ? <><Check size={14} color="#22C55E" /> Copié !</> : <><Copy size={14} /> Copier le lien</>}
             </button>
             <Link href={`/galerie/${gallery.slug}`} target="_blank" style={{ textDecoration: 'none' }}>
-              <button style={{ width: '100%', padding: '11px 14px', borderRadius: 10, background: '#111111', border: '1px solid rgba(255,255,255,0.08)', color: '#F7F7F5', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+              <button style={{ width: '100%', padding: '11px 14px', borderRadius: 10, background: '#111111', border: '1px solid rgba(255,255,255,0.08)', color: '#F2EDE4', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
                 <Eye size={14} /> Vue client
               </button>
             </Link>
             <Link href={`/dashboard/upload?gallery=${gallery.id}`} style={{ textDecoration: 'none' }}>
-              <button style={{ width: '100%', padding: '11px 14px', borderRadius: 10, background: '#111111', border: '1px solid rgba(255,255,255,0.08)', color: '#F7F7F5', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+              <button style={{ width: '100%', padding: '11px 14px', borderRadius: 10, background: '#111111', border: '1px solid rgba(255,255,255,0.08)', color: '#F2EDE4', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
                 <Plus size={14} /> Ajouter photos
               </button>
             </Link>
@@ -264,12 +297,26 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
             <div className="gallery-manage-photos" style={{ columns: '3 200px', gap: 10 }}>
               {images.map((img, i) => (
                 <div key={img.id}
+                  className="manage-photo-item"
                   onClick={() => setLightbox(i)}
                   style={{ marginBottom: 10, position: 'relative', borderRadius: 10, overflow: 'hidden', cursor: 'pointer', breakInside: 'avoid' }}>
                   <img src={getImageUrl(img.r2_key)} alt={img.original_filename} loading="lazy" decoding="async"
                     style={{ width: '100%', display: 'block', transition: 'transform 0.3s' }}
                     onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.03)')}
                     onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')} />
+                  {isDbImage(img.id) && (
+                    <button
+                      className="photo-delete-btn"
+                      title="Supprimer cette photo"
+                      aria-label="Supprimer cette photo"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setConfirmDelete(img)
+                      }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -288,16 +335,62 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
             <motion.img key={lightbox} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
               src={getImageUrl(images[lightbox].r2_key)} alt=""
               style={{ maxWidth: '88vw', maxHeight: '88vh', borderRadius: 12, objectFit: 'contain' }} />
-            <div style={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', padding: '8px 18px', borderRadius: 99, fontSize: 13, color: '#A1A1AA' }}>
+            <div style={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', padding: '8px 18px', borderRadius: 99, fontSize: 13, color: '#A09890' }}>
               {lightbox + 1} / {images.length}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* ── Confirm suppression photo ── */}
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={handleDeleteImage}
+        loading={deleting}
+        danger
+        title="Supprimer cette photo ?"
+        description={`« ${confirmDelete?.original_filename ?? 'Cette photo'} » sera définitivement supprimée de la galerie (stockage libéré). Cette action est irréversible.`}
+        confirmLabel="Supprimer"
+        icon={<Trash2 size={19} />}
+      />
+
       <style>{`
         @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        /* Bouton supprimer : apparaît au survol (toujours visible sur tactile) */
+        .manage-photo-item .photo-delete-btn {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: rgba(0,0,0,0.6);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(255,255,255,0.15);
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          opacity: 0;
+          transform: translateY(-4px);
+          transition: all 0.2s ease;
+          z-index: 2;
+        }
+        .manage-photo-item:hover .photo-delete-btn,
+        .manage-photo-item:focus-within .photo-delete-btn {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .photo-delete-btn:hover {
+          background: rgba(239,68,68,0.85);
+          border-color: transparent;
+        }
+        @media (hover: none) {
+          .photo-delete-btn { opacity: 1; transform: translateY(0); }
+        }
         .manage-container { padding: 24px 28px; }
         .gallery-manage-actions { grid-template-columns: repeat(3, 1fr); }
         .gallery-manage-stats { grid-template-columns: repeat(3, 1fr); }

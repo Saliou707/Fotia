@@ -6,6 +6,23 @@ export async function GET() {
   await requireAdmin()
   const supabase = createAdminClient()
 
+  type StorageProfile = {
+    id: string
+    email: string | null
+    display_name: string | null
+    storage_used_bytes: number | null
+    gallery_count: number | null
+    plan: string
+  }
+  type TopGallery = {
+    id: string
+    title: string
+    photo_count: number | null
+    view_count: number | null
+    status: string
+    profiles: { email: string | null; display_name: string | null }[] | null
+  }
+
   const [
     { data: profiles },
     { data: topGalleries },
@@ -28,10 +45,10 @@ export async function GET() {
     supabase.from('gallery_images').select('*', { count: 'exact', head: true }),
   ])
 
-  const totalStorageBytes = (profiles || []).reduce((acc: number, p: any) => acc + (p.storage_used_bytes || 0), 0)
+  const totalStorageBytes = (profiles || []).reduce((acc: number, p: StorageProfile) => acc + (p.storage_used_bytes || 0), 0)
 
   // Top 20 users by storage
-  const topUsersByStorage = (profiles || []).map((p: any) => ({
+  const topUsersByStorage = (profiles || []).map((p: StorageProfile) => ({
     id: p.id,
     email: p.email,
     display_name: p.display_name,
@@ -41,13 +58,13 @@ export async function GET() {
   }))
 
   // Top 20 galleries by photo count
-  const topGalleriesBySize = (topGalleries || []).map((g: any) => ({
+  const topGalleriesBySize = (topGalleries || []).map((g: TopGallery) => ({
     id: g.id,
     title: g.title,
     photo_count: g.photo_count || 0,
     view_count: g.view_count || 0,
     status: g.status,
-    owner: g.profiles,
+    owner: g.profiles?.[0] ?? null,
   }))
 
   return NextResponse.json({

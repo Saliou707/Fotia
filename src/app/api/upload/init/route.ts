@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     .eq('user_id', user.id)
     .single()
 
-  if (!gallery) return NextResponse.json({ error: 'Gallery not found' }, { status: 404 })
+  if (!gallery) return NextResponse.json({ error: 'Galerie introuvable.' }, { status: 404 })
 
   // Check photo and storage limits
   const uploadCheck = await checkCanUploadPhoto(supabase, user.id, gallery_id, file_size_bytes ?? 0)
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     .eq('gallery_id', gallery_id)
 
   const image_id = generateId()
-  const r2_key = buildImageKey(user.id, gallery_id, image_id, filename, gallery.title)
+  const r2_key = buildImageKey(gallery_id, image_id, filename)
 
   // Create a presigned upload URL
   const upload_url = await createPresignedUploadUrl(r2_key, content_type)

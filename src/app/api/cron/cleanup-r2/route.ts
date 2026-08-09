@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { listImages, deleteObject } from '@/lib/r2/client'
 import { createClient } from '@supabase/supabase-js'
 import { createHash, timingSafeEqual } from 'node:crypto'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,10 +16,10 @@ export async function GET(request: Request) {
     const rawSecret = process.env.CRON_SECRET ?? ''
     const cronSecret = rawSecret.trim()
     if (cronSecret !== rawSecret) {
-      console.warn('[CRON R2 Cleanup] CRON_SECRET contient des espaces/sauts de ligne aux extrémités (nettoyés automatiquement — corrigez la valeur dans Vercel)')
+      logger.warn('[CRON R2 Cleanup] CRON_SECRET contient des espaces/sauts de ligne aux extrémités (nettoyés automatiquement — corrigez la valeur dans Vercel)')
     }
     if (!cronSecret) {
-      console.error('[CRON R2 Cleanup] CRON_SECRET non défini sur le serveur')
+      logger.error('[CRON R2 Cleanup] CRON_SECRET non défini sur le serveur')
       return NextResponse.json(
         { error: 'Configuration serveur manquante' },
         { status: 500 }
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('[CRON R2 Cleanup] SUPABASE_SERVICE_ROLE_KEY non définie sur le serveur')
+      logger.error('[CRON R2 Cleanup] SUPABASE_SERVICE_ROLE_KEY non définie sur le serveur')
       return NextResponse.json(
         { error: 'Configuration serveur manquante' },
         { status: 500 }
@@ -62,7 +63,7 @@ export async function GET(request: Request) {
       .select('r2_key, r2_thumbnail_key')
 
     if (dbError) {
-      console.error('[CRON R2 Cleanup] Erreur lors de la lecture DB :', dbError)
+      logger.error('[CRON R2 Cleanup] Erreur lors de la lecture DB :', dbError)
       return NextResponse.json({ error: 'Erreur lors de la lecture DB' }, { status: 500 })
     }
 
@@ -93,8 +94,9 @@ export async function GET(request: Request) {
       try {
         await deleteObject(key)
         deletedCount++
-      } catch (err: any) {
-        console.error(`[CRON R2 Cleanup] Échec de la suppression de ${key} :`, err)
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err)
+        logger.error(`[CRON R2 Cleanup] Échec de la suppression de ${key.split('/').pop()} :`, message)
         errors.push(key)
       }
     }
@@ -106,8 +108,9 @@ export async function GET(request: Request) {
       deletedCount,
       failedKeys: errors,
     })
-  } catch (err: any) {
-    console.error('[CRON R2 Cleanup] Erreur inattendue :', err)
-    return NextResponse.json({ error: err.message || 'Erreur serveur' }, { status: 500 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    logger.error('[CRON R2 Cleanup] Erreur inattendue :', message)
+    return NextResponse.json({ error: message || 'Erreur serveur' }, { status: 500 })
   }
 }

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { logger } from '@/lib/logger'
 
 function getR2Client() {
   return new S3Client({
@@ -33,23 +34,13 @@ export async function listImages(prefix: string): Promise<{ key: string; size: n
 
 // Format: photos/{galleryId}/{imageId}.ext
 // Using galleryId guarantees uniqueness even if multiple galleries share the same title
-export function buildImageKey(userId: string, galleryId: string, imageId: string, filename: string, galleryTitle?: string) {
+export function buildImageKey(galleryId: string, imageId: string, filename: string) {
   const ext = filename.split('.').pop() ?? 'jpg'
   return `photos/${galleryId}/${imageId}.${ext}`
 }
 
-export function buildThumbnailKey(userId: string, galleryId: string, imageId: string, galleryTitle?: string) {
+export function buildThumbnailKey(galleryId: string, imageId: string) {
   return `thumbnails/${galleryId}/${imageId}.webp`
-}
-
-// Sanitize slug to be safe as a folder name
-function slugToSafeFolder(slug: string): string {
-  return slug
-    .toLowerCase()
-    .replace(/[^a-z0-9-_]/g, '-') // replace unsafe chars with -
-    .replace(/-+/g, '-')           // collapse multiple dashes
-    .replace(/^-|-$/g, '')         // trim leading/trailing dashes
-    .substring(0, 80)              // limit length
 }
 
 // ---- Public URL ----
@@ -84,7 +75,7 @@ async function getSigningDate(): Promise<Date> {
           break
         }
       } catch (e: any) {
-        console.warn(`[R2] Failed to check clock skew against ${url}:`, e.message || e)
+        logger.warn(`[R2] Failed to check clock skew against ${url}:`, e.message || e)
       }
     }
   }

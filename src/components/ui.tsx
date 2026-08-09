@@ -2,8 +2,10 @@
 
 import React from 'react'
 /* eslint-disable @next/next/no-img-element */
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
+import { AnimatePresence, motion } from 'framer-motion'
+import { CheckCircle2, XCircle, Info, AlertTriangle, X, AlertCircle } from 'lucide-react'
 import { cx } from '@/lib/utils'
 
 // ============================================================
@@ -80,19 +82,54 @@ export function Input({ label, error, hint, large, className, id, ...props }: In
           {label}
         </label>
       )}
-      <input
-        id={inputId}
-        className={cx('input', large ? 'input-lg' : '', className)}
-        style={error ? { borderColor: 'var(--error)', boxShadow: '0 0 0 3px rgba(239,68,68,0.12)' } : {}}
-        {...props}
-      />
-      {error && (
-        <span style={{ fontSize: 13, color: 'var(--error)' }}>{error}</span>
-      )}
+      <div style={{ position: 'relative' }}>
+        <input
+          id={inputId}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${inputId}-error` : undefined}
+          className={cx('input', large ? 'input-lg' : '', className)}
+          style={error
+            ? { borderColor: 'var(--error)', boxShadow: '0 0 0 3px rgba(239,68,68,0.12)', paddingRight: error ? 38 : undefined }
+            : {}}
+          {...props}
+        />
+        {error && (
+          <AlertCircle
+            size={16}
+            aria-hidden
+            style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--error)', pointerEvents: 'none' }}
+          />
+        )}
+      </div>
+      <FieldError id={`${inputId}-error`} message={error} />
       {hint && !error && (
         <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{hint}</span>
       )}
     </div>
+  )
+}
+
+// ============================================================
+// FIELD ERROR (message de validation inline)
+// ============================================================
+
+export function FieldError({ message, id }: { message?: string; id?: string }) {
+  return (
+    <AnimatePresence initial={false}>
+      {message && (
+        <motion.span
+          id={id}
+          role="alert"
+          initial={{ opacity: 0, height: 0, marginTop: 0 }}
+          animate={{ opacity: 1, height: 'auto', marginTop: 6 }}
+          exit={{ opacity: 0, height: 0, marginTop: 0 }}
+          style={{ fontSize: 12.5, color: 'var(--error)', display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden', lineHeight: 1.35 }}
+        >
+          <AlertCircle size={12} style={{ flexShrink: 0 }} />
+          {message}
+        </motion.span>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -282,43 +319,62 @@ interface Toast {
 type ToastListener = (toasts: Toast[]) => void
 const listeners: ToastListener[] = []
 let toasts: Toast[] = []
+let idCounter = 0
 
-function notify(listeners: ToastListener[], toasts: Toast[]) {
+function notify() {
   listeners.forEach((l) => l([...toasts]))
 }
 
 export const toast = {
   show(type: ToastType, title: string, description?: string) {
-    const id = Math.random().toString(36).slice(2)
+    const id = `${Date.now().toString(36)}-${(++idCounter).toString(36)}`
     const t: Toast = { id, type, title, description }
     toasts = [t, ...toasts].slice(0, 5)
-    notify(listeners, toasts)
+    notify()
     setTimeout(() => {
       toasts = toasts.filter((x) => x.id !== id)
-      notify(listeners, toasts)
-    }, 4000)
+      notify()
+    }, 4500)
+    return id
   },
   success: (title: string, description?: string) => toast.show('success', title, description),
   error: (title: string, description?: string) => toast.show('error', title, description),
   info: (title: string, description?: string) => toast.show('info', title, description),
+  dismiss: (id: string) => {
+    toasts = toasts.filter((x) => x.id !== id)
+    notify()
+  },
 }
 
-const toastIcons: Record<ToastType, string> = {
-  success: '✓',
-  error: '✕',
-  info: 'ℹ',
-  warning: '⚠',
+const toastIcons: Record<ToastType, React.ReactNode> = {
+  success: <CheckCircle2 size={15} />,
+  error: <XCircle size={15} />,
+  info: <Info size={15} />,
+  warning: <AlertTriangle size={15} />,
 }
 
 const toastColors: Record<ToastType, string> = {
-  success: 'var(--success)',
-  error: 'var(--error)',
+  success: '#22C55E',
+  error: '#EF4444',
   info: 'var(--fotia-orange)',
-  warning: 'var(--warning)',
+  warning: '#F59E0B',
+}
+
+// Détection client-only sans setState dans un effect (évite le mismatch d'hydratation)
+// et la règle react-hooks/set-state-in-effect.
+function useIsClient(): boolean {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
 }
 
 export function Toaster() {
-  const [items, setItems] = useState<Toast[]>([])
+  // Lazy initializer : récupère les toasts déjà émis avant le montage du composant
+  // (ex: effet d'une page sœur) sans setState dans un effect.
+  const [items, setItems] = useState<Toast[]>(() => [...toasts])
+  const isClient = useIsClient()
 
   useEffect(() => {
     const listener: ToastListener = (t) => setItems(t)
@@ -329,10 +385,13 @@ export function Toaster() {
     }
   }, [])
 
-  if (items.length === 0) return null
+  // Verrou anti-mismatch d'hydratation : le portal n'est monté qu'une fois
+  // côté client (rien n'est rendu côté serveur ni pendant l'hydratation).
+  if (!isClient) return null
 
   return createPortal(
     <div
+      className="toaster-container"
       style={{
         position: 'fixed',
         bottom: 24,
@@ -340,42 +399,191 @@ export function Toaster() {
         zIndex: 300,
         display: 'flex',
         flexDirection: 'column',
-        gap: 8,
+        gap: 10,
+        width: 'calc(100% - 32px)',
         maxWidth: 360,
+        pointerEvents: 'none',
       }}
+      role="region"
+      aria-live="polite"
+      aria-label="Notifications"
     >
-      {items.map((t) => (
-        <div key={t.id} className="toast">
-          <span
-            style={{
-              width: 24,
-              height: 24,
-              borderRadius: '50%',
-              background: `${toastColors[t.type]}22`,
-              color: toastColors[t.type],
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 13,
-              fontWeight: 700,
-              flexShrink: 0,
-            }}
+      <AnimatePresence>
+        {items.map((t) => (
+          <motion.div
+            key={t.id}
+            layout
+            initial={{ opacity: 0, y: 18, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 40, scale: 0.96 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="toast"
+            role={t.type === 'error' ? 'alert' : 'status'}
+            style={{ pointerEvents: 'auto' }}
           >
-            {toastIcons[t.type]}
-          </span>
-          <div>
-            <div style={{ fontWeight: 500, fontSize: 14 }}>{t.title}</div>
-            {t.description && (
-              <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
-                {t.description}
-              </div>
-            )}
-          </div>
-        </div>
-      ))}
+            <span
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: '50%',
+                background: `${toastColors[t.type]}1f`,
+                color: toastColors[t.type],
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              {toastIcons[t.type]}
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)' }}>{t.title}</div>
+              {t.description && (
+                <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.45 }}>
+                  {t.description}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              aria-label="Fermer la notification"
+              style={{
+                background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer',
+                padding: 4, borderRadius: 6, flexShrink: 0, display: 'flex',
+                transition: 'color 0.15s, background 0.15s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--bg-overlay)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'none' }}
+            >
+              <X size={14} />
+            </button>
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>,
     document.body
   )
+}
+
+// ============================================================
+// CONFIRM DIALOG
+// ============================================================
+
+interface ConfirmDialogProps {
+  open: boolean
+  onClose: () => void
+  onConfirm: () => void
+  title: string
+  description?: string
+  confirmLabel?: string
+  cancelLabel?: string
+  danger?: boolean
+  loading?: boolean
+  icon?: React.ReactNode
+}
+
+export function ConfirmDialog({
+  open,
+  onClose,
+  onConfirm,
+  title,
+  description,
+  confirmLabel = 'Confirmer',
+  cancelLabel = 'Annuler',
+  danger = false,
+  loading = false,
+  icon,
+}: ConfirmDialogProps) {
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [open])
+
+  if (!open) return null
+
+  const content = (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.8)',
+        backdropFilter: 'blur(4px)',
+        zIndex: 250,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget && !loading) onClose() }}
+    >
+      <div
+        className="animate-fade-in-scale"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirm-dialog-title"
+        aria-describedby="confirm-dialog-desc"
+        style={{
+          background: 'var(--bg-surface)',
+          border: `1px solid ${danger ? 'rgba(239,68,68,0.25)' : 'var(--border-default)'}`,
+          borderRadius: 'var(--radius-xl)',
+          width: '100%',
+          maxWidth: 420,
+          padding: '24px',
+          boxShadow: 'var(--shadow-lg)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: danger ? 'rgba(239,68,68,0.12)' : 'var(--bg-overlay)',
+              border: `1px solid ${danger ? 'rgba(239,68,68,0.25)' : 'var(--border-default)'}`,
+              color: danger ? 'var(--error)' : 'var(--fotia-orange)',
+            }}
+          >
+            {icon ?? <AlertTriangle size={19} />}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <h3 id="confirm-dialog-title" style={{ fontSize: 16, fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
+              {title}
+            </h3>
+            {description && (
+              <p id="confirm-dialog-desc" style={{ fontSize: 13.5, color: 'var(--text-secondary)', margin: '6px 0 0', lineHeight: 1.5 }}>
+                {description}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, marginTop: 22, justifyContent: 'flex-end' }}>
+          <Button variant="ghost" onClick={onClose} disabled={loading}>
+            {cancelLabel}
+          </Button>
+          <Button
+            variant={danger ? 'danger' : 'primary'}
+            onClick={onConfirm}
+            loading={loading}
+            disabled={loading}
+          >
+            {confirmLabel}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+
+  if (typeof document === 'undefined') return null
+  return createPortal(content, document.body)
 }
 
 // ============================================================

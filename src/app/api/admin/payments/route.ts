@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     .select('amount, currency')
     .eq('status', 'success')
 
-  const totalRevenue = (revenueStats || []).reduce((acc: number, p: any) => acc + Number(p.amount), 0)
+  const totalRevenue = (revenueStats || []).reduce((acc: number, p: { amount: number }) => acc + Number(p.amount), 0)
 
   return NextResponse.json({ payments: data, total: count, page, pageSize, totalRevenue })
 }

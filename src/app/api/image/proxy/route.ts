@@ -1,5 +1,6 @@
 import { getPublicUrl } from '@/lib/r2/client'
 import { NextResponse, type NextRequest } from 'next/server'
+import { logger } from '@/lib/logger'
 
 // En production, restreindre l'origine aux domaines autorisés
 // Les images doivent pouvoir être chargées depuis n'importe quelle galerie
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('[Image Proxy] Error:', error)
+    logger.error('[Image Proxy] Error:', error)
     return NextResponse.json({ error: 'Failed to fetch image' }, { status: 500 })
   }
 }

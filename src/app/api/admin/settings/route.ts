@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin, logAdminAction } from '@/lib/admin'
 import { verifyOrigin } from '@/lib/csrf'
 

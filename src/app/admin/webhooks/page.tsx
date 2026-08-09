@@ -13,6 +13,7 @@ type WebhookEvent = {
   provider: string
   event_id: string
   event_type: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- payload brut Djomy, non typé
   payload: any
   processed_at: string
 }
@@ -29,7 +30,7 @@ export default function WebhooksPage() {
   const [expandedPayload, setExpandedPayload] = useState<string | null>(null)
 
   const fetchEvents = useCallback(async () => {
-    setLoading(true)
+    // `loading` démarre à `true` (squelette au premier rendu) ; le refetch conserve l'état courant
     const params = new URLSearchParams({ page: String(page) })
     if (eventType) params.set('eventType', eventType)
     const res = await fetch(`/api/admin/webhooks?${params}`)
@@ -42,6 +43,8 @@ export default function WebhooksPage() {
     setLoading(false)
   }, [page, eventType])
 
+  // fetch au montage volontaire (pattern admin) — le setState est asynchrone (après await)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchEvents() }, [fetchEvents])
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
@@ -68,8 +71,8 @@ export default function WebhooksPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
           { label: 'Total reçus', value: stats.totalReceived.toLocaleString(), icon: Webhook, color: '#3b82f6' },
-          { label: 'Paiements réussis', value: stats.successCount.toLocaleString(), icon: CheckCircle2, color: '#10b981' },
-          { label: 'Échecs / Annulés', value: stats.failureCount.toLocaleString(), icon: XCircle, color: '#ef4444' },
+          { label: 'Paiements réussis', value: stats.successCount.toLocaleString(), icon: CheckCircle2, color: '#22C55E' },
+          { label: 'Échecs / Annulés', value: stats.failureCount.toLocaleString(), icon: XCircle, color: '#EF4444' },
         ].map(s => (
           <div
             key={s.label}

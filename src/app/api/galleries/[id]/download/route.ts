@@ -25,7 +25,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     .single()
 
   if (!gallery?.allow_downloads) {
-    return NextResponse.json({ error: 'Downloads not allowed' }, { status: 403 })
+    return NextResponse.json({ error: 'Le téléchargement est désactivé pour cette galerie.' }, { status: 403 })
   }
 
   // Get image
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     .eq('gallery_id', gallery_id)
     .single()
 
-  if (!image) return NextResponse.json({ error: 'Image not found' }, { status: 404 })
+  if (!image) return NextResponse.json({ error: 'Image introuvable.' }, { status: 404 })
 
   // Log download
   await supabase.from('downloads').insert({

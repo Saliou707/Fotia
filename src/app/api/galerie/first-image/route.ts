@@ -1,5 +1,6 @@
 import { listImages } from '@/lib/r2/client'
 import { NextResponse, type NextRequest } from 'next/server'
+import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
     // Return the first image key if exists
     return NextResponse.json({ key: images.length > 0 ? images[0].key : null })
   } catch (err) {
-    console.error('[FirstImage] Error:', err)
+    logger.error('[FirstImage] Error:', err)
     return NextResponse.json({ key: null })
   }
 }

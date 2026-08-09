@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
-import { buildImageKey, buildThumbnailKey, uploadBuffer, getPublicUrl, deleteObject } from '@/lib/r2/client'
-import { generateId } from '@/lib/utils'
+import { buildImageKey, uploadBuffer, getPublicUrl, deleteObject } from '@/lib/r2/client'
 import { checkCanUploadPhoto } from '@/lib/limits'
 import { verifyOrigin } from '@/lib/csrf'
+import { logger } from '@/lib/logger'
 
 
 export async function POST(request: NextRequest) {
@@ -21,14 +21,31 @@ export async function POST(request: NextRequest) {
   try {
     formData = await request.formData()
   } catch {
-    return NextResponse.json({ error: 'Invalid form data' }, { status: 400 })
+    return NextResponse.json({ error: 'Données du formulaire invalides.' }, { status: 400 })
   }
 
   const file = formData.get('file') as File | null
   const gallery_id = formData.get('gallery_id') as string | null
 
   if (!file || !gallery_id) {
-    return NextResponse.json({ error: 'Missing file or gallery_id' }, { status: 400 })
+    return NextResponse.json({ error: 'Fichier ou galerie manquant.' }, { status: 400 })
+  }
+
+  // Validation serveur : type MIME + taille — jamais se fier au client.
+  // Alignée sur imageUploadSchema (init) et isValidImageFile (client).
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
+  if (!ALLOWED_TYPES.includes(file.type.toLowerCase())) {
+    return NextResponse.json(
+      { error: 'Format non supporté. JPG, PNG, WebP ou HEIC uniquement.' },
+      { status: 400 }
+    )
+  }
+  const MAX_FILE_BYTES = 50 * 1024 * 1024 // 50MB
+  if (file.size > MAX_FILE_BYTES) {
+    return NextResponse.json(
+      { error: 'Taille maximale 50MB dépassée pour cette photo.' },
+      { status: 413 }
+    )
   }
 
   // Verify gallery ownership
@@ -40,7 +57,7 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (!gallery) {
-    return NextResponse.json({ error: 'Gallery not found' }, { status: 404 })
+    return NextResponse.json({ error: 'Galerie introuvable.' }, { status: 404 })
   }
 
   // Check photo and storage limits
@@ -56,9 +73,8 @@ export async function POST(request: NextRequest) {
     .eq('gallery_id', gallery_id)
 
   const image_id = crypto.randomUUID()
-  // Calcul du dossier R2 identique à la route de lecture (slug du titre ou ID)
-  const folder = gallery.title ? gallery.title.toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 80) : gallery.id;
-  const r2_key = buildImageKey(user.id, gallery_id, image_id, file.name, folder)
+  // Clé R2 basée sur l'ID de galerie (buildImageKey ignore le titre)
+  const r2_key = buildImageKey(gallery_id, image_id, file.name)
 
   try {
     // Read file into buffer and upload to R2
@@ -80,32 +96,21 @@ export async function POST(request: NextRequest) {
     })
 
     if (insertError) {
-      console.error('[Upload] DB insert error:', insertError.message)
+      logger.error('[Upload] DB insert error:', insertError.message)
       // Clean up the uploaded image to avoid orphaned files
       try {
         await deleteObject(r2_key)
       } catch (cleanupErr) {
-        console.warn('[Upload] Failed to delete orphaned R2 object after DB error:', cleanupErr)
+        logger.warn('[Upload] Failed to delete orphaned R2 object after DB error:', cleanupErr)
       }
-      return NextResponse.json({ error: 'Failed to save image' }, { status: 500 })
+      return NextResponse.json({ error: "Erreur lors de l'enregistrement de l'image. Veuillez réessayer." }, { status: 500 })
     }
 
     // Increment gallery photo count
     await supabase.rpc('increment_gallery_photo_count', { gallery_id_param: gallery_id })
 
-    // Increment user storage usage
-    const { data: currentProfile } = await supabase
-      .from('profiles')
-      .select('storage_used_bytes')
-      .eq('id', user.id)
-      .single()
-    
-    if (currentProfile) {
-      await supabase
-        .from('profiles')
-        .update({ storage_used_bytes: (Number(currentProfile.storage_used_bytes) || 0) + buffer.length })
-        .eq('id', user.id)
-    }
+    // Increment user storage usage (atomique via RPC SECURITY DEFINER)
+    await supabase.rpc('adjust_storage_used', { user_id: user.id, delta: buffer.length })
 
     // Si c'est la première photo uploadée, on la définit comme couverture
     if ((count ?? 0) === 0) {
@@ -115,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ image_id, r2_key })
   } catch (err) {
-    console.error('[Upload] R2 upload error:', err)
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
+    logger.error('[Upload] R2 upload error:', err)
+    return NextResponse.json({ error: "Échec de l'envoi de la photo. Veuillez réessayer." }, { status: 500 })
   }
 }

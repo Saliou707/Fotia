@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 
 // GET /api/galleries
 // Liste les galeries de l'utilisateur connecté (authentification serveur).
@@ -16,8 +17,8 @@ export async function GET() {
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('[Galleries] List error:', error.message)
-    return NextResponse.json({ error: 'Failed to fetch galleries' }, { status: 500 })
+    logger.error('[Galleries] List error:', error.message)
+    return NextResponse.json({ error: "Erreur lors du chargement des galeries. Veuillez réessayer." }, { status: 500 })
   }
 
   return NextResponse.json(data ?? [])

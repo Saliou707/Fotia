@@ -61,9 +61,9 @@ export function buildWhatsAppUrl(galleryUrl: string, photographerName?: string):
   return `https://wa.me/?text=${encodeURIComponent(message)}`
 }
 
-/** Validate file is an image */
+/** Validate file is an image (aligné sur imageUploadSchema côté serveur) */
 export function isValidImageFile(file: File): boolean {
-  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
+  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'image/avif']
   return validTypes.includes(file.type.toLowerCase())
 }
 

@@ -10,8 +10,20 @@ import {
 
 const PAGE_SIZE = 25
 
+type PaymentRow = {
+  id: string
+  amount: number
+  currency: string
+  status: string
+  provider: string
+  provider_reference: string | null
+  provider_payment_id: string | null
+  created_at: string
+  profiles?: { id: string; email: string | null; display_name: string | null } | null
+}
+
 export default function PaymentsPage() {
-  const [payments, setPayments] = useState<any[]>([])
+  const [payments, setPayments] = useState<PaymentRow[]>([])
   const [total, setTotal] = useState(0)
   const [totalRevenue, setTotalRevenue] = useState(0)
   const [page, setPage] = useState(1)
@@ -19,7 +31,7 @@ export default function PaymentsPage() {
   const [loading, setLoading] = useState(true)
 
   const fetchPayments = useCallback(async () => {
-    setLoading(true)
+    // `loading` démarre à `true` (squelette au premier rendu) ; le refetch conserve l'état courant
     const params = new URLSearchParams({ page: String(page) })
     if (status) params.set('status', status)
     const res = await fetch(`/api/admin/payments?${params}`)
@@ -32,6 +44,8 @@ export default function PaymentsPage() {
     setLoading(false)
   }, [page, status])
 
+  // fetch au montage volontaire (pattern admin) — le setState est asynchrone (après await)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchPayments() }, [fetchPayments])
 
   const exportCSV = () => {
@@ -89,7 +103,7 @@ export default function PaymentsPage() {
           className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{ background: 'rgba(16,185,129,0.12)' }}
         >
-          <DollarSign className="w-6 h-6" style={{ color: '#10b981' }} />
+          <DollarSign className="w-6 h-6" style={{ color: '#22C55E' }} />
         </div>
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>

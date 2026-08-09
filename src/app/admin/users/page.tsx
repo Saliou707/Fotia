@@ -33,7 +33,7 @@ export default function UsersPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const fetchUsers = useCallback(async () => {
-    setLoading(true)
+    // `loading` démarre à `true` (squelette au premier rendu) ; le refetch conserve l'état courant
     const params = new URLSearchParams({ page: String(page) })
     if (plan) params.set('plan', plan)
     if (search) params.set('search', search)
@@ -46,6 +46,8 @@ export default function UsersPage() {
     setLoading(false)
   }, [page, plan, search])
 
+  // fetch au montage volontaire (pattern admin) — le setState est asynchrone (après await)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchUsers() }, [fetchUsers])
 
   const changePlan = async (userId: string, newPlan: string) => {

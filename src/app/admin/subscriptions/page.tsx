@@ -31,7 +31,7 @@ export default function SubscriptionsPage() {
   const [loading, setLoading] = useState(true)
 
   const fetchSubs = useCallback(async () => {
-    setLoading(true)
+    // `loading` démarre à `true` (squelette au premier rendu) ; le refetch conserve l'état courant
     const params = new URLSearchParams({ page: String(page) })
     if (status) params.set('status', status)
     const res = await fetch(`/api/admin/subscriptions?${params}`)
@@ -43,6 +43,8 @@ export default function SubscriptionsPage() {
     setLoading(false)
   }, [page, status])
 
+  // fetch au montage volontaire (pattern admin) — le setState est asynchrone (après await)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchSubs() }, [fetchSubs])
 
   const totalPages = Math.ceil(total / PAGE_SIZE)

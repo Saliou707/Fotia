@@ -1,7 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
 import { defaultPaymentProvider } from '@/lib/payment-provider'
 import { verifyOrigin } from '@/lib/csrf'
+import { computeExpiryDate, expireSupersededSubscriptions, fetchActiveSubscriptionExpiry } from '@/lib/subscription'
+import { logger } from '@/lib/logger'
 
 /**
  * Vérification et activation d'abonnement côté succès (fallback webhook).
@@ -34,18 +37,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Référence invalide' }, { status: 400 })
   }
 
-  console.log(`[VerifySubscription] Checking ref: ${ref} for user: ${user.id}`)
+  logger.log(`[VerifySubscription] Checking ref: ${ref.slice(0, 12)}… for user: ${user.id}`)
 
   try {
     // 1. Trouver l'abonnement
     const { data: sub, error: subError } = await supabase
       .from('subscriptions')
-      .select('id, user_id, status, provider_payment_id')
+      .select('id, user_id, status, expires_at, provider_payment_id')
       .eq('provider_reference', ref)
       .maybeSingle()
 
     if (subError || !sub) {
-      console.error('[VerifySubscription] Subscription not found:', ref)
+      logger.error('[VerifySubscription] Subscription not found:', ref.slice(0, 12))
       return NextResponse.json({ error: 'Abonnement introuvable' }, { status: 404 })
     }
 
@@ -56,13 +59,13 @@ export async function POST(request: NextRequest) {
 
     // 2. Si déjà actif, retourner succès immédiatement (idempotence)
     if (sub.status === 'active') {
-      console.log('[VerifySubscription] Subscription already active')
+      logger.log('[VerifySubscription] Subscription already active')
       return NextResponse.json({ success: true, status: 'active', already_active: true })
     }
 
     // 3. Si pas de transactionId, on ne peut pas vérifier
     if (!sub.provider_payment_id) {
-      console.error('[VerifySubscription] No provider_payment_id for subscription:', sub.id)
+      logger.error('[VerifySubscription] No provider_payment_id for subscription:', sub.id)
       return NextResponse.json({ error: 'Aucune transaction associée' }, { status: 400 })
     }
 
@@ -70,10 +73,10 @@ export async function POST(request: NextRequest) {
     const verified = await defaultPaymentProvider.verifyPayment(sub.provider_payment_id)
     const isSuccess = verified.status === 'success'
 
-    console.log('[VerifySubscription] Djomy verification:', {
+    logger.log('[VerifySubscription] Djomy verification:', {
       status: verified.status,
       isSuccess,
-      txId: sub.provider_payment_id,
+      txId: sub.provider_payment_id?.slice(0, 8),
     })
 
     if (!isSuccess) {
@@ -86,10 +89,18 @@ export async function POST(request: NextRequest) {
 
     // 5. Activer l'abonnement
     const now = new Date()
-    const expiresAt = new Date(now)
-    expiresAt.setMonth(expiresAt.getMonth() + 1)
 
-    const { error: subUpdateErr } = await supabase
+    // Nouvelle échéance : prolonge depuis la période active en cours
+    // (renouvellement sans perte de jours), sinon départ à aujourd'hui.
+    const activeExpiry = await fetchActiveSubscriptionExpiry(supabase, user.id, sub.id)
+    const expiresAt = computeExpiryDate(activeExpiry ?? sub.expires_at, now)
+
+    // NB : la RLS ne permet pas à un utilisateur de mettre à jour sa propre
+    // subscription → on utilise le client admin (service_role), comme le
+    // webhook. La propriété a déjà été vérifiée plus haut (sub.user_id === user.id).
+    const supabaseAdmin = createAdminClient()
+
+    const { error: subUpdateErr } = await supabaseAdmin
       .from('subscriptions')
       .update({
         status: 'active',
@@ -109,6 +120,9 @@ export async function POST(request: NextRequest) {
 
     if (profileErr) throw profileErr
 
+    // 6b. Un seul abonnement actif : expirer les précédents (renouvellement)
+    await expireSupersededSubscriptions(supabaseAdmin, user.id, sub.id)
+
     // 7. Enregistrer le paiement (si pas déjà fait par le webhook)
     const { data: existingPayment } = await supabase
       .from('payments')
@@ -117,7 +131,9 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (!existingPayment) {
-      await supabase.from('payments').insert({
+      // NB : la RLS ne permet pas aux utilisateurs d'insérer dans payments
+      // (policy SELECT uniquement) → insertion via le client admin.
+      await supabaseAdmin.from('payments').insert({
         user_id: user.id,
         subscription_id: sub.id,
         amount: verified.paidAmount,
@@ -127,11 +143,11 @@ export async function POST(request: NextRequest) {
         provider_payment_id: sub.provider_payment_id,
         status: 'success',
       }).then(({ error }) => {
-        if (error) console.warn('[VerifySubscription] payments insert error:', error.message)
+        if (error) logger.warn('[VerifySubscription] payments insert error:', error.message)
       })
     }
 
-    console.log(`[VerifySubscription] ✅ Activated — user: ${user.id}, plan: pro`)
+    logger.log(`[VerifySubscription] ✅ Activated — user: ${user.id}, plan: pro`)
 
     // 8. Envoyer l'email de confirmation (meilleur effort, non-bloquant)
     const { data: userProfile } = await supabase
@@ -154,7 +170,7 @@ export async function POST(request: NextRequest) {
             expiresAt: expiresAt.toISOString(),
           },
         },
-      }).catch(err => console.error('[VerifySubscription] Email send failed:', err))
+      }).catch(err => logger.error('[VerifySubscription] Email send failed:', err))
     }
 
     return NextResponse.json({
@@ -166,7 +182,7 @@ export async function POST(request: NextRequest) {
 
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Erreur interne'
-    console.error('[VerifySubscription] Error:', message)
+    logger.error('[VerifySubscription] Error:', message)
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

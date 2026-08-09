@@ -31,6 +31,7 @@ const LIMITS: Record<string, RateLimitConfig> = {
   strict:   { tokens: 5,  window: '10 s' },
   moderate: { tokens: 30, window: '1 m' },
   relaxed:  { tokens: 100, window: '1 m' },
+  upload:   { tokens: 300, window: '1 m' }, // ~150 photos/min (2 requêtes/fichier : init + confirm)
   webhook:  { tokens: 20,  window: '1 m' },
 }
 
@@ -93,6 +94,7 @@ async function inMemoryRateLimit(
 let upstashStrict: Ratelimit | null = null
 let upstashModerate: Ratelimit | null = null
 let upstashRelaxed: Ratelimit | null = null
+let upstashUpload: Ratelimit | null = null
 let upstashWebhook: Ratelimit | null = null
 
 if (USE_UPSTASH) {
@@ -101,6 +103,7 @@ if (USE_UPSTASH) {
   upstashStrict   = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(LIMITS.strict.tokens,   LIMITS.strict.window),  prefix: 'rl:strict' })
   upstashModerate = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(LIMITS.moderate.tokens,  LIMITS.moderate.window), prefix: 'rl:mod' })
   upstashRelaxed  = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(LIMITS.relaxed.tokens,   LIMITS.relaxed.window),  prefix: 'rl:relax' })
+  upstashUpload   = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(LIMITS.upload.tokens,     LIMITS.upload.window),   prefix: 'rl:upload' })
   upstashWebhook  = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(LIMITS.webhook.tokens,    LIMITS.webhook.window),  prefix: 'rl:webhook' })
 }
 
@@ -133,6 +136,7 @@ export async function rateLimit(
       strict: upstashStrict,
       moderate: upstashModerate,
       relaxed: upstashRelaxed,
+      upload: upstashUpload,
       webhook: upstashWebhook,
     }
 

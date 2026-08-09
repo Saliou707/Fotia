@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createPresignedDownloadUrl, downloadObject, uploadBuffer } from '@/lib/r2/client'
 import JSZip from 'jszip'
 import { verifyOrigin } from '@/lib/csrf'
+import { logger } from '@/lib/logger'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -32,11 +33,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     .single()
 
   if (!gallery) {
-    return NextResponse.json({ error: 'Gallery not found' }, { status: 404 })
+    return NextResponse.json({ error: 'Galerie introuvable.' }, { status: 404 })
   }
 
   if (!gallery.allow_downloads) {
-    return NextResponse.json({ error: 'Downloads not allowed' }, { status: 403 })
+    return NextResponse.json({ error: 'Le téléchargement est désactivé pour cette galerie.' }, { status: 403 })
   }
 
   // Get all images in the gallery
@@ -47,12 +48,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     .order('display_order', { ascending: true })
 
   if (imagesError) {
-    console.error('[DownloadZip] Fetch images error:', imagesError)
-    return NextResponse.json({ error: 'Failed to fetch gallery images' }, { status: 500 })
+    logger.error('[DownloadZip] Fetch images error:', imagesError)
+    return NextResponse.json({ error: "Erreur lors du chargement des photos de la galerie." }, { status: 500 })
   }
 
   if (!images || images.length === 0) {
-    return NextResponse.json({ error: 'No images in this gallery' }, { status: 400 })
+    return NextResponse.json({ error: 'Cette galerie ne contient aucune photo.' }, { status: 400 })
   }
 
   try {
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         zip.file(filename, buffer)
       } catch (err) {
-        console.error(`[DownloadZip] Failed to download image ${image.id}:`, err)
+        logger.error(`[DownloadZip] Failed to download image ${image.id}:`, err)
         // Continue zipping other images even if one fails
       }
     }
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ download_url })
   } catch (err) {
-    console.error('[DownloadZip] Error creating zip:', err)
-    return NextResponse.json({ error: 'Failed to generate ZIP archive' }, { status: 500 })
+    logger.error('[DownloadZip] Error creating zip:', err)
+    return NextResponse.json({ error: "Erreur lors de la génération de l'archive ZIP." }, { status: 500 })
   }
 }

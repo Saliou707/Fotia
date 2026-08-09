@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Save, Settings2, HardDrive, Crown } from 'lucide-react'
-import { PageHeader, formatBytes } from '../_components/ui'
+import { PageHeader } from '../_components/ui'
 
 
 
@@ -45,24 +45,37 @@ function SettingRow({
   )
 }
 
+type PlatformSettings = {
+  free_max_galleries: number
+  free_max_photos_per_gallery: number
+  free_max_storage_bytes: number
+  pro_max_galleries: number
+  pro_max_photos_per_gallery: number
+  pro_max_storage_bytes: number
+  pro_price_xof: number
+  pro_price_eur: number
+}
+
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<any>(null)
+  const [settings, setSettings] = useState<PlatformSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
   const fetchSettings = async () => {
-    setLoading(true)
+    // `loading` démarre à `true` (squelette au premier rendu) ; le refetch conserve l'état courant
     const res = await fetch('/api/admin/settings')
     if (res.ok) setSettings(await res.json())
     setLoading(false)
   }
 
+  // fetch au montage volontaire (pattern admin) — le setState est asynchrone (après await)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchSettings() }, [])
 
   const update = (key: string, value: string) => {
-    setSettings((prev: any) => ({
-      ...prev,
+    setSettings((prev: PlatformSettings | null) => ({
+      ...(prev ?? ({} as PlatformSettings)),
       [key]: key.includes('bytes') ? Number(value) * 1024 * 1024 * 1024 : Number(value),
     }))
     setSaved(false)
@@ -104,7 +117,7 @@ export default function SettingsPage() {
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-60"
             style={{
               background: saved ? 'rgba(16,185,129,0.2)' : 'var(--fotia-orange)',
-              color: saved ? '#10b981' : '#fff',
+              color: saved ? '#22C55E' : '#fff',
               border: saved ? '1px solid rgba(16,185,129,0.3)' : 'none',
             }}
           >
@@ -123,7 +136,7 @@ export default function SettingsPage() {
         <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>Limites applicables aux utilisateurs sur le plan gratuit</p>
         <SettingRow
           label="Galeries max"
-          description="Nombre maximum de galeries actives simultanément"
+          description="Nombre maximum de galeries (actives + brouillons) — l&apos;archivage libère le quota"
           value={settings?.free_max_galleries ?? 3}
           onChange={v => update('free_max_galleries', v)}
         />
@@ -176,7 +189,7 @@ export default function SettingsPage() {
           <HardDrive className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
           <h2 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Tarification</h2>
         </div>
-        <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>Prix de l'abonnement Premium Pro</p>
+        <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>Prix de l&apos;abonnement Premium Pro</p>
         <SettingRow
           label="Prix mensuel (XOF)"
           description="Montant débité via Djomy en Francs CFA"

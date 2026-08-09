@@ -1,5 +1,6 @@
 import { listImages } from '@/lib/r2/client'
 import { NextResponse, type NextRequest } from 'next/server'
+import { logger } from '@/lib/logger'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     const images = await listImages(prefix)
     return NextResponse.json({ count: images.length })
   } catch (err) {
-    console.error('[CountImages] Error:', err)
+    logger.error('[CountImages] Error:', err)
     return NextResponse.json({ count: 0 })
   }
 }

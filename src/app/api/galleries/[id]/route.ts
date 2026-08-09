@@ -1,8 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse, type NextRequest } from 'next/server'
 import { galleryUpdateSchema, validatePayload } from '@/lib/validations'
 import { getUserPlan } from '@/lib/limits'
 import { verifyOrigin } from '@/lib/csrf'
+import { logger } from '@/lib/logger'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -25,7 +27,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     .single()
 
   if (error || !gallery) {
-    return NextResponse.json({ error: 'Gallery not found' }, { status: 404 })
+    return NextResponse.json({ error: 'Galerie introuvable.' }, { status: 404 })
   }
 
   return NextResponse.json(gallery)
@@ -52,7 +54,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     .single()
 
   if (!existing) {
-    return NextResponse.json({ error: 'Gallery not found' }, { status: 404 })
+    return NextResponse.json({ error: 'Galerie introuvable.' }, { status: 404 })
   }
 
   const body = await request.json().catch(() => ({}))
@@ -99,8 +101,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     .single()
 
   if (error) {
-    console.error('[Galleries] Update error:', error.message)
-    return NextResponse.json({ error: 'Failed to update gallery' }, { status: 500 })
+    logger.error('[Galleries] Update error:', error.message)
+    return NextResponse.json({ error: "Erreur lors de la mise à jour de la galerie. Veuillez réessayer." }, { status: 500 })
   }
 
   return NextResponse.json(gallery)
@@ -127,8 +129,20 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
     .single()
 
   if (!existing) {
-    return NextResponse.json({ error: 'Gallery not found' }, { status: 404 })
+    return NextResponse.json({ error: 'Galerie introuvable.' }, { status: 404 })
   }
+
+  // Récupérer la taille totale des images AVANT la suppression en cascade
+  // (nécessaire pour décrémenter le compteur de stockage du profil).
+  // Agrégat PostgREST `sum()` : correct même pour les galeries > 1000 photos
+  // (la limite par défaut de `.select()` est de 1000 lignes).
+  const { data: sizeData } = await supabase
+    .from('gallery_images')
+    .select('freed_bytes:sum(file_size_bytes)')
+    .eq('gallery_id', id)
+    .single()
+
+  const freedBytes = Number(sizeData?.freed_bytes ?? 0)
 
   const { error } = await supabase
     .from('galleries')
@@ -137,8 +151,28 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
     .eq('user_id', user.id)
 
   if (error) {
-    console.error('[Galleries] Delete error:', error.message)
-    return NextResponse.json({ error: 'Failed to delete gallery' }, { status: 500 })
+    logger.error('[Galleries] Delete error:', error.message)
+    return NextResponse.json({ error: "Erreur lors de la suppression de la galerie. Veuillez réessayer." }, { status: 500 })
+  }
+
+  // Décrémenter le stockage utilisé du profil (atomique via RPC, plancher 0).
+  // Client admin (service_role) obligatoire : le RPC refuse les décréments
+  // émanant d'utilisateurs pour éviter de zéroter le compteur (bypass de la
+  // limite de stockage). Meilleur effort — ne bloque jamais la suppression.
+  if (freedBytes > 0) {
+    try {
+      const admin = createAdminClient()
+      const { error: storageErr } = await admin.rpc('adjust_storage_used', {
+        user_id: user.id,
+        delta: -freedBytes,
+      })
+
+      if (storageErr) {
+        logger.warn('[Galleries] Failed to decrement storage_used_bytes:', storageErr.message)
+      }
+    } catch (err) {
+      logger.warn('[Galleries] Failed to decrement storage_used_bytes:', err)
+    }
   }
 
   return NextResponse.json({ ok: true })

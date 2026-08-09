@@ -33,6 +33,19 @@ export async function middleware(request: NextRequest) {
         { status: 429 }
       )
     }
+  } else if (path.startsWith('/api/upload/')) {
+    // Uploads par lots : palier dédié (300 req/min ≈ 150 photos/min car
+    // chaque photo consomme 2 requêtes : init + confirm). Le niveau moderate
+    // (30/min) rejetait les grandes séries de photos avec des 429 systématiques.
+    // Les routes restent protégées par auth + CSRF + limites de plan.
+    const identifier = getRateLimitKey(request)
+    const { success } = await rateLimit(identifier, 'upload')
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Trop de requêtes. Réessayez dans quelques instants.' },
+        { status: 429 }
+      )
+    }
   } else if (path.startsWith('/api/')) {
     // Rate limiting modéré pour les API utilisateurs
     const identifier = getRateLimitKey(request)

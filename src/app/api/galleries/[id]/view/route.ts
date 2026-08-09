@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { verifyOrigin } from '@/lib/csrf'
+import { logger } from '@/lib/logger'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   })
 
   if (error) {
-    console.error('[Track View] RPC error:', error.message)
+    logger.error('[Track View] RPC error:', error.message)
     // Ne pas bloquer le client si le tracking échoue
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
   }

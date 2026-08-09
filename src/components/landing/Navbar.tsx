@@ -7,22 +7,24 @@ import { ArrowRight, Menu, X, Camera } from 'lucide-react'
 interface NavbarProps {
   scrolled: boolean
   isMobile: boolean
-  isDesktop: boolean
   menuOpen: boolean
   setMenuOpen: (v: boolean) => void
   navLinks: { label: string; href: string }[]
 }
 
-export default function Navbar({ scrolled, isMobile, isDesktop, menuOpen, setMenuOpen, navLinks }: NavbarProps) {
+export default function Navbar({ scrolled, isMobile, menuOpen, setMenuOpen, navLinks }: NavbarProps) {
   return (
     <>
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-        padding: scrolled ? '10px 28px' : '14px 28px',
+        paddingTop: scrolled ? 10 : 14,
+        paddingBottom: scrolled ? 10 : 14,
+        paddingLeft: isMobile ? 16 : 28,
+        paddingRight: isMobile ? 16 : 28,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         background: scrolled ? 'rgba(8,8,8,0.97)' : 'rgba(8,8,8,0.75)',
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: scrolled ? '1px solid rgba(255,107,53,0.12)' : '1px solid rgba(255,255,255,0.05)',
+        borderBottom: scrolled ? '1px solid rgba(223,84,56,0.12)' : '1px solid rgba(255,255,255,0.05)',
         transition: 'all 0.3s ease',
         boxShadow: scrolled ? '0 4px 30px rgba(0,0,0,0.5)' : 'none',
         gap: 16,
@@ -31,7 +33,7 @@ export default function Navbar({ scrolled, isMobile, isDesktop, menuOpen, setMen
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <div style={{
               position: 'absolute', inset: -8, borderRadius: 16,
-              background: 'radial-gradient(ellipse, rgba(255,107,53,0.2) 0%, transparent 70%)',
+              background: 'radial-gradient(ellipse, rgba(223,84,56,0.2) 0%, transparent 70%)',
               filter: 'blur(10px)', pointerEvents: 'none',
             }} />
             <Image
@@ -39,7 +41,7 @@ export default function Navbar({ scrolled, isMobile, isDesktop, menuOpen, setMen
               width={isMobile ? 80 : 100}
               height={32}
               priority
-              style={{ width: 'auto', height: 'auto', objectFit: 'contain', position: 'relative', filter: 'brightness(1.1) drop-shadow(0 0 8px rgba(255,107,53,0.4))' }}
+              style={{ width: 'auto', height: 'auto', objectFit: 'contain', position: 'relative', filter: 'brightness(1.1) drop-shadow(0 0 8px rgba(223,84,56,0.4))' }}
             />
           </div>
         </Link>
@@ -71,42 +73,40 @@ export default function Navbar({ scrolled, isMobile, isDesktop, menuOpen, setMen
         )}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          {!isMobile && (
-            <Link
-              href="/login"
-              style={{
-                color: '#A09890', fontSize: 15, fontWeight: 500,
-                textDecoration: 'none', padding: '8px 14px', borderRadius: 10,
-                transition: 'color 0.2s', whiteSpace: 'nowrap',
-              }}
-              onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = '#F2EDE4'}
-              onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = '#A09890'}
-            >
-              Connexion
-            </Link>
-          )}
+          <Link
+            href="/login"
+            style={{
+              color: '#A09890', fontSize: isMobile ? 14 : 15, fontWeight: 500,
+              textDecoration: 'none', padding: isMobile ? '8px 10px' : '8px 14px', borderRadius: 10,
+              transition: 'color 0.2s', whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = '#F2EDE4'}
+            onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = '#A09890'}
+          >
+            Connexion
+          </Link>
           <Link
             href="/signup"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: isMobile ? '8px 16px' : '9px 20px',
+              padding: isMobile ? '8px 12px' : '9px 20px',
               borderRadius: 12, textDecoration: 'none',
-              fontSize: 15, fontWeight: 600,
+              fontSize: isMobile ? 13.5 : 15, fontWeight: 600,
               background: 'linear-gradient(135deg, #DF5438 0%, #C8482E 100%)',
-              color: '#fff', boxShadow: '0 4px 16px rgba(255,107,53,0.35)',
+              color: '#fff', boxShadow: '0 4px 16px rgba(223,84,56,0.35)',
               transition: 'all 0.2s ease', whiteSpace: 'nowrap',
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-1px)'
-              ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 6px 24px rgba(255,107,53,0.5)'
+              ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 6px 24px rgba(223,84,56,0.5)'
             }}
             onMouseLeave={e => {
               (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0)'
-              ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 4px 16px rgba(255,107,53,0.35)'
+              ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 4px 16px rgba(223,84,56,0.35)'
             }}
           >
             {!isMobile && <Camera size={14} />}
-            Commencer gratuitement
+            {isMobile ? 'S\'inscrire' : 'Commencer gratuitement'}
           </Link>
 
           {isMobile && (
@@ -167,7 +167,7 @@ export default function Navbar({ scrolled, isMobile, isDesktop, menuOpen, setMen
               <Link href="/login" onClick={() => setMenuOpen(false)} style={{ textAlign: 'center', padding: '12px', borderRadius: 12, textDecoration: 'none', color: '#A09890', fontSize: 15, fontWeight: 500, border: '1px solid rgba(255,255,255,0.08)' }}>
                 Connexion
               </Link>
-              <Link href="/signup" onClick={() => setMenuOpen(false)} style={{ textAlign: 'center', padding: '13px', borderRadius: 12, textDecoration: 'none', color: '#fff', fontSize: 15, fontWeight: 700, background: 'linear-gradient(135deg, #DF5438 0%, #C8482E 100%)', boxShadow: '0 4px 16px rgba(255,107,53,0.3)' }}>
+              <Link href="/signup" onClick={() => setMenuOpen(false)} style={{ textAlign: 'center', padding: '13px', borderRadius: 12, textDecoration: 'none', color: '#fff', fontSize: 15, fontWeight: 700, background: 'linear-gradient(135deg, #DF5438 0%, #C8482E 100%)', boxShadow: '0 4px 16px rgba(223,84,56,0.3)' }}>
                 Commencer gratuitement
               </Link>
             </div>

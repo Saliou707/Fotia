@@ -54,7 +54,7 @@ const ChartTooltip = ({ active, payload, label, unit = '' }: {
       style={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)' }}
     >
       <div style={{ color: 'rgba(247,247,245,0.45)' }}>{label}</div>
-      <div className="font-bold mt-0.5" style={{ color: '#F7F7F5' }}>
+      <div className="font-bold mt-0.5" style={{ color: '#F2EDE4' }}>
         {payload[0].value.toLocaleString()}{unit}
       </div>
     </div>
@@ -70,10 +70,10 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
         className="w-14 h-14 rounded-2xl flex items-center justify-center"
         style={{ background: 'rgba(239,68,68,0.1)' }}
       >
-        <AlertCircle className="w-7 h-7" style={{ color: '#ef4444' }} />
+        <AlertCircle className="w-7 h-7" style={{ color: '#EF4444' }} />
       </div>
       <div className="text-center">
-        <div className="font-semibold" style={{ color: '#F7F7F5' }}>Données indisponibles</div>
+        <div className="font-semibold" style={{ color: '#F2EDE4' }}>Données indisponibles</div>
         <div className="text-sm mt-1" style={{ color: 'rgba(247,247,245,0.4)' }}>
           Impossible de charger les données du dashboard.
         </div>
@@ -98,7 +98,7 @@ export default function AdminDashboardClient({ data: initialData }: { data: Dash
   const [error, setError] = useState(false)
 
   const refresh = useCallback(async () => {
-    setLoading(true)
+    // `loading` démarre à `true` (squelette au premier rendu) ; le refetch conserve l'état courant
     setError(false)
     try {
       const res = await fetch('/api/admin/dashboard', { cache: 'no-store' })
@@ -113,6 +113,7 @@ export default function AdminDashboardClient({ data: initialData }: { data: Dash
 
   // Auto-fetch on mount — client-side ensures cookies are properly sent
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch au montage volontaire
     refresh()
   }, [refresh])
 
@@ -283,7 +284,7 @@ export default function AdminDashboardClient({ data: initialData }: { data: Dash
                   </h3>
                   <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>30 derniers jours</p>
                 </div>
-                <div className="text-lg font-bold" style={{ color: '#10b981' }}>
+                <div className="text-lg font-bold" style={{ color: '#22C55E' }}>
                   {isLoading ? '—' : `${revenueData.reduce((s, d) => s + d.value, 0).toLocaleString()} GNF`}
                 </div>
               </div>
@@ -296,7 +297,7 @@ export default function AdminDashboardClient({ data: initialData }: { data: Dash
                     <XAxis dataKey="date" tick={AXIS_TICK} axisLine={false} tickLine={false} interval={4} />
                     <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} />
                     <Tooltip content={<ChartTooltip unit=" GNF" />} />
-                    <Bar dataKey="value" fill="#10b981" fillOpacity={0.8} radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="value" fill="#22C55E" fillOpacity={0.8} radius={[3, 3, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               )}

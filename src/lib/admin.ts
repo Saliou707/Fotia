@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
+import { logger } from '@/lib/logger'
 
 export type AdminRole = 'super_admin' | 'admin' | 'support'
 
@@ -9,7 +10,7 @@ export async function getAdminUser() {
   const { data: { user }, error: userError } = await supabase.auth.getUser()
 
   if (userError || !user) {
-    console.log('[Admin] No authenticated user found. Error:', userError?.message, 'User:', user)
+    logger.log('[Admin] No authenticated user found. Error:', userError?.message, 'User:', user?.id)
     return null
   }
 
@@ -23,11 +24,11 @@ export async function getAdminUser() {
     .single()
 
   if (adminError || !adminUser) {
-    console.log('[Admin] User is not an admin:', user.email, adminError?.message)
+    logger.log('[Admin] User is not an admin:', user.id, adminError?.message)
     return null
   }
 
-  console.log('[Admin] Admin verified:', user.email, '→', adminUser.role)
+  logger.log('[Admin] Admin verified:', user.id, '→', adminUser.role)
   return adminUser
 }
 
@@ -57,6 +58,6 @@ export async function logAdminAction(adminId: string, action: string, targetId?:
     })
 
   if (error) {
-    console.error('[Admin Log Error]', error)
+    logger.error('[Admin Log Error]', error)
   }
 }

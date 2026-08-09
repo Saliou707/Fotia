@@ -15,20 +15,20 @@ export async function POST(request: NextRequest) {
   const { image_id, gallery_id } = body
 
   if (!image_id || !gallery_id) {
-    return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+    return NextResponse.json({ error: 'Paramètres manquants.' }, { status: 400 })
   }
 
   // Fetch the image
   const { data: image } = await supabase
     .from('gallery_images')
-    .select('*, galleries(title)')
+    .select('*')
     .eq('id', image_id)
     .eq('user_id', user.id)
     .single()
 
-  if (!image) return NextResponse.json({ error: 'Image not found' }, { status: 404 })
+  if (!image) return NextResponse.json({ error: 'Image introuvable.' }, { status: 404 })
 
-  const r2_thumbnail_key = buildThumbnailKey(user.id, gallery_id, image_id, (image.galleries as any)?.title)
+  const r2_thumbnail_key = buildThumbnailKey(gallery_id, image_id)
 
   // Compute public URLs
   const url = getPublicUrl(image.r2_key)
@@ -48,20 +48,9 @@ export async function POST(request: NextRequest) {
   // Update gallery photo count
   await supabase.rpc('increment_gallery_photo_count', { gallery_id_param: gallery_id })
 
-  // Increment user storage usage
+  // Increment user storage usage (atomique via RPC SECURITY DEFINER)
   if (image.file_size_bytes > 0) {
-    const { data: currentProfile } = await supabase
-      .from('profiles')
-      .select('storage_used_bytes')
-      .eq('id', user.id)
-      .single()
-    
-    if (currentProfile) {
-      await supabase
-        .from('profiles')
-        .update({ storage_used_bytes: (Number(currentProfile.storage_used_bytes) || 0) + image.file_size_bytes })
-        .eq('id', user.id)
-    }
+    await supabase.rpc('adjust_storage_used', { user_id: user.id, delta: image.file_size_bytes })
   }
 
   return NextResponse.json({

@@ -20,14 +20,11 @@ const navItems = [
   { href: '/admin/settings', label: 'Paramètres', icon: Settings },
 ]
 
-export default function AdminSidebar() {
-  const pathname = usePathname()
-  const [mobileOpen, setMobileOpen] = useState(false)
-
+function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate: () => void }) {
   const isActive = (item: typeof navItems[0]) =>
     item.exact ? pathname === item.href : pathname.startsWith(item.href)
 
-  const SidebarContent = () => (
+  return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-5 py-5 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
@@ -65,7 +62,7 @@ export default function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => setMobileOpen(false)}
+              onClick={onNavigate}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group relative"
               style={{
                 background: active ? 'var(--fotia-orange-muted)' : 'transparent',
@@ -122,6 +119,11 @@ export default function AdminSidebar() {
       </div>
     </div>
   )
+}
+
+export default function AdminSidebar() {
+  const pathname = usePathname()
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
     <>
@@ -150,7 +152,10 @@ export default function AdminSidebar() {
         }`}
         style={{ background: 'var(--bg-surface)', borderRight: '1px solid var(--border-subtle)' }}
       >
-        <SidebarContent />
+        <SidebarContent
+          pathname={pathname}
+          onNavigate={() => setMobileOpen(false)}
+        />
       </aside>
     </>
   )

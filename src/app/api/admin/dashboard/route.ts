@@ -2,15 +2,43 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/admin'
 
+interface RecentUser {
+  display_name: string | null
+  email: string | null
+  plan: string
+  created_at: string
+}
+
+type EmbeddedProfile = { email: string | null; display_name: string | null } | null
+
+interface RecentPayment {
+  amount: number
+  currency: string
+  status: string
+  created_at: string
+  profiles: EmbeddedProfile[]
+}
+
+interface RecentGallery {
+  title: string
+  created_at: string
+  profiles: EmbeddedProfile[]
+}
+
+interface RecentWebhook {
+  event_type: string
+  processed_at: string
+}
+
 function buildRecentActivity(
-  recentUsers: any[] | null,
-  recentPayments: any[] | null,
-  recentGalleries: any[] | null,
-  recentWebhooks: any[] | null,
+  recentUsers: RecentUser[] | null,
+  recentPayments: RecentPayment[] | null,
+  recentGalleries: RecentGallery[] | null,
+  recentWebhooks: RecentWebhook[] | null,
 ) {
   const activity: { type: string; label: string; detail: string; timestamp: string; accent: string; icon: string }[] = []
 
-  ;(recentUsers || []).forEach((u: any) => {
+  ;(recentUsers || []).forEach((u) => {
     activity.push({
       type: 'user',
       label: `${u.display_name || u.email?.split('@')[0]} s'est inscrit`,
@@ -21,20 +49,23 @@ function buildRecentActivity(
     })
   })
 
-  ;(recentPayments || []).forEach((p: any) => {
-    const name = p.profiles?.display_name || p.profiles?.email?.split('@')[0] || 'Utilisateur'
+  const profileName = (profiles: EmbeddedProfile[]) =>
+    profiles?.[0]?.display_name || profiles?.[0]?.email?.split('@')[0] || 'Utilisateur'
+
+  ;(recentPayments || []).forEach((p) => {
+    const name = profileName(p.profiles)
     activity.push({
       type: 'payment',
       label: `Paiement ${p.status === 'success' ? 'réussi' : p.status}`,
       detail: `${name} · ${Number(p.amount).toLocaleString()} ${p.currency}`,
       timestamp: p.created_at,
-      accent: p.status === 'success' ? '#10b981' : '#ef4444',
+      accent: p.status === 'success' ? '#22C55E' : '#EF4444',
       icon: 'payment',
     })
   })
 
-  ;(recentGalleries || []).forEach((g: any) => {
-    const name = g.profiles?.display_name || g.profiles?.email?.split('@')[0] || 'Utilisateur'
+  ;(recentGalleries || []).forEach((g) => {
+    const name = profileName(g.profiles)
     activity.push({
       type: 'gallery',
       label: `Galerie créée`,
@@ -45,14 +76,14 @@ function buildRecentActivity(
     })
   })
 
-  ;(recentWebhooks || []).forEach((w: any) => {
+  ;(recentWebhooks || []).forEach((w) => {
     const isSuccess = ['payment.success', 'payment.completed', 'payment.captured'].includes(w.event_type)
     activity.push({
       type: 'webhook',
       label: `Webhook ${w.event_type}`,
       detail: isSuccess ? 'Succès' : 'Événement',
       timestamp: w.processed_at,
-      accent: isSuccess ? '#10b981' : '#f59e0b',
+      accent: isSuccess ? '#22C55E' : '#f59e0b',
       icon: 'webhook',
     })
   })
@@ -66,7 +97,6 @@ export async function GET() {
 
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
   const startOfLast30Days = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
   const [
@@ -97,21 +127,21 @@ export async function GET() {
     supabase.from('webhook_events').select('event_type, processed_at').order('processed_at', { ascending: false }).limit(5),
   ])
 
-  const totalStorageBytes = (storageData || []).reduce((acc: number, p: any) => acc + (p.storage_used_bytes || 0), 0)
-  const monthlyRevenue = (revenueData || []).reduce((acc: number, p: any) => acc + (Number(p.amount) || 0), 0)
+  const totalStorageBytes = (storageData || []).reduce((acc: number, p: { storage_used_bytes: number | null }) => acc + (p.storage_used_bytes || 0), 0)
+  const monthlyRevenue = (revenueData || []).reduce((acc: number, p: { amount: number }) => acc + (Number(p.amount) || 0), 0)
   const freeUsers = (totalUsers || 0) - (proUsers || 0)
   const conversionRate = freeUsers > 0 ? ((proUsers || 0) / (totalUsers || 1)) * 100 : 0
 
   // Build 30-day daily signup trend
   const signupByDay: Record<string, number> = {}
-  ;(signupTrend || []).forEach((p: any) => {
+  ;(signupTrend || []).forEach((p: { created_at: string }) => {
     const day = new Date(p.created_at).toISOString().slice(0, 10)
     signupByDay[day] = (signupByDay[day] || 0) + 1
   })
 
   // Build 30-day revenue trend
   const revenueByDay: Record<string, number> = {}
-  ;(revenueTrend || []).forEach((p: any) => {
+  ;(revenueTrend || []).forEach((p: { amount: number; created_at: string }) => {
     const day = new Date(p.created_at).toISOString().slice(0, 10)
     revenueByDay[day] = (revenueByDay[day] || 0) + Number(p.amount)
   })

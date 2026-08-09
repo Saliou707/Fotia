@@ -17,6 +17,7 @@
  */
 
 import crypto from 'crypto'
+import { logger } from '@/lib/logger'
 
 // ---- Env ---------------------------------------------------------------
 const DJOMY_CLIENT_ID     = process.env.DJOMY_CLIENT_ID     || ''
@@ -185,11 +186,11 @@ export async function getDjomyAccessToken(retries = 2): Promise<string> {
       _cachedToken = result.data.accessToken
       _tokenExpiresAt = Date.now() + TOKEN_TTL_MS
 
-      console.log(`[Djomy] ✅ Auth token obtained (attempt ${attempt})`)
+      logger.log(`[Djomy] ✅ Auth token obtained (attempt ${attempt})`)
       return _cachedToken
 
     } catch (err) {
-      console.error(`[Djomy] Auth attempt ${attempt} failed:`, err)
+      logger.error(`[Djomy] Auth attempt ${attempt} failed:`, err)
       if (attempt > retries) throw err
       // Wait 500ms before retry
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -236,6 +237,8 @@ async function djomyFetch(
 
   // If 401, invalidate token and retry once
   if (res.status === 401 && retryOn401) {
+    // Volontairement non silencieux : une boucle de rafraîchissement 401 doit
+    // rester visible en production (signal opérationnel critique).
     console.warn('[Djomy] 401 received, refreshing token and retrying...')
     invalidateDjomyToken()
     const freshHeaders = await authHeaders()
@@ -281,7 +284,7 @@ export async function createDjomyGatewayPayment(
     )
   }
 
-  console.log(`[Djomy] Payment created — transactionId: ${result.data.transactionId}`)
+  logger.log(`[Djomy] Payment created — transactionId: ${result.data.transactionId.slice(0, 8)}…`)
   return result.data
 }
 
@@ -303,7 +306,7 @@ export async function verifyDjomyPayment(transactionId: string): Promise<DjomyVe
     throw new Error(`[Djomy] verify_payment error: ${result.error?.message ?? result.message}`)
   }
 
-  console.log(`[Djomy] Payment ${transactionId} status: ${result.data.status}`)
+  logger.log(`[Djomy] Payment ${transactionId.slice(0, 8)}… status: ${result.data.status}`)
   return result.data
 }
 
@@ -319,14 +322,14 @@ export async function verifyDjomyPayment(transactionId: string): Promise<DjomyVe
 export function verifyDjomyWebhookSignature(rawBody: string, signatureHeader: string): boolean {
   const secret = process.env.DJOMY_WEBHOOK_SECRET || DJOMY_CLIENT_SECRET
   if (!secret) {
-    console.error('[Djomy Webhook] No webhook secret configured')
+    logger.error('[Djomy Webhook] No webhook secret configured')
     return false
   }
 
   // Parse "v1:<hex>" format
   const match = signatureHeader.match(/^v1:([a-f0-9]+)$/i)
   if (!match) {
-    console.error('[Djomy Webhook] Unexpected signature format:', signatureHeader)
+    logger.error('[Djomy Webhook] Unexpected signature format:', signatureHeader)
     return false
   }
 

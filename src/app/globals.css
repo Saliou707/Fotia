@@ -28,7 +28,7 @@
 
   /* Typography */
   --text-primary: #F2EDE4;
-  --text-secondary: #B0A99D;
+  --text-secondary: #A09890;
   --text-muted: #6C665F;
   --text-inverse: #15171A;
 
@@ -69,13 +69,15 @@ html {
   height: 100%;
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
+  /* Compense la navbar fixe (~64 px) : les ancres #features/#workflow/… s'arrêtent sous la barre */
+  scroll-padding-top: 84px;
 }
 
 body {
   min-height: 100%;
   background: var(--bg-base);
   color: var(--text-primary);
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-family: var(--font-inter, "Inter", system-ui, -apple-system, sans-serif);
   font-feature-settings: "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -102,7 +104,7 @@ body {
    ============================================================ */
 
 ::selection {
-  background: rgba(255, 107, 53, 0.25);
+  background: rgba(223, 84, 56, 0.25);
   color: var(--text-primary);
 }
 
@@ -118,10 +120,6 @@ body {
 /* ============================================================
    TYPOGRAPHY
    ============================================================ */
-
-body {
-  font-family: var(--font-inter, "Inter", system-ui, sans-serif);
-}
 
 h1, h2, h3, h4, h5, h6, .font-title {
   font-family: var(--font-title, "Big Shoulders Display", "Inter", sans-serif);
@@ -170,7 +168,7 @@ h1, h2, h3, h4, h5, h6, .font-title {
 .btn-primary:hover:not(:disabled) {
   background: var(--fotia-orange-light);
   transform: translateY(-1px);
-  box-shadow: 0 0 32px rgba(255, 107, 53, 0.4);
+  box-shadow: 0 0 32px rgba(223, 84, 56, 0.4);
 }
 .btn-primary:active:not(:disabled) { transform: translateY(0); }
 
@@ -292,7 +290,7 @@ h1, h2, h3, h4, h5, h6, .font-title {
 .badge-orange {
   background: var(--fotia-orange-muted);
   color: var(--fotia-orange);
-  border: 1px solid rgba(255, 107, 53, 0.2);
+  border: 1px solid rgba(223, 84, 56, 0.2);
 }
 
 .badge-green {
@@ -470,7 +468,7 @@ h1, h2, h3, h4, h5, h6, .font-title {
 }
 
 .btn-favorite:hover {
-  background: rgba(255, 107, 53, 0.8);
+  background: rgba(223, 84, 56, 0.8);
   border-color: transparent;
   transform: scale(1.1);
 }
@@ -529,14 +527,27 @@ h1, h2, h3, h4, h5, h6, .font-title {
 .toast {
   background: var(--bg-elevated);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 14px 18px;
-  box-shadow: var(--shadow-lg);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
   font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  animation: fadeIn 0.25s ease;
+  gap: 12px;
+}
+
+/* Toasts : plein écran mobile (bottom-center), coin desktop */
+@media (max-width: 640px) {
+  .toaster-container {
+    left: 16px !important;
+    right: 16px !important;
+    bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    max-width: none !important;
+    width: auto !important;
+  }
+  .toast {
+    border-radius: 16px !important;
+  }
 }
 
 /* ============================================================
@@ -719,13 +730,13 @@ a { color: inherit; }
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .glow-hover:hover {
-  border-color: rgba(255, 107, 53, 0.4);
-  box-shadow: 0 0 24px rgba(255, 107, 53, 0.15);
+  border-color: rgba(223, 84, 56, 0.4);
+  box-shadow: 0 0 24px rgba(223, 84, 56, 0.15);
   transform: translateY(-2px);
 }
 
 .text-gradient-orange {
-  background: linear-gradient(135deg, #FFFFFF 30%, #FF6B35 100%);
+  background: linear-gradient(135deg, #FFFFFF 30%, #DF5438 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -737,7 +748,7 @@ a { color: inherit; }
 }
 
 .glow-orange {
-  box-shadow: 0 0 40px rgba(255, 107, 53, 0.2);
+  box-shadow: 0 0 40px rgba(223, 84, 56, 0.2);
 }
 
 .shimmer-bg {

@@ -34,16 +34,19 @@ export async function checkCanCreateGallery(supabase: SupabaseClient, userId: st
   const plan = await getUserPlan(supabase, userId)
   const limits = PLAN_LIMITS[plan]
 
+  // Règle : les brouillons ET les galeries actives consomment le quota
+  // (l'archivage le libère). Empêche d'accumuler des brouillons pour
+  // contourner la limite du plan gratuit.
   const { count } = await supabase
     .from('galleries')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
-    .eq('status', 'active')
+    .in('status', ['draft', 'active'])
 
   if ((count ?? 0) >= limits.maxGalleries) {
     return {
       allowed: false,
-      reason: `Vous avez atteint la limite de ${limits.maxGalleries} galeries actives pour le plan ${plan.toUpperCase()}.`,
+      reason: `Vous avez atteint la limite de ${limits.maxGalleries} galeries (brouillons inclus) pour le plan ${plan.toUpperCase()}.`,
       requiresUpgrade: true
     }
   }

@@ -200,6 +200,33 @@ BEGIN
 END;
 $$;
 
+-- Ajustement atomique du compteur de stockage du profil (plancher 0)
+-- delta négatif = décrément (ex: suppression de galerie), positif = incrément (upload).
+-- SECURITY DEFINER + search_path figé. Un utilisateur authentifié ne peut
+-- modifier que son propre compteur, et uniquement en incrément (les décréments
+-- sont réservés au service_role — anti-bypass de la limite de stockage du plan gratuit).
+CREATE OR REPLACE FUNCTION adjust_storage_used(user_id UUID, delta BIGINT)
+RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF auth.uid() IS NOT NULL AND auth.uid() <> user_id THEN
+    RAISE EXCEPTION 'Not allowed to modify another user''s storage counter';
+  END IF;
+
+  IF auth.role() <> 'service_role' AND delta < 0 THEN
+    RAISE EXCEPTION 'Only service_role can decrement storage';
+  END IF;
+
+  UPDATE profiles
+  SET storage_used_bytes = GREATEST(0, storage_used_bytes + delta),
+      updated_at = NOW()
+  WHERE id = user_id;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION adjust_storage_used(UUID, BIGINT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION adjust_storage_used(UUID, BIGINT) TO authenticated;
+GRANT EXECUTE ON FUNCTION adjust_storage_used(UUID, BIGINT) TO service_role;
+
 -- ============================================================
 -- ROW LEVEL SECURITY
 -- ============================================================

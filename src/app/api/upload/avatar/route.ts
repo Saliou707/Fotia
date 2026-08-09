@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import { uploadBuffer } from '@/lib/r2/client'
 import { verifyOrigin } from '@/lib/csrf'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
   const csrfError = verifyOrigin(request)
@@ -18,12 +19,12 @@ export async function POST(request: NextRequest) {
   try {
     formData = await request.formData()
   } catch {
-    return NextResponse.json({ error: 'Invalid form data' }, { status: 400 })
+    return NextResponse.json({ error: 'Données du formulaire invalides.' }, { status: 400 })
   }
 
   const file = formData.get('file') as File | null
   if (!file) {
-    return NextResponse.json({ error: 'Missing file' }, { status: 400 })
+    return NextResponse.json({ error: 'Aucun fichier reçu.' }, { status: 400 })
   }
 
   const ext = file.name.split('.').pop() ?? 'jpg'
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({ key })
   } catch (err) {
-    console.error('[Avatar Upload] error:', err)
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
+    logger.error('[Avatar Upload] error:', err)
+    return NextResponse.json({ error: "Échec de l'envoi de la photo. Veuillez réessayer." }, { status: 500 })
   }
 }

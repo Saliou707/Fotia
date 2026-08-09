@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import DashboardShell from '@/components/dashboard/DashboardShell'
 import { getAdminUser } from '@/lib/admin'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,7 +17,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
     // If there is any auth error (expired/invalid refresh token), redirect to login
     if (error) {
-      console.warn('[DashboardLayout] Auth error:', error.message)
+      logger.warn('[DashboardLayout] Auth error:', error.message)
       redirect('/login?error=session_expired')
     }
 
@@ -35,7 +36,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     ) {
       throw err
     }
-    console.error('[DashboardLayout] Unexpected auth error:', err)
+    logger.error('[DashboardLayout] Unexpected auth error:', err)
     redirect('/login?error=session_expired')
   }
 
@@ -73,7 +74,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       const isExpired = !activeSub || (activeSub.expires_at && new Date(activeSub.expires_at) < new Date())
 
       if (isExpired) {
-        console.log(`[DashboardLayout] Pro subscription expired/missing for user ${user.id}, downgrading to free`)
+        logger.log(`[DashboardLayout] Pro subscription expired/missing for user ${user.id}, downgrading to free`)
 
         // Downgrade en base : profil → free (la RLS le permet : "Users can update own profile")
         const { error: profileErr } = await supabase
@@ -82,7 +83,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           .eq('id', user.id)
 
         if (profileErr) {
-          console.warn('[DashboardLayout] Failed to downgrade profile:', profileErr.message)
+          logger.warn('[DashboardLayout] Failed to downgrade profile:', profileErr.message)
         }
 
         // Meilleur effort : marquer la subscription comme expirée via admin client
@@ -100,15 +101,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
       }
     } catch (err) {
       // Non-bloquant : si la vérification d'abonnement échoue, on garde le plan tel quel
-      console.error('[DashboardLayout] Subscription check failed:', err)
+      logger.error('[DashboardLayout] Subscription check failed:', err)
     }
   }
 
+  // Compteur de la jauge sidebar : brouillons + actives (les archivées ne comptent pas)
   const { count: galleryCount } = await supabase
     .from('galleries')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', user.id)
-    .eq('status', 'active')
+    .in('status', ['draft', 'active'])
 
   const adminUser = await getAdminUser()
   const isAdmin = !!adminUser

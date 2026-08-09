@@ -15,12 +15,12 @@ export const ADMIN_CSS_VARS = `
     --bg-hover: rgba(255,255,255,0.03);
     --border-default: rgba(255,255,255,0.08);
     --border-subtle: rgba(255,255,255,0.05);
-    --text-primary: #F7F7F5;
+    --text-primary: #F2EDE4;
     --text-secondary: rgba(247,247,245,0.65);
     --text-muted: rgba(247,247,245,0.35);
-    --green: #10b981;
+    --green: #22C55E;
     --green-muted: rgba(16,185,129,0.12);
-    --red: #ef4444;
+    --red: #EF4444;
     --red-muted: rgba(239,68,68,0.12);
     --yellow: #f59e0b;
     --yellow-muted: rgba(245,158,11,0.12);
@@ -127,14 +127,14 @@ export function AdminCard({ label, value, sub, icon: Icon, accent = false, loadi
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
   // Payment
-  success: { bg: 'var(--green-muted)', text: 'var(--green)', dot: '#10b981' },
-  failed: { bg: 'var(--red-muted)', text: 'var(--red)', dot: '#ef4444' },
+  success: { bg: 'var(--green-muted)', text: 'var(--green)', dot: '#22C55E' },
+  failed: { bg: 'var(--red-muted)', text: 'var(--red)', dot: '#EF4444' },
   pending: { bg: 'var(--yellow-muted)', text: 'var(--yellow)', dot: '#f59e0b' },
   // Gallery/Subscription
-  active: { bg: 'var(--green-muted)', text: 'var(--green)', dot: '#10b981' },
+  active: { bg: 'var(--green-muted)', text: 'var(--green)', dot: '#22C55E' },
   draft: { bg: 'var(--blue-muted)', text: 'var(--blue)', dot: '#3b82f6' },
   archived: { bg: 'var(--bg-overlay)', text: 'var(--text-muted)', dot: '#666' },
-  expired: { bg: 'var(--red-muted)', text: 'var(--red)', dot: '#ef4444' },
+  expired: { bg: 'var(--red-muted)', text: 'var(--red)', dot: '#EF4444' },
   canceled: { bg: 'var(--bg-overlay)', text: 'var(--text-muted)', dot: '#666' },
   // Plans
   pro: { bg: 'var(--fotia-orange-muted)', text: 'var(--fotia-orange)', dot: '#C8482E' },

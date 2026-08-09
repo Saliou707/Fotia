@@ -4,12 +4,11 @@ import { requireAdmin, logAdminAction } from '@/lib/admin'
 import { verifyOrigin } from '@/lib/csrf'
 
 export async function GET(request: NextRequest) {
-  const admin = await requireAdmin(['super_admin', 'admin', 'support'])
+  await requireAdmin(['super_admin', 'admin', 'support'])
   const supabase = createAdminClient()
   const { searchParams } = new URL(request.url)
 
   const plan = searchParams.get('plan') // 'free' | 'pro' | null
-  const status = searchParams.get('status') // 'suspended' | null
   const search = searchParams.get('search') || ''
   const page = parseInt(searchParams.get('page') || '1')
   const pageSize = 20
@@ -41,8 +40,8 @@ export async function PATCH(request: NextRequest) {
 
   if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 })
 
-  const allowedFields = ['plan', 'display_name']
-  const filteredUpdates: Record<string, any> = {}
+  const allowedFields = ['plan', 'display_name'] as const
+  const filteredUpdates: Partial<Record<(typeof allowedFields)[number], string>> = {}
   for (const key of allowedFields) {
     if (updates[key] !== undefined) filteredUpdates[key] = updates[key]
   }

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getAdminUser } from '@/lib/admin'
-import { S3Client, ListBucketsCommand, HeadBucketCommand, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, HeadBucketCommand, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 
 interface DiagResult {
   ok: boolean
@@ -14,7 +14,7 @@ async function checkSupabaseConnection(): Promise<DiagResult> {
   const t = Date.now()
   try {
     const supabase = await createClient()
-    const { data, error } = await supabase.from('galleries').select('id').limit(1)
+    const { error } = await supabase.from('galleries').select('id').limit(1)
     if (error) return { ok: false, message: 'Erreur requête Supabase', detail: error.message, ms: Date.now() - t }
     return { ok: true, message: 'Connexion Supabase OK', detail: `Table galleries accessible`, ms: Date.now() - t }
   } catch (e: unknown) {
@@ -55,12 +55,12 @@ async function checkSupabaseAuth(): Promise<DiagResult> {
   const t = Date.now()
   try {
     const supabase = await createClient()
-    const { data, error } = await supabase.auth.getSession()
+    const { data: sessionData, error } = await supabase.auth.getSession()
     if (error) return { ok: false, message: 'Erreur auth Supabase', detail: error.message, ms: Date.now() - t }
     return {
       ok: true,
       message: 'Système d\'authentification OK',
-      detail: data.session ? `Session active: ${data.session.user.email}` : 'Aucune session active (normal)',
+      detail: sessionData.session ? `Session active: ${sessionData.session.user.email}` : 'Aucune session active (normal)',
       ms: Date.now() - t,
     }
   } catch (e: unknown) {
@@ -121,7 +121,6 @@ async function checkR2WriteRead(): Promise<DiagResult> {
 
     // Check public URL
     const publicUrl = process.env.R2_PUBLIC_URL
-    const testUrl = `${publicUrl}/${testKey}`
 
     // Delete test
     await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: testKey }))

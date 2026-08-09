@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable @next/next/no-img-element -- images servies directement par le CDN R2 */
 
 import { useState, useEffect, useCallback } from 'react'
 import { Image, ExternalLink, EyeOff, Eye, Trash2 } from 'lucide-react'
@@ -7,11 +8,26 @@ import {
   DataTable, TableSkeleton, EmptyState, StatusBadge,
   Pagination, formatDate
 } from '../_components/ui'
+import { toast, ConfirmDialog } from '@/components/ui'
 
 const PAGE_SIZE = 20
 
+type AdminGallery = {
+  id: string
+  title: string
+  slug: string
+  status: string
+  photo_count: number
+  view_count: number
+  favorite_count: number
+  download_count: number
+  created_at: string
+  cover_image_url?: string | null
+  profiles?: { id: string; email: string | null; display_name: string | null } | null
+}
+
 export default function GalleriesPage() {
-  const [galleries, setGalleries] = useState<any[]>([])
+  const [galleries, setGalleries] = useState<AdminGallery[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
@@ -19,9 +35,10 @@ export default function GalleriesPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<AdminGallery | null>(null)
 
   const fetchGalleries = useCallback(async () => {
-    setLoading(true)
+    // `loading` démarre à `true` (squelette au premier rendu) ; le refetch conserve l'état courant
     const params = new URLSearchParams({ page: String(page) })
     if (search) params.set('search', search)
     if (statusFilter) params.set('status', statusFilter)
@@ -34,6 +51,8 @@ export default function GalleriesPage() {
     setLoading(false)
   }, [page, search, statusFilter])
 
+  // fetch au montage volontaire (pattern admin) — le setState est asynchrone (après await)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchGalleries() }, [fetchGalleries])
 
   const toggleStatus = async (galleryId: string, currentStatus: string) => {
@@ -48,14 +67,21 @@ export default function GalleriesPage() {
     setActionLoading(null)
   }
 
-  const deleteGallery = async (galleryId: string) => {
-    if (!confirm('Supprimer cette galerie et toutes ses photos ?')) return
-    setActionLoading(galleryId)
-    await fetch('/api/admin/galleries', {
+  const confirmAndDelete = async () => {
+    if (!confirmDelete) return
+    const target = confirmDelete
+    setConfirmDelete(null)
+    setActionLoading(target.id)
+    const res = await fetch('/api/admin/galleries', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ galleryId }),
+      body: JSON.stringify({ galleryId: target.id }),
     })
+    if (res.ok) {
+      toast.success('Galerie supprimée', `« ${target.title} » et toutes ses photos ont été supprimées.`)
+    } else {
+      toast.error('Suppression impossible', 'Une erreur est survenue lors de la suppression.')
+    }
     await fetchGalleries()
     setActionLoading(null)
   }
@@ -119,6 +145,7 @@ export default function GalleriesPage() {
                       className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0"
                       style={{ background: 'var(--bg-overlay)' }}
                     >
+                      {/* eslint-disable-next-line jsx-a11y/alt-text -- icône lucide, pas une <img> */}
                       <Image className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
                     </div>
                   )}
@@ -172,7 +199,7 @@ export default function GalleriesPage() {
                     {g.status === 'active' ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                   <button
-                    onClick={() => deleteGallery(g.id)}
+                    onClick={() => setConfirmDelete(g)}
                     disabled={actionLoading === g.id}
                     className="p-1.5 rounded-md transition-colors hover:bg-red-500/20 disabled:opacity-50"
                     title="Supprimer"
@@ -194,6 +221,18 @@ export default function GalleriesPage() {
         pageSize={PAGE_SIZE}
         onPrev={() => setPage(p => Math.max(1, p - 1))}
         onNext={() => setPage(p => Math.min(totalPages, p + 1))}
+      />
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={confirmAndDelete}
+        loading={!!actionLoading}
+        danger
+        title="Supprimer cette galerie ?"
+        description={`« ${confirmDelete?.title ?? ''} » sera définitivement supprimée, ainsi que toutes ses photos. Cette action est irréversible.`}
+        confirmLabel="Supprimer"
+        icon={<Trash2 size={19} />}
       />
     </div>
   )

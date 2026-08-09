@@ -2,9 +2,10 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 import { profileSchema, validatePayload } from '@/lib/validations'
 import { verifyOrigin } from '@/lib/csrf'
+import { logger } from '@/lib/logger'
 
 // GET /api/profile
-// Retourne le profil complet de l'utilisateur connecté (incl. compteur de galeries actives).
+// Retourne le profil complet de l'utilisateur connecté (incl. compteur de galeries).
 export async function GET() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -20,7 +21,7 @@ export async function GET() {
       .from('galleries')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
-      .eq('status', 'active'),
+      .in('status', ['draft', 'active']),
   ])
   const { data: profile } = profileRes
   const { count } = countRes
@@ -29,7 +30,7 @@ export async function GET() {
     id: user.id,
     email: user.email ?? '',
     ...(profile ?? {}),
-    gallery_count: count ?? 0,
+    gallery_count: count ?? 0, // brouillons + actives
   })
 }
 
@@ -65,7 +66,7 @@ export async function PATCH(request: NextRequest) {
     .eq('id', user.id)
 
   if (error) {
-    console.error('[Profile] Update error:', error.message)
+    logger.error('[Profile] Update error:', error.message)
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
   }
 

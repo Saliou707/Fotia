@@ -35,7 +35,7 @@ export default function DemoModal({ isMobile, demoLikes, onToggleLike, onClose }
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#121316', border: '1px solid rgba(255,107,53,0.3)',
+          background: '#121316', border: '1px solid rgba(223,84,56,0.3)',
           borderRadius: 24, width: '100%', maxWidth: 940, maxHeight: '90vh',
           overflow: 'hidden', display: 'flex', flexDirection: 'column',
           boxShadow: '0 30px 90px rgba(0,0,0,0.9), 0 0 40px rgba(200,72,46,0.25)',
@@ -88,8 +88,8 @@ export default function DemoModal({ isMobile, demoLikes, onToggleLike, onClose }
             <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
               {/* Banner alert */}
               <div style={{
-                padding: '12px 18px', borderRadius: 14, background: 'rgba(255,107,53,0.1)',
-                border: '1px solid rgba(255,107,53,0.25)', marginBottom: 20,
+                padding: '12px 18px', borderRadius: 14, background: 'rgba(223,84,56,0.1)',
+                border: '1px solid rgba(223,84,56,0.25)', marginBottom: 20,
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
               }}>
                 <div style={{ fontSize: 13, color: '#F2EDE4', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -160,7 +160,7 @@ export default function DemoModal({ isMobile, demoLikes, onToggleLike, onClose }
                   padding: '12px 24px', borderRadius: 12,
                   background: 'linear-gradient(135deg, #DF5438 0%, #C8482E 100%)',
                   color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: 14,
-                  boxShadow: '0 4px 16px rgba(255,107,53,0.35)',
+                  boxShadow: '0 4px 16px rgba(223,84,56,0.35)',
                 }}
               >
                 Démarrer gratuitement maintenant →

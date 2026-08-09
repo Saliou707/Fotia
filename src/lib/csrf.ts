@@ -11,6 +11,7 @@
  */
 
 import { NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 
 const ALLOWED_ORIGINS = new Set([
   'http://localhost:3000',
@@ -49,7 +50,7 @@ export function verifyOrigin(request: Request): NextResponse | null {
       hostname.endsWith('.myfotia.com')
 
     if (!isAllowed) {
-      console.warn('[CSRF] Origin bloquée:', origin)
+      logger.warn('[CSRF] Origin bloquée:', origin)
       return NextResponse.json(
         { error: 'Requête non autorisée' },
         { status: 403 }

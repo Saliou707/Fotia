@@ -99,7 +99,7 @@ export default function BillingSuccessClient() {
     <div style={{
       minHeight: '100vh',
       background: '#080808',
-      color: '#F5F0EB',
+      color: '#F2EDE4',
       fontFamily: 'var(--font-inter, Inter, sans-serif)',
       display: 'flex',
       alignItems: 'center',
@@ -183,7 +183,7 @@ export default function BillingSuccessClient() {
 
         <h1 style={{
           fontSize: 32, fontWeight: 800, letterSpacing: '-0.03em',
-          marginBottom: 16, color: '#F7F7F5', lineHeight: 1.1
+          marginBottom: 16, color: '#F2EDE4', lineHeight: 1.1
         }}>
           Paiement réussi<span style={{ color: '#C8482E' }}>!</span>
         </h1>
@@ -221,7 +221,7 @@ export default function BillingSuccessClient() {
 
         <h1 style={{
           fontSize: 32, fontWeight: 800, letterSpacing: '-0.03em',
-          marginBottom: 16, color: '#F7F7F5', lineHeight: 1.1
+          marginBottom: 16, color: '#F2EDE4', lineHeight: 1.1
         }}>
           {title}<span style={{ color: isActive ? '#C8482E' : '#A09890' }}>{isActive ? '!' : ''}</span>
         </h1>
@@ -231,7 +231,7 @@ export default function BillingSuccessClient() {
             display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: '6px 14px', borderRadius: 99,
             background: 'rgba(200,72,46,0.06)', border: '1px solid rgba(200,72,46,0.15)',
-            marginBottom: 24, fontSize: 12, color: '#DF5D43',
+            marginBottom: 24, fontSize: 12, color: '#DF5438',
             fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em'
           }}>
             <Sparkles size={12} /> Plan Premium Pro activé
@@ -250,7 +250,7 @@ export default function BillingSuccessClient() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 padding: '16px 24px', borderRadius: 14, textDecoration: 'none',
                 fontWeight: 700, fontSize: 16,
-                background: 'linear-gradient(135deg, #DF5D43 0%, #C8482E 100%)',
+                background: 'linear-gradient(135deg, #DF5438 0%, #C8482E 100%)',
                 color: '#fff', boxShadow: '0 8px 24px rgba(200,72,46,0.3)', transition: 'all 0.2s ease'
               }}
               onMouseEnter={e => {
@@ -273,7 +273,7 @@ export default function BillingSuccessClient() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 padding: '16px 24px', borderRadius: 14, border: 'none',
                 fontWeight: 700, fontSize: 16, cursor: 'pointer',
-                background: 'linear-gradient(135deg, #DF5D43 0%, #C8482E 100%)',
+                background: 'linear-gradient(135deg, #DF5438 0%, #C8482E 100%)',
                 color: '#fff', boxShadow: '0 8px 24px rgba(200,72,46,0.3)', transition: 'all 0.2s ease'
               }}
             >
@@ -293,7 +293,7 @@ export default function BillingSuccessClient() {
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.05)'
-              ;(e.currentTarget as HTMLAnchorElement).style.color = '#F7F7F5'
+              ;(e.currentTarget as HTMLAnchorElement).style.color = '#F2EDE4'
             }}
             onMouseLeave={e => {
               (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.02)'

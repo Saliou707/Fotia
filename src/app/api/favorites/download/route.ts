@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createPresignedDownloadUrl, downloadObject, uploadBuffer } from '@/lib/r2/client'
 import JSZip from 'jszip'
 import { verifyOrigin } from '@/lib/csrf'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     const { favoriteIds } = await request.json()
     if (!favoriteIds || !Array.isArray(favoriteIds) || favoriteIds.length === 0) {
-      return NextResponse.json({ error: 'No favorites selected' }, { status: 400 })
+      return NextResponse.json({ error: 'Aucun favori sélectionné.' }, { status: 400 })
     }
 
     // 1. Fetch details of the requested favorites
@@ -25,12 +26,12 @@ export async function POST(request: NextRequest) {
       .in('id', favoriteIds)
 
     if (favsError || !favs) {
-      console.error('[DownloadFavsZip] Fetch favs error:', favsError)
-      return NextResponse.json({ error: 'Failed to fetch favorites' }, { status: 500 })
+      logger.error('[DownloadFavsZip] Fetch favs error:', favsError)
+      return NextResponse.json({ error: "Erreur lors du chargement de vos favoris." }, { status: 500 })
     }
 
     if (favs.length === 0) {
-      return NextResponse.json({ error: 'No valid favorites found' }, { status: 400 })
+      return NextResponse.json({ error: 'Aucun favori valide trouvé.' }, { status: 400 })
     }
 
     const zip = new JSZip()
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
 
         zip.file(filename, buffer)
       } catch (err) {
-        console.error(`[DownloadFavsZip] Failed to download image ${fav.image_id}:`, err)
+        logger.error(`[DownloadFavsZip] Failed to download image ${fav.image_id}:`, err)
       }
     }
 
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ download_url })
   } catch (err) {
-    console.error('[DownloadFavsZip] Error creating zip:', err)
-    return NextResponse.json({ error: 'Failed to generate ZIP archive' }, { status: 500 })
+    logger.error('[DownloadFavsZip] Error creating zip:', err)
+    return NextResponse.json({ error: "Erreur lors de la génération de l'archive ZIP." }, { status: 500 })
   }
 }

@@ -11,6 +11,8 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PLAN_LIMITS, PlanType } from '@/lib/limits'
+import { translateAuthError } from '@/lib/auth-errors'
+import { toast } from '@/components/ui'
 
 // ─── Plan Badge ───────────────────────────────────────────────────────────────
 function PlanBadge({ plan, size = 'sm' }: { plan: string; size?: 'sm' | 'md' | 'lg' }) {
@@ -23,13 +25,13 @@ function PlanBadge({ plan, size = 'sm' }: { plan: string; size?: 'sm' | 'md' | '
   const s = sizeMap[size]
   if (isPro) {
     return (
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: s.gap, padding: s.padding, borderRadius: 99, background: 'linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(245,158,11,0.1) 100%)', border: '1px solid rgba(251,191,36,0.3)', color: '#FBBF24', fontSize: s.fontSize, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1 }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: s.gap, padding: s.padding, borderRadius: 99, background: 'linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(245,158,11,0.1) 100%)', border: '1px solid rgba(251,191,36,0.3)', color: '#E8B33D', fontSize: s.fontSize, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1 }}>
         <Sparkles size={s.iconSize} style={{ flexShrink: 0 }} /> PRO
       </span>
     )
   }
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: s.gap, padding: s.padding, borderRadius: 99, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#787068', fontSize: s.fontSize, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1 }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: s.gap, padding: s.padding, borderRadius: 99, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#A09890', fontSize: s.fontSize, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', lineHeight: 1 }}>
       <Zap size={s.iconSize} style={{ flexShrink: 0 }} /> FREE
     </span>
   )
@@ -42,7 +44,7 @@ function Avatar({ name, plan, size = 28 }: { name: string; plan: string; size?: 
     <div style={{ position: 'relative', flexShrink: 0 }}>
       <div style={{
         width: size, height: size, borderRadius: '50%',
-        background: isPro ? 'linear-gradient(135deg, #FBBF24, #D97706)' : 'linear-gradient(135deg, #DF5438, #A4351F)',
+        background: isPro ? 'linear-gradient(135deg, #E8B33D, #D97706)' : 'linear-gradient(135deg, #DF5438, #A4351F)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: size * 0.44, fontWeight: 700, color: '#fff',
         boxShadow: isPro ? `0 2px 12px rgba(251,191,36,0.35)` : `0 2px 10px rgba(200,72,46,0.35)`,
@@ -50,7 +52,7 @@ function Avatar({ name, plan, size = 28 }: { name: string; plan: string; size?: 
         {name.charAt(0).toUpperCase()}
       </div>
       {isPro && (
-        <div style={{ position: 'absolute', bottom: -2, right: -2, width: 13, height: 13, borderRadius: '50%', background: 'linear-gradient(135deg, #FBBF24, #F59E0B)', border: '2px solid #0d0d0d', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'absolute', bottom: -2, right: -2, width: 13, height: 13, borderRadius: '50%', background: 'linear-gradient(135deg, #E8B33D, #F59E0B)', border: '2px solid #0d0d0d', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Sparkles size={7} color="#fff" />
         </div>
       )}
@@ -120,7 +122,7 @@ export default function DashboardShell({
       if (!res.ok) throw new Error(data.error || 'Erreur de paiement')
       window.location.href = data.checkout_url
     } catch (err: any) {
-      alert(err.message || 'Erreur lors du paiement.')
+      toast.error('Paiement impossible', translateAuthError(err?.message) || 'Erreur lors du paiement. Réessayez.')
       setBillingLoading(false)
     }
   }
@@ -150,8 +152,8 @@ export default function DashboardShell({
         <div style={{ padding: '22px 22px 16px' }}>
           <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <div style={{ position: 'absolute', inset: -12, borderRadius: 18, background: 'radial-gradient(ellipse, rgba(255,107,53,0.2) 0%, transparent 70%)', filter: 'blur(10px)', pointerEvents: 'none' }} />
-              <img src="/logo.png" alt="Fotia Logo" width={88} style={{ objectFit: 'contain', position: 'relative', filter: 'brightness(1.12) drop-shadow(0 0 10px rgba(255,107,53,0.4))' }} />
+              <div style={{ position: 'absolute', inset: -12, borderRadius: 18, background: 'radial-gradient(ellipse, rgba(223,84,56,0.2) 0%, transparent 70%)', filter: 'blur(10px)', pointerEvents: 'none' }} />
+              <img src="/logo.png" alt="Fotia Logo" width={88} style={{ objectFit: 'contain', position: 'relative', filter: 'brightness(1.12) drop-shadow(0 0 10px rgba(223,84,56,0.4))' }} />
             </div>
           </Link>
         </div>
@@ -172,7 +174,7 @@ export default function DashboardShell({
                   display: 'flex', alignItems: 'center', gap: 11, padding: '10px 14px',
                   borderRadius: 11, textDecoration: 'none',
                   fontSize: 13.5, fontWeight: active ? 600 : 500,
-                  color: active ? '#F2EDE4' : '#787068',
+                  color: active ? '#F2EDE4' : '#A09890',
                   background: active ? 'rgba(200,72,46,0.1)' : 'transparent',
                   border: active ? '1px solid rgba(200,72,46,0.18)' : '1px solid transparent',
                   transition: 'all 0.18s ease', position: 'relative', overflow: 'hidden',
@@ -224,17 +226,17 @@ export default function DashboardShell({
           ) : (
             <div style={{ background: 'linear-gradient(135deg, rgba(251,191,36,0.08), rgba(245,158,11,0.04))', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 12, padding: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                <Sparkles size={13} color="#FBBF24" />
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#FBBF24' }}>Plan Premium Pro</span>
+                <Sparkles size={13} color="#E8B33D" />
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#E8B33D' }}>Plan Premium Pro</span>
               </div>
-              <div style={{ fontSize: 11.5, color: '#787068', marginBottom: subExpiresAt ? 6 : 10 }}>Galeries illimitées activées</div>
+              <div style={{ fontSize: 11.5, color: '#A09890', marginBottom: subExpiresAt ? 6 : 10 }}>Galeries illimitées activées</div>
               {subExpiresAt && (
-                <div style={{ fontSize: 10.5, color: '#FBBF24', marginBottom: 10, opacity: 0.75, fontWeight: 500 }}>
+                <div style={{ fontSize: 10.5, color: '#E8B33D', marginBottom: 10, opacity: 0.75, fontWeight: 500 }}>
                   Expire le {new Date(subExpiresAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </div>
               )}
               <Link href="/dashboard/settings" style={{ textDecoration: 'none' }}>
-                <span style={{ fontSize: 12, color: '#FBBF24', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }} className="hover:underline">
+                <span style={{ fontSize: 12, color: '#E8B33D', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }} className="hover:underline">
                   Gérer l&apos;abonnement <ChevronRight size={12} />
                 </span>
               </Link>
@@ -261,12 +263,12 @@ export default function DashboardShell({
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 40, background: 'rgba(8,8,8,0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '10px 16px', display: 'none', alignItems: 'center', justifyContent: 'space-between' }} className="fotia-mobile-header">
         <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <div style={{ position: 'absolute', inset: -8, borderRadius: 12, background: 'radial-gradient(ellipse, rgba(255,107,53,0.16) 0%, transparent 70%)', filter: 'blur(6px)', pointerEvents: 'none' }} />
-            <img src="/logo.png" alt="Fotia Logo" width={68} style={{ objectFit: 'contain', position: 'relative', filter: 'brightness(1.1) drop-shadow(0 0 6px rgba(255,107,53,0.3))' }} />
+            <div style={{ position: 'absolute', inset: -8, borderRadius: 12, background: 'radial-gradient(ellipse, rgba(223,84,56,0.16) 0%, transparent 70%)', filter: 'blur(6px)', pointerEvents: 'none' }} />
+            <img src="/logo.png" alt="Fotia Logo" width={68} style={{ objectFit: 'contain', position: 'relative', filter: 'brightness(1.1) drop-shadow(0 0 6px rgba(223,84,56,0.3))' }} />
           </div>
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button onClick={() => setNotifOpen(!notifOpen)} style={{ position: 'relative', width: 34, height: 34, borderRadius: 9, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#787068' }}>
+          <button onClick={() => setNotifOpen(!notifOpen)} style={{ position: 'relative', width: 34, height: 34, borderRadius: 9, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#A09890' }}>
             <Bell size={16} />
             <span style={{ position: 'absolute', top: 7, right: 7, width: 6, height: 6, borderRadius: '50%', background: '#C8482E', border: '1.5px solid #15171A' }} />
           </button>
@@ -282,14 +284,14 @@ export default function DashboardShell({
                     <PlanBadge plan={userPlan} />
                   </div>
                   {userPlan === 'free' && (
-                    <button onClick={() => { setProfileOpen(false); setProModal(true) }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', fontSize: 13, color: '#FBBF24', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <button onClick={() => { setProfileOpen(false); setProModal(true) }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', fontSize: 13, color: '#E8B33D', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <Sparkles size={14} /> Passer au Pro
                     </button>
                   )}
                   <Link href="/dashboard/settings" onClick={() => setProfileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', fontSize: 13, color: '#F2EDE4', textDecoration: 'none', fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <Settings size={14} color="#787068" /> Paramètres
+                    <Settings size={14} color="#A09890" /> Paramètres
                   </Link>
-                  <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', fontSize: 13, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', fontWeight: 500 }}>
+                  <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', fontSize: 13, color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', fontWeight: 500 }}>
                     <LogOut size={14} /> Déconnexion
                   </button>
                 </motion.div>
@@ -337,14 +339,14 @@ export default function DashboardShell({
               onClick={() => setProModal(true)}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 9, background: 'linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.08))', color: '#FBBF24', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1px solid rgba(251,191,36,0.22)', transition: 'all 0.2s' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 9, background: 'linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.08))', color: '#E8B33D', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1px solid rgba(251,191,36,0.22)', transition: 'all 0.2s' }}
             >
               <Sparkles size={13} /> Passer au Pro
             </motion.button>
           )}
 
           {/* Notif bell */}
-          <button onClick={() => setNotifOpen(!notifOpen)} style={{ position: 'relative', width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#787068', transition: 'all 0.2s' }} className="hover:bg-white/[0.06] hover:text-[#F2EDE4]">
+          <button onClick={() => setNotifOpen(!notifOpen)} style={{ position: 'relative', width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#A09890', transition: 'all 0.2s' }} className="hover:bg-white/[0.06] hover:text-[#F2EDE4]">
             <Bell size={16} />
             <span style={{ position: 'absolute', top: 8, right: 8, width: 6, height: 6, borderRadius: '50%', background: '#C8482E', border: '1.5px solid #15171A', animation: 'notifPulse 2s ease-in-out infinite' }} />
           </button>
@@ -377,14 +379,14 @@ export default function DashboardShell({
                     </Link>
                   )}
                   {userPlan === 'free' && (
-                    <button onClick={() => { setProfileOpen(false); setProModal(true) }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', fontSize: 13, color: '#FBBF24', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <button onClick={() => { setProfileOpen(false); setProModal(true) }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', fontSize: 13, color: '#E8B33D', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <Sparkles size={14} /> Passer au Pro
                     </button>
                   )}
                   <Link href="/dashboard/settings" onClick={() => setProfileOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', fontSize: 13, color: '#F2EDE4', textDecoration: 'none', fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                     <Settings size={14} color="#555" /> Paramètres
                   </Link>
-                  <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', fontSize: 13, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', fontWeight: 500 }}>
+                  <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', fontSize: 13, color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', fontWeight: 500 }}>
                     <LogOut size={14} /> Déconnexion
                   </button>
                 </motion.div>
@@ -427,11 +429,11 @@ export default function DashboardShell({
                   {/* Header */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
                     <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.08))', border: '1px solid rgba(251,191,36,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Sparkles size={22} color="#FBBF24" />
+                      <Sparkles size={22} color="#E8B33D" />
                     </div>
                     <div>
                       <h3 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: '#F2EDE4', letterSpacing: '-0.02em' }}>Plan Premium Pro</h3>
-                      <p style={{ fontSize: 13, color: '#787068', margin: 0, marginTop: 3 }}>Débloquez toutes les fonctionnalités.</p>
+                      <p style={{ fontSize: 13, color: '#A09890', margin: 0, marginTop: 3 }}>Débloquez toutes les fonctionnalités.</p>
                     </div>
                   </div>
 
@@ -439,7 +441,7 @@ export default function DashboardShell({
                   <div style={{ background: 'linear-gradient(135deg, rgba(251,191,36,0.06), rgba(245,158,11,0.03))', border: '1px solid rgba(251,191,36,0.18)', borderRadius: 16, padding: '20px 22px', marginBottom: 20 }}>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, marginBottom: 16 }}>
                       <span style={{ fontSize: 40, fontWeight: 800, color: '#F2EDE4', letterSpacing: '-0.04em', lineHeight: 1 }}>90 000</span>
-                      <span style={{ fontSize: 14, color: '#787068', fontWeight: 500, marginBottom: 5 }}>FCFA / mois</span>
+                      <span style={{ fontSize: 14, color: '#A09890', fontWeight: 500, marginBottom: 5 }}>FCFA / mois</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {PRO_FEATURES.map(f => (
@@ -456,7 +458,7 @@ export default function DashboardShell({
                   {/* Payment methods */}
                   <div style={{ display: 'flex', gap: 6, marginBottom: 24, flexWrap: 'wrap' }}>
                     {['Orange Money', 'MTN MoMo', 'Kulu', 'Wave'].map(m => (
-                      <span key={m} style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 99, background: 'rgba(255,255,255,0.04)', color: '#787068', border: '1px solid rgba(255,255,255,0.08)' }}>{m}</span>
+                      <span key={m} style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 99, background: 'rgba(255,255,255,0.04)', color: '#A09890', border: '1px solid rgba(255,255,255,0.08)' }}>{m}</span>
                     ))}
                   </div>
 
@@ -464,7 +466,7 @@ export default function DashboardShell({
                     onClick={() => setProModalStep('form')}
                     whileHover={{ scale: 1.02, boxShadow: '0 8px 32px rgba(251,191,36,0.25)' }}
                     whileTap={{ scale: 0.98 }}
-                    style={{ width: '100%', padding: '15px', borderRadius: 14, border: 'none', background: 'linear-gradient(135deg, #FBBF24, #D97706)', color: '#000', fontWeight: 800, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 20px rgba(251,191,36,0.25)' }}
+                    style={{ width: '100%', padding: '15px', borderRadius: 14, border: 'none', background: 'linear-gradient(135deg, #E8B33D, #D97706)', color: '#000', fontWeight: 800, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 20px rgba(251,191,36,0.25)' }}
                   >
                     <Sparkles size={16} /> Payer maintenant
                   </motion.button>
@@ -480,7 +482,7 @@ export default function DashboardShell({
                     </button>
                     <div>
                       <h3 style={{ fontSize: 19, fontWeight: 800, margin: 0, color: '#F2EDE4' }}>Votre numéro mobile</h3>
-                      <p style={{ fontSize: 12.5, color: '#787068', margin: 0, marginTop: 2 }}>Vous recevrez la demande de paiement.</p>
+                      <p style={{ fontSize: 12.5, color: '#A09890', margin: 0, marginTop: 2 }}>Vous recevrez la demande de paiement.</p>
                     </div>
                   </div>
 
@@ -504,7 +506,7 @@ export default function DashboardShell({
                     disabled={billingLoading || !proPhone.trim()}
                     whileHover={proPhone.trim() && !billingLoading ? { scale: 1.02 } : {}}
                     whileTap={proPhone.trim() && !billingLoading ? { scale: 0.98 } : {}}
-                    style={{ width: '100%', padding: '15px', borderRadius: 14, border: 'none', background: billingLoading || !proPhone.trim() ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #FBBF24, #D97706)', color: billingLoading || !proPhone.trim() ? '#4A4A4A' : '#000', fontWeight: 800, fontSize: 15, cursor: proPhone.trim() && !billingLoading ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s' }}
+                    style={{ width: '100%', padding: '15px', borderRadius: 14, border: 'none', background: billingLoading || !proPhone.trim() ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #E8B33D, #D97706)', color: billingLoading || !proPhone.trim() ? '#4A4A4A' : '#000', fontWeight: 800, fontSize: 15, cursor: proPhone.trim() && !billingLoading ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s' }}
                   >
                     {billingLoading ? (
                       <><div style={{ width: 15, height: 15, borderRadius: '50%', border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#000', animation: 'shellSpin 0.8s linear infinite' }} /> Traitement…</>

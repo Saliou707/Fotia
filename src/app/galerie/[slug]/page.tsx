@@ -3,6 +3,8 @@ import { listImages } from '@/lib/r2/client'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import ClientGalleryView from './ClientGalleryView'
+import { getImageUrl } from '@/lib/api'
+import { logger } from '@/lib/logger'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -24,10 +26,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const photographerName = (profiles as { display_name?: string } | null)?.display_name || 'Photographe'
   const title = `${gallery.title} | ${photographerName}`
   const description = gallery.description || `Découvrez la galerie "${gallery.title}" par ${photographerName} sur Fotia.`
+  const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://myfotia.com').replace(/\/$/, '')
 
   return {
     title,
     description,
+    // Canonical explicite : permet l'indexation de chaque galerie comme page propre
+    alternates: {
+      canonical: `${siteUrl}/galerie/${slug}`,
+    },
     openGraph: {
       title,
       description,
@@ -123,10 +130,36 @@ export default async function PublicGalleryPage({ params }: { params: Promise<{ 
         return { id, r2_key: key, original_filename: filename }
       })
     } catch (err) {
-      console.error('[Page] Error fetching from R2:', err)
+      logger.error('[Page] Error fetching from R2:', err)
     }
   }
 
+  // JSON-LD ImageGallery : résultats enrichis Google (limité à 20 images pour la légèreté)
+  const siteUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://myfotia.com').replace(/\/$/, '')
+  const photographerName = gallery.profiles?.display_name || 'Photographe'
+  const jsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'ImageGallery',
+    name: gallery.title,
+    description: gallery.description || `Galerie "${gallery.title}" par ${photographerName}.`,
+    url: `${siteUrl}/galerie/${gallery.slug}`,
+    author: {
+      '@type': 'Person',
+      name: photographerName,
+    },
+  }
+  // associatedMedia n'est émis que si des images existent (ImageGallery exige ≥ 1 image)
+  if (images.length > 0) {
+    jsonLd.associatedMedia = images.slice(0, 20).map(img => ({
+      '@type': 'ImageObject',
+      contentUrl: getImageUrl(img.r2_key),
+      name: img.original_filename || gallery.title,
+    }))
+  }
+
+  // jsonLdString : échappement </script> (noms de fichiers contrôlables par l'utilisateur)
+  const jsonLdString = JSON.stringify(jsonLd).replace(/</g, '\\u003c')
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return <ClientGalleryView gallery={gallery as any} images={images as any} />
+  return <ClientGalleryView gallery={gallery as any} images={images as any} jsonLd={jsonLdString} />
 }

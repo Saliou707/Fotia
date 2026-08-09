@@ -58,7 +58,7 @@ export async function createGallery(title: string, description?: string, slug?: 
   })
   const data = await res.json()
   if (!res.ok) {
-    throw new Error(data.error || 'Failed to create gallery', { cause: data })
+    throw new Error(data.error || "Erreur lors de la création de la galerie.", { cause: data })
   }
   return data
 }
@@ -179,19 +179,6 @@ export async function removeFavorite(galleryId: string, imageId: string, clientT
     body: JSON.stringify({ image_id: imageId, client_token: clientToken }),
   })
   return res.ok
-}
-
-// ─── Utilitaire token client (galeries publiques) ─────────────────────────
-
-export function getOrCreateClientToken(): string {
-  const KEY = 'fotia_client_token'
-  if (typeof window === 'undefined') return ''
-  let token = localStorage.getItem(KEY)
-  if (!token) {
-    token = crypto.randomUUID()
-    localStorage.setItem(KEY, token)
-  }
-  return token
 }
 
 // ─── Formatage ────────────────────────────────────────────────────────────

@@ -24,7 +24,7 @@ export async function GET(
 
   if (!profile) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-  const totalPhotos = (galleries || []).reduce((acc: number, g: any) => acc + (g.photo_count || 0), 0)
+  const totalPhotos = (galleries || []).reduce((acc: number, g: { photo_count: number | null }) => acc + (g.photo_count || 0), 0)
 
   return NextResponse.json({
     profile,

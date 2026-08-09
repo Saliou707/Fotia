@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { generateId } from '@/lib/utils'
 import { defaultPaymentProvider } from '@/lib/payment-provider'
 import { verifyOrigin } from '@/lib/csrf'
+import { logger } from '@/lib/logger'
 
 // Prix en GNF (Francs Guinéens) — Mode Test Production
 const PLAN_PRICE_GNF: Record<string, number> = {
@@ -40,16 +41,9 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Vérifier que l'utilisateur n'est pas déjà Pro
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('plan, email')
-    .eq('id', user.id)
-    .single()
-
-  if (profile?.plan === 'pro') {
-    return NextResponse.json({ error: 'Vous êtes déjà sur le plan Premium Pro.' }, { status: 400 })
-  }
+  // Le renouvellement anticipé est autorisé : un utilisateur déjà Pro peut
+  // relancer un paiement avant expiration. La nouvelle échéance prolongera
+  // la période en cours (computeExpiryDate — voir webhook / verify-subscription).
 
   // Idempotence : vérifier qu'un paiement pending n'existe pas déjà
   const { data: existingPending } = await supabase
@@ -61,7 +55,7 @@ export async function POST(request: NextRequest) {
     .maybeSingle()
 
   if (existingPending) {
-    console.log('[Checkout] Pending subscription found, returning existing reference')
+    logger.log('[Checkout] Pending subscription found, returning existing reference')
     // Retourner une URL de paiement existante si disponible
     if (existingPending.provider_payment_id) {
       return NextResponse.json({
@@ -77,7 +71,7 @@ export async function POST(request: NextRequest) {
   const returnUrl = `${appUrl}/billing/success?ref=${reference}`
   const cancelUrl  = `${appUrl}/billing/failed`
 
-  console.log(`[Checkout] Initiating payment — user: ${user.id}, plan: ${plan}, amount: ${amount} GNF`)
+  logger.log(`[Checkout] Initiating payment — user: ${user.id}, plan: ${plan}, amount: ${amount} GNF`)
 
   try {
     // 1. Créer un abonnement en attente dans Supabase
@@ -95,7 +89,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (subError) {
-      console.error('[Checkout] Subscription insert error:', subError.message)
+      logger.error('[Checkout] Subscription insert error:', subError.message)
       throw subError
     }
 
@@ -122,7 +116,7 @@ export async function POST(request: NextRequest) {
       .update({ provider_payment_id: providerTransactionId })
       .eq('id', subscription.id)
 
-    console.log(`[Checkout] ✅ Payment initiated — txId: ${providerTransactionId}, ref: ${reference}`)
+    logger.log(`[Checkout] ✅ Payment initiated — txId: ${providerTransactionId.slice(0, 8)}…, ref: ${reference.slice(0, 12)}…`)
 
     return NextResponse.json({
       checkout_url: checkoutUrl,
@@ -132,7 +126,7 @@ export async function POST(request: NextRequest) {
 
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Erreur interne'
-    console.error('[Checkout] Error:', message)
+    logger.error('[Checkout] Error:', message)
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

@@ -26,9 +26,43 @@ function StatCard({ label, value, icon: Icon }: { label: string; value: string |
   )
 }
 
+type UserPayment = {
+  id: string
+  amount: number
+  currency: string
+  status: string
+  created_at: string
+}
+
+type UserGallery = {
+  id: string
+  title: string
+  photo_count: number
+  view_count: number
+  status: string
+  created_at: string
+}
+
+type UserDetailData = {
+  profile: {
+    id: string
+    email: string
+    display_name: string | null
+    plan: string
+    storage_used_bytes: number
+    created_at: string
+  }
+  galleries: UserGallery[]
+  totalGalleries: number
+  totalPhotos: number
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- profil abonnement libre (colonnes variables)
+  subscription: any | null
+  payments: UserPayment[]
+}
+
 export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<UserDetailData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -142,7 +176,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           </h2>
           {payments && payments.length > 0 ? (
             <div className="space-y-2">
-              {payments.map((p: any) => (
+              {payments.map((p: UserPayment) => (
                 <div key={p.id} className="flex items-center justify-between py-2 border-b text-sm" style={{ borderColor: 'var(--bg-overlay)' }}>
                   <div>
                     <div style={{ color: 'var(--text-primary)' }}>{Number(p.amount).toLocaleString()} {p.currency}</div>
@@ -152,7 +186,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                     className="px-2 py-0.5 rounded text-xs font-medium"
                     style={{
                       background: p.status === 'success' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
-                      color: p.status === 'success' ? '#10b981' : '#ef4444',
+                      color: p.status === 'success' ? '#22C55E' : '#EF4444',
                     }}
                   >
                     {p.status}
@@ -180,7 +214,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                 </tr>
               </thead>
               <tbody>
-                {galleries.map((g: any) => (
+                {galleries.map((g: UserGallery) => (
                   <tr key={g.id} className="border-t hover:bg-white/[0.01] transition-colors" style={{ borderColor: 'var(--bg-overlay)' }}>
                     <td className="px-3 py-2.5" style={{ color: 'var(--text-primary)' }}>{g.title}</td>
                     <td className="px-3 py-2.5" style={{ color: 'rgba(247,247,245,0.6)' }}>{g.photo_count}</td>
@@ -190,7 +224,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                         className="px-2 py-0.5 rounded text-xs font-medium"
                         style={{
                           background: g.status === 'active' ? 'rgba(16,185,129,0.12)' : 'var(--bg-overlay)',
-                          color: g.status === 'active' ? '#10b981' : 'var(--text-muted)',
+                          color: g.status === 'active' ? '#22C55E' : 'var(--text-muted)',
                         }}
                       >
                         {g.status}
