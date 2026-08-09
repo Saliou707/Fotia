@@ -499,6 +499,7 @@ export function galleryStyles(heroBgUrl: string, avatarUrl: string | null): stri
       gap: 8px;
       box-shadow: 0 4px 15px rgba(200,72,46,0.3);
       transition: all 0.2s;
+      white-space: nowrap;
     }
 
     .sticky-bar-btn:hover {

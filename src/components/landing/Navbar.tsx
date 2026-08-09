@@ -138,7 +138,7 @@ export default function Navbar({ scrolled, isMobile, menuOpen, setMenuOpen, navL
             exit={{ opacity: 0, y: -16 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              position: 'fixed', top: 65, left: 12, right: 12, zIndex: 999,
+              position: 'fixed', top: 90, left: 12, right: 12, zIndex: 999,
               borderRadius: 20, background: 'rgba(14,14,14,0.97)',
               backdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.08)',
               padding: '20px 24px', boxShadow: '0 24px 60px rgba(0,0,0,0.7)',

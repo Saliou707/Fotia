@@ -24,7 +24,7 @@ export default function FeaturesSection({ isMobile }: FeaturesSectionProps) {
           </p>
         </m.div>
         {/* Le parent (stagger) pilote l'apparition ; le container répartit le delay entre les cartes */}
-        <m.div variants={stepContainer} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: isMobile ? 12 : 20 }}>
+        <m.div variants={stepContainer} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: isMobile ? 12 : 20 }}>
           {FEATURES.map((f) => (
             <m.div
               key={f.title as string}

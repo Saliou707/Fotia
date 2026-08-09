@@ -543,7 +543,7 @@ export default function DashboardShell({
           .fotia-mobile-header { display: flex !important; }
           .fotia-mobile-bottom-nav { display: flex !important; }
           .fotia-topbar { display: none !important; }
-          .fotia-main { margin-left: 0 !important; padding-top: 60px; padding-bottom: 84px; }
+          .fotia-main { margin-left: 0 !important; padding-top: 60px; padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
         }
 
         @media (max-width: 480px) {

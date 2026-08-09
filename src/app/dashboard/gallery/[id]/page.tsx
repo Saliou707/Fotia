@@ -204,11 +204,11 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
           {/* ── Lien public éditable (Pro uniquement) ── */}
           {isPro && (
             <div style={{ marginBottom: 12, background: '#111111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: '14px 16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: editingSlug ? 10 : 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: editingSlug ? 10 : 0, flexWrap: 'wrap' }}>
                 <Link2 size={14} color="#C8482E" style={{ flexShrink: 0 }} />
                 <span style={{ fontSize: 13, color: '#555', fontWeight: 500, flexShrink: 0 }}>{origin}/galerie/</span>
                 {editingSlug ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 200 }}>
                     <input
                       autoFocus
                       value={editSlug}
@@ -223,7 +223,7 @@ export default function GalleryManagePage({ params }: { params: Promise<{ id: st
                   </div>
                 ) : (
                   <>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: '#F2EDE4', fontFamily: 'monospace', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{gallery.slug}</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: '#F2EDE4', fontFamily: 'monospace', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>{gallery.slug}</span>
                     <button onClick={() => { setEditingSlug(true); setSlugError('') }} style={{ background: 'none', border: 'none', color: '#444', cursor: 'pointer', padding: 2, display: 'flex', flexShrink: 0 }} title="Modifier le slug">
                       <Edit2 size={12} />
                     </button>
