@@ -60,13 +60,10 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  icons: {
-    icon: '/favicon.png',
-    apple: [
-      { url: '/favicon.png', sizes: '180x180', type: 'image/png' },
-    ],
-    shortcut: '/favicon.png',
-  },
+  // Icônes gérées par conventions de fichiers Next.js (App Router) :
+  //   src/app/favicon.ico   → <link rel="icon" href="/favicon.ico" sizes="any" />
+  //   src/app/apple-icon.png → <link rel="apple-touch-icon" ... />
+  // (ne pas déclarer ici pour éviter les doublons avec les conventions de fichiers)
   verification: {
     other: {
       'msvalidate.01': '949E8BC00CC6F461F556A6637BA6E37F',
