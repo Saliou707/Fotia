@@ -93,10 +93,27 @@ export async function POST(request: NextRequest) {
       throw subError
     }
 
-    // Clean phone number for Djomy (remove +224 / 00224 and spaces)
-    let cleanPhone = phone.trim().replace(/\s+/g, '')
+    // Normaliser le numéro au format international attendu par Djomy (00224XXXXXXXXX).
+    // Ex: "+224 620 00 00 00", "00224620000000" ou "620000000" → "00224620000000"
+    let cleanPhone = phone.trim().replace(/[\s.\-()]/g, '')
     if (cleanPhone.startsWith('+224')) cleanPhone = cleanPhone.slice(4)
     if (cleanPhone.startsWith('00224')) cleanPhone = cleanPhone.slice(5)
+    if (/^6\d{8}$/.test(cleanPhone)) cleanPhone = `00224${cleanPhone}`
+
+    // Format final attendu : préfixe international 00224 + numéro local de 9 chiffres
+    if (!/^002246\d{8}$/.test(cleanPhone)) {
+      logger.warn(`[Checkout] Invalid phone format: ${cleanPhone}`)
+      // Nettoyage best-effort de la ligne pending créée plus haut
+      try {
+        await supabase.from('subscriptions').delete().eq('id', subscription.id)
+      } catch (cleanupErr) {
+        logger.warn('[Checkout] Failed to clean pending subscription:', cleanupErr instanceof Error ? cleanupErr.message : cleanupErr)
+      }
+      return NextResponse.json(
+        { error: 'Numéro de téléphone invalide. Format attendu : 00224 suivi de 9 chiffres (ex: 00224620000000).' },
+        { status: 400 }
+      )
+    }
 
     // 2. Initier le paiement via le payment provider (Djomy)
     const { checkoutUrl, providerTransactionId } = await defaultPaymentProvider.createCheckout({
@@ -115,13 +132,18 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // Garde-fou : Djomy doit toujours renvoyer un transactionId
+    if (!providerTransactionId) {
+      throw new Error('[Djomy] Djomy did not return a transactionId')
+    }
+
     // 3. Stocker le transactionId dans l'abonnement
     await supabase
       .from('subscriptions')
       .update({ provider_payment_id: providerTransactionId })
       .eq('id', subscription.id)
 
-    logger.log(`[Checkout] ✅ Payment initiated — txId: ${providerTransactionId.slice(0, 8)}…, ref: ${reference.slice(0, 12)}…`)
+    logger.log(`[Checkout] ✅ Payment initiated — txId: ${providerTransactionId.slice(0, 8)}…, ref: ${reference.slice(0, 12)}…, phone: ${cleanPhone.slice(0, 4)}****${cleanPhone.slice(-2)}`)
 
     return NextResponse.json({
       checkout_url: checkoutUrl,

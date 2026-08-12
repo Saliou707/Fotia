@@ -24,10 +24,16 @@ export default function DashboardPage() {
   const [userPlan, setUserPlan] = useState<'free' | 'pro' | 'studio'>('free')
   const [daysLeft, setDaysLeft] = useState(0)
 
-  const hour = new Date().getHours()
-  const greeting = hour < 5 ? 'Bonne nuit' : hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir'
-  const greetingIcon = hour < 5 ? MoonStar : hour < 12 ? Sun : hour < 18 ? Hand : Building2
-  const greetingAccent = hour < 5 ? '#8B5CF6' : hour < 12 ? '#E8B33D' : hour < 18 ? '#C8482E' : '#8B5CF6'
+  // ⚠️ L'heure locale n'est connue qu'après hydratation : calculer le greeting
+  // avec new Date() pendant le rendu provoque des erreurs d'hydratation React
+  // (#418) quand le fuseau horaire du serveur (UTC sur Vercel) diffère de celui
+  // du client (ex: Guinée UTC+0, France UTC+2). On initialise à null et on
+  // remplit l'heure après montage — rendu SSR et hydratation toujours identiques.
+  const [hour, setHour] = useState<number | null>(null)
+  useEffect(() => { setHour(new Date().getHours()) }, [])
+  const greeting = hour === null ? 'Bienvenue' : hour < 5 ? 'Bonne nuit' : hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir'
+  const greetingIcon = hour === null ? Hand : hour < 5 ? MoonStar : hour < 12 ? Sun : hour < 18 ? Hand : Building2
+  const greetingAccent = hour === null ? '#C8482E' : hour < 5 ? '#8B5CF6' : hour < 12 ? '#E8B33D' : hour < 18 ? '#C8482E' : '#8B5CF6'
   const isPro = userPlan === 'pro' || userPlan === 'studio'
 
   useEffect(() => {

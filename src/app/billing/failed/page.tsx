@@ -5,18 +5,27 @@ import { motion } from 'framer-motion'
 import { XCircle, RefreshCw, ArrowLeft, ShieldAlert } from 'lucide-react'
 import { fetchProfile } from '@/lib/api'
 
-// Points décoratifs générés une seule fois (hors rendu)
-const DECOR_DOTS = Array.from({ length: 15 }, (_, i) => ({
-  id: i,
-  x: Math.random() * 100,
-  y: Math.random() * 100,
-  size: Math.random() * 3 + 1,
-}))
+// Points décoratifs : générés après montage uniquement. Les générer au niveau
+// module (ou avec new Date/Math.random pendant le rendu) casse l'hydratation
+// React (#418) car le serveur et le client produisent des valeurs différentes.
+type DecorDot = { id: number; x: number; y: number; size: number }
+
+function generateDecorDots(count: number): DecorDot[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 3 + 1,
+  }))
+}
 
 export default function BillingFailedPage() {
   const [userName, setUserName] = useState<string>('')
+  const [decorDots, setDecorDots] = useState<DecorDot[]>([])
 
   useEffect(() => {
+    setDecorDots(generateDecorDots(15))
+
     const fetchUser = async () => {
       const profile = await fetchProfile()
       if (profile) {
@@ -43,7 +52,7 @@ export default function BillingFailedPage() {
         filter: 'blur(40px)', pointerEvents: 'none', zIndex: 1
       }} />
 
-      {DECOR_DOTS.map(d => (
+      {decorDots.map(d => (
         <div key={d.id} style={{
           position: 'absolute',
           width: d.size, height: d.size,

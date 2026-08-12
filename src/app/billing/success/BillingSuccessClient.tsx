@@ -8,17 +8,28 @@ import { fetchProfile } from '@/lib/api'
 
 type VerifyState = 'checking' | 'active' | 'pending' | 'error'
 
-// Étoiles décoratives générées une seule fois (hors rendu)
-const DECOR_DOTS = Array.from({ length: 20 }, (_, i) => ({
-  id: i,
-  x: Math.random() * 100,
-  y: Math.random() * 100,
-  size: Math.random() * 3 + 1,
-}))
+// Étoiles décoratives : générées après montage uniquement. Les générer au
+// niveau module casse l'hydratation React (#418) car le serveur et le client
+// produisent des valeurs aléatoires différentes.
+type DecorDot = { id: number; x: number; y: number; size: number }
+
+function generateDecorDots(count: number): DecorDot[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 3 + 1,
+  }))
+}
 
 export default function BillingSuccessClient() {
   const searchParams = useSearchParams()
   const ref = searchParams.get('ref')
+  const [decorDots, setDecorDots] = useState<DecorDot[]>([])
+
+  useEffect(() => {
+    setDecorDots(generateDecorDots(20))
+  }, [])
 
   const [userName, setUserName] = useState<string>('')
   const [verifyState, setVerifyState] = useState<VerifyState>('checking')
@@ -121,7 +132,7 @@ export default function BillingSuccessClient() {
       }} />
 
       {/* Decorative stars */}
-      {DECOR_DOTS.map(d => (
+      {decorDots.map(d => (
         <div key={d.id} style={{
           position: 'absolute',
           width: d.size, height: d.size,
