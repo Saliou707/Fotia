@@ -159,6 +159,9 @@ export async function POST(request: NextRequest) {
 
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Erreur interne'
+    const stack = err instanceof Error ? err.stack : undefined
+    // Toujours logger les erreurs en production pour pouvoir les diagnostiquer
+    console.error('[Checkout] Error in production:', message, stack)
     logger.error('[Checkout] Error:', message)
     return NextResponse.json({ error: message }, { status: 500 })
   }

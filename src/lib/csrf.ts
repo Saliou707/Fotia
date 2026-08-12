@@ -16,6 +16,7 @@ import { logger } from '@/lib/logger'
 const ALLOWED_ORIGINS = new Set([
   'http://localhost:3000',
   'https://myfotia.com',
+  'https://www.myfotia.com',
   ...(process.env.NEXT_PUBLIC_APP_URL
     ? [process.env.NEXT_PUBLIC_APP_URL]
     : []),
@@ -47,6 +48,7 @@ export function verifyOrigin(request: Request): NextResponse | null {
     const isAllowed =
       ALLOWED_ORIGINS.has(origin) ||
       hostname === 'localhost' ||
+      hostname === 'myfotia.com' ||
       hostname.endsWith('.myfotia.com')
 
     if (!isAllowed) {
