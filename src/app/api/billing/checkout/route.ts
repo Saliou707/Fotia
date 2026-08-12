@@ -96,21 +96,27 @@ export async function POST(request: NextRequest) {
     // Normaliser le numéro au format international attendu par Djomy (00224XXXXXXXXX).
     // Ex: "+224 620 00 00 00", "00224620000000" ou "620000000" → "00224620000000"
     let cleanPhone = phone.trim().replace(/[\s.\-()]/g, '')
-    if (cleanPhone.startsWith('+224')) cleanPhone = cleanPhone.slice(4)
-    if (cleanPhone.startsWith('00224')) cleanPhone = cleanPhone.slice(5)
-    if (/^6\d{8}$/.test(cleanPhone)) cleanPhone = `00224${cleanPhone}`
+    // Strip leading + or 00
+    if (cleanPhone.startsWith('+')) cleanPhone = cleanPhone.slice(1)
+    if (cleanPhone.startsWith('00')) cleanPhone = cleanPhone.slice(2)
+    // Strip country code 224 if present
+    if (cleanPhone.startsWith('224')) cleanPhone = cleanPhone.slice(3)
+    // Now cleanPhone should be the local number (8-9 digits)
+    // Reconstruct with 00224 prefix as required by Djomy
+    cleanPhone = `00224${cleanPhone}`
 
-    // Format final attendu : préfixe international 00224 + numéro local de 9 chiffres
-    if (!/^002246\d{8}$/.test(cleanPhone)) {
-      logger.warn(`[Checkout] Invalid phone format: ${cleanPhone}`)
-      // Nettoyage best-effort de la ligne pending créée plus haut
+    logger.log(`[Checkout] Phone normalized: ****${cleanPhone.slice(-4)}`)
+
+    // Minimal sanity check: must be 00224 + 8 or 9 digits
+    if (!/^00224\d{8,9}$/.test(cleanPhone)) {
+      logger.warn(`[Checkout] Phone format rejected: ${cleanPhone}`)
       try {
         await supabase.from('subscriptions').delete().eq('id', subscription.id)
       } catch (cleanupErr) {
         logger.warn('[Checkout] Failed to clean pending subscription:', cleanupErr instanceof Error ? cleanupErr.message : cleanupErr)
       }
       return NextResponse.json(
-        { error: 'Numéro de téléphone invalide. Format attendu : 00224 suivi de 9 chiffres (ex: 00224620000000).' },
+        { error: 'Numéro de téléphone invalide. Format attendu : +224 ou 00224 suivi du numéro (ex: +224620000000).' },
         { status: 400 }
       )
     }
