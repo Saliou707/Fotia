@@ -103,6 +103,24 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        source: '/galerie/:path*',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow, noarchive',
+          },
+        ],
+      },
+      {
+        source: '/g/:path*',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow, noarchive',
+          },
+        ],
+      },
     ]
   },
   // Redirect 301 : ancien schema /g/[slug] → /galerie/[slug]

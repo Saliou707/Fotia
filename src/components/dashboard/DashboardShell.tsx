@@ -98,6 +98,10 @@ export default function DashboardShell({
         .then(data => { if (data?.subscription?.expires_at) setSubExpiresAt(data.subscription.expires_at) })
         .catch(() => {})
     }
+
+    const handleOpenProModal = () => setProModal(true)
+    document.addEventListener('open-pro-modal', handleOpenProModal)
+    return () => document.removeEventListener('open-pro-modal', handleOpenProModal)
   }, [userPlan])
 
   const isActive = (href: string, exact?: boolean) => exact ? path === href : path.startsWith(href)
@@ -439,9 +443,13 @@ export default function DashboardShell({
 
                   {/* Price */}
                   <div style={{ background: 'linear-gradient(135deg, rgba(251,191,36,0.06), rgba(245,158,11,0.03))', border: '1px solid rgba(251,191,36,0.18)', borderRadius: 16, padding: '20px 22px', marginBottom: 20 }}>
+                    <div style={{ display: 'inline-block', padding: '4px 10px', background: 'rgba(232, 179, 61, 0.15)', color: '#E8B33D', borderRadius: '12px', fontSize: '11px', fontWeight: 800, marginBottom: '12px', border: '1px solid rgba(232, 179, 61, 0.25)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      🎉 Offre Spéciale Bêta (1er mois)
+                    </div>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, marginBottom: 16 }}>
-                      <span style={{ fontSize: 40, fontWeight: 800, color: '#F2EDE4', letterSpacing: '-0.04em', lineHeight: 1 }}>90 000</span>
-                      <span style={{ fontSize: 14, color: '#A09890', fontWeight: 500, marginBottom: 5 }}>FCFA / mois</span>
+                      <span style={{ fontSize: 40, fontWeight: 800, color: '#F2EDE4', letterSpacing: '-0.04em', lineHeight: 1 }}>1 000</span>
+                      <span style={{ fontSize: 14, color: '#A09890', fontWeight: 500, marginBottom: 5 }}>GNF / mois</span>
+                      <span style={{ fontSize: 16, color: '#555', fontWeight: 600, textDecoration: 'line-through', marginBottom: 5, marginLeft: 8 }}>15 €</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {PRO_FEATURES.map(f => (
@@ -492,13 +500,13 @@ export default function DashboardShell({
                     </label>
                     <input
                       type="tel" autoFocus
-                      placeholder="+221 77 000 00 00"
+                      placeholder="+224 620 00 00 00"
                       value={proPhone}
                       onChange={e => setProPhone(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleCheckout()}
                       style={{ width: '100%', padding: '13px 16px', borderRadius: 13, border: `1.5px solid ${proPhone ? 'rgba(251,191,36,0.35)' : 'rgba(255,255,255,0.08)'}`, background: 'rgba(255,255,255,0.03)', color: '#F2EDE4', fontSize: 15, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', transition: 'all 0.2s' }}
                     />
-                    <p style={{ fontSize: 11.5, color: '#555', marginTop: 6 }}>Format : +221 ou 00221 suivi du numéro</p>
+                    <p style={{ fontSize: 11.5, color: '#555', marginTop: 6 }}>Format : +224 ou 00224 suivi du numéro</p>
                   </div>
 
                   <motion.button

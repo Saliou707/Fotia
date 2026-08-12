@@ -29,28 +29,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // Galeries publiques dynamiques
-  let galleryPages: MetadataRoute.Sitemap = []
-  try {
-    const supabase = await createClient()
-    const { data: galleries } = await supabase
-      .from('galleries')
-      .select('slug, updated_at')
-      .eq('status', 'active')
-      .order('updated_at', { ascending: false })
-      .limit(500)
-
-    if (galleries) {
-      galleryPages = galleries.map((g) => ({
-        url: `${baseUrl}/galerie/${g.slug}`,
-        lastModified: g.updated_at ? new Date(g.updated_at) : new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.7,
-      }))
-    }
-  } catch {
-    // Sitemap non-bloquant : si Supabase est down, on renvoie juste les pages statiques
-  }
-
-  return [...staticPages, ...galleryPages]
+  return staticPages
 }
+

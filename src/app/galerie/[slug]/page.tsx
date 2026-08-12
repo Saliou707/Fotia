@@ -31,7 +31,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title,
     description,
-    // Canonical explicite : permet l'indexation de chaque galerie comme page propre
+    robots: {
+      index: false,
+      follow: false,
+      noarchive: true,
+      nosnippet: true,
+      noimageindex: true,
+      nocache: true,
+      googleBot: {
+        index: false,
+        follow: false,
+        noarchive: true,
+        noimageindex: true,
+      },
+    },
     alternates: {
       canonical: `${siteUrl}/galerie/${slug}`,
     },

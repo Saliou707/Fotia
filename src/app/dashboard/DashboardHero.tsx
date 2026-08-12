@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import type { ElementType } from 'react'
-import { Plus, Crown, CheckCircle2, Infinity as InfinityIcon, Activity, ChevronRight, Sun, MoonStar, Hand } from 'lucide-react'
+import { Plus, Crown, CheckCircle2, Infinity as InfinityIcon, Activity, ChevronRight, Sun, MoonStar, Hand, Sparkles } from 'lucide-react'
 import { stagger } from '@/lib/animations'
 import AnimatedNumber from './AnimatedNumber'
 import Skeleton from './Skeleton'
@@ -203,6 +203,79 @@ export default function DashboardHero({ greeting, greetingIcon: GreetingIcon, gr
           >
             Gérer <ChevronRight size={12} />
           </Link>
+        </motion.div>
+      )}
+
+      {/* ── Free Plan Banner (Beta Offer) ── */}
+      {!isPro && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.18 }}
+          className="dash-pro-banner"
+          style={{
+            marginBottom: 36,
+            padding: '18px 22px',
+            borderRadius: 16,
+            background: 'linear-gradient(135deg, rgba(200,72,46,0.1) 0%, rgba(200,72,46,0.04) 50%, rgba(17,17,17,0.6) 100%)',
+            border: '1px solid rgba(200,72,46,0.22)',
+            display: 'flex', alignItems: 'center', gap: 16,
+            flexWrap: 'wrap',
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: '0 4px 24px rgba(200,72,46,0.06)',
+          }}
+        >
+          {/* Background glow */}
+          <div style={{ position: 'absolute', top: -40, right: -30, width: 200, height: 150, borderRadius: '50%', background: 'radial-gradient(circle, rgba(200,72,46,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+          {/* Icon */}
+          <div className="dash-pro-icon" style={{
+            width: 44, height: 44, borderRadius: 13,
+            background: 'linear-gradient(135deg, rgba(200,72,46,0.22), rgba(200,72,46,0.1))',
+            border: '1px solid rgba(200,72,46,0.35)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+            boxShadow: '0 0 20px rgba(200,72,46,0.15)',
+          }}>
+            <Sparkles size={20} color="#DF5438" />
+          </div>
+
+          {/* Info */}
+          <div className="dash-pro-info" style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+              <span className="dash-pro-title" style={{ fontSize: 15, fontWeight: 700, color: '#DF5438', letterSpacing: '-0.01em' }}>🎉 Offre Spéciale Bêta (1er mois)</span>
+            </div>
+            <div className="dash-pro-features" style={{ fontSize: 12.5, color: '#A09890', lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#F2EDE4' }}>1 000 GNF</span>
+              </span>
+              <span style={{ color: '#555', textDecoration: 'line-through' }}>15 €</span>
+              <span>·</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <InfinityIcon size={11} color="#A09890" /> Galeries illimitées
+              </span>
+              <span>·</span>
+              <span>Téléchargement HD</span>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <button
+            onClick={() => document.dispatchEvent(new Event('open-pro-modal'))}
+            className="dash-pro-cta hover:bg-[#DF5438]/20"
+            style={{
+              padding: '8px 16px', borderRadius: 10, cursor: 'pointer',
+              background: 'rgba(200,72,46,0.1)',
+              border: '1px solid rgba(200,72,46,0.25)',
+              color: '#DF5438', fontSize: 12.5, fontWeight: 600,
+              textDecoration: 'none', whiteSpace: 'nowrap',
+              transition: 'all 0.2s',
+              display: 'flex', alignItems: 'center', gap: 5,
+            }}
+          >
+            En profiter <ChevronRight size={12} />
+          </button>
         </motion.div>
       )}
 

@@ -48,13 +48,12 @@ export default function Navbar({ scrolled, menuOpen, setMenuOpen, navLinks }: Na
               <Image
                 src="/logo.png"
                 alt="Fotia Logo"
-                width={90}
-                height={28}
+                width={400}
+                height={267}
                 priority
                 style={{
+                  height: 28,
                   width: 'auto',
-                  height: 'auto',
-                  maxHeight: 28,
                   objectFit: 'contain',
                   position: 'relative',
                   filter: 'brightness(1.1) drop-shadow(0 0 8px rgba(223,84,56,0.4))',

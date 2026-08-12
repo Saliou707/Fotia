@@ -279,8 +279,10 @@ export async function createDjomyGatewayPayment(
   const result = (await res.json()) as DjomyResponse<DjomyGatewayData>
 
   if (!result.success) {
+    const details = result.error?.details ? ` - ${result.error.details}` : ''
+    const fields = result.error?.fieldsErrors?.length ? ` (Fields: ${result.error.fieldsErrors.join(', ')})` : ''
     throw new Error(
-      `[Djomy] create_payment_gateway error: ${result.error?.message ?? result.message}`
+      `[Djomy] create_payment_gateway error: ${result.error?.message ?? result.message}${details}${fields}`
     )
   }
 

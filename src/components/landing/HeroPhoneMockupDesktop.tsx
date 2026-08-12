@@ -124,7 +124,7 @@ export default function HeroPhoneMockupDesktop({ isDesktop }: HeroPhoneMockupDes
 
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflowY: 'hidden', background: '#0f0f0f' }}>
             <div style={{ padding: '48px 14px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0f0f0f' }}>
-              <Image src="/logo.png" alt="Fotia" width={27} height={18} style={{ height: 18, width: 'auto', objectFit: 'contain', filter: 'brightness(1.1)' }} />
+              <Image src="/logo.png" alt="Fotia" width={400} height={267} style={{ height: 18, width: 'auto', objectFit: 'contain', filter: 'brightness(1.1)' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
                   <Smartphone size={9} color="#A09890" />

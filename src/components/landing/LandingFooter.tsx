@@ -13,7 +13,7 @@ export default function LandingFooter({ isMobile }: LandingFooterProps) {
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', gap: 40, marginBottom: 52 }}>
           <div style={{ maxWidth: 300 }}>
-            <Image src="/logo.png" alt="Fotia Logo" width={90} height={30} priority style={{ width: 'auto', height: 'auto', objectFit: 'contain', filter: 'brightness(1.05)', marginBottom: 16 }} />
+            <Image src="/logo.png" alt="Fotia Logo" width={400} height={267} priority style={{ width: 'auto', height: 'auto', objectFit: 'contain', filter: 'brightness(1.05)', marginBottom: 16 }} />
             <p style={{ fontSize: 14, color: '#555', lineHeight: 1.65 }}>La plateforme de livraison de galeries photos pour photographes professionnels.</p>
           </div>
           <div style={{ display: 'flex', gap: isMobile ? 32 : 64, flexWrap: 'wrap' }}>

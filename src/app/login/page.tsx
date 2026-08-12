@@ -127,7 +127,7 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-          <Image src="/logo.png" alt="Fotia Logo" width={110} height={38} priority style={{ width: 'auto', height: 'auto', objectFit: 'contain' }} />
+          <Image src="/logo.png" alt="Fotia Logo" width={400} height={267} priority style={{ width: 'auto', height: 'auto', objectFit: 'contain' }} />
         </div>
 
         {/* Card */}

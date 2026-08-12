@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
 
   const amount = PLAN_PRICE_GNF[plan]
   const reference = `SUB_${generateId(16)}`
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
   const returnUrl = `${appUrl}/billing/success?ref=${reference}`
   const cancelUrl  = `${appUrl}/billing/failed`
 
@@ -93,12 +93,17 @@ export async function POST(request: NextRequest) {
       throw subError
     }
 
+    // Clean phone number for Djomy (remove +224 / 00224 and spaces)
+    let cleanPhone = phone.trim().replace(/\s+/g, '')
+    if (cleanPhone.startsWith('+224')) cleanPhone = cleanPhone.slice(4)
+    if (cleanPhone.startsWith('00224')) cleanPhone = cleanPhone.slice(5)
+
     // 2. Initier le paiement via le payment provider (Djomy)
     const { checkoutUrl, providerTransactionId } = await defaultPaymentProvider.createCheckout({
       amount,
       currency: 'GNF',
       countryCode: 'GN',
-      payerPhone: phone.trim(),
+      payerPhone: cleanPhone,
       description: `Abonnement mensuel Fotia Premium ${plan}`,
       merchantReference: reference,
       returnUrl,

@@ -68,7 +68,13 @@ export default function ProCheckoutModal({ open, billingLoading, onClose, onChec
                   <p style={{ color: '#A09890', fontSize: 13, marginBottom: 20, lineHeight: 1.6 }}>Profitez de toutes les fonctionnalités premium !</p>
 
                   <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(200,72,46,0.08), rgba(200,72,46,0.04))', borderRadius: 14, marginBottom: 20, border: '1px solid rgba(200,72,46,0.15)' }}>
-                    <div className="settings-pro-price" style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 4 }}>1 000 <span style={{ fontSize: 15, fontWeight: 500, color: '#A09890' }}>GNF/mois</span></div>
+                    <div style={{ display: 'inline-block', padding: '4px 10px', background: 'rgba(200, 72, 46, 0.15)', color: '#DF5438', borderRadius: '12px', fontSize: '11px', fontWeight: 800, marginBottom: '12px', border: '1px solid rgba(200, 72, 46, 0.25)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      🎉 Offre Spéciale Bêta (1er mois)
+                    </div>
+                    <div className="settings-pro-price" style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 4 }}>
+                      1 000 <span style={{ fontSize: 15, fontWeight: 500, color: '#A09890' }}>GNF/mois</span>
+                      <span style={{ fontSize: 14, color: '#555', fontWeight: 600, textDecoration: 'line-through', marginLeft: 12 }}>15 €</span>
+                    </div>
                     <ul style={{ fontSize: 13, color: '#E5DDD6', margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 7 }}>
                       {PRO_PERKS.map(f => (
                         <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

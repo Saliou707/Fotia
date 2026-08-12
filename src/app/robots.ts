@@ -5,6 +5,7 @@ export default function robots(): MetadataRoute.Robots {
 
   // Zones privées : le disallow doit être répété dans CHAQUE groupe spécifique,
   // sinon la règle la plus spécifique (ex: GPTBot) prime sur `*` et le blocage est levé.
+  // IMPORTANT: Ne PAS mettre `/galerie/` ici, sinon Google ne pourra pas lire les balises `noindex`
   const privateDisallow = ['/dashboard/', '/admin/', '/api/']
 
   return {
