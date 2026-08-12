@@ -233,15 +233,18 @@ async function djomyFetch(
   retryOn401 = true
 ): Promise<Response> {
   const headers = await authHeaders()
+  // DEBUG: Log all Djomy auth headers (remove in production)
+  // logger.log est silencieux en production : les headers (Bearer token, X-API-KEY)
+  // ne sont jamais exposés dans les logs de prod.
+  logger.log('[Djomy] Outgoing request headers', JSON.stringify(headers))
   const res = await fetchWithTimeout(url, { ...options, headers }, 8000)
 
   // If 401, invalidate token and retry once
   if (res.status === 401 && retryOn401) {
-    // Volontairement non silencieux : une boucle de rafraîchissement 401 doit
-    // rester visible en production (signal opérationnel critique).
     console.warn('[Djomy] 401 received, refreshing token and retrying...')
     invalidateDjomyToken()
     const freshHeaders = await authHeaders()
+    logger.log('[Djomy] Retried request headers', JSON.stringify(freshHeaders))
     return fetchWithTimeout(url, { ...options, headers: freshHeaders }, 8000)
   }
 
