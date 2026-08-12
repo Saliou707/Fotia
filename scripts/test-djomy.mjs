@@ -44,7 +44,7 @@ async function testDjomy(baseUrl) {
   const payload = {
     amount: 1000,
     countryCode: 'GN',
-    payerNumber: '623201462',
+    payerNumber: '00224623201462',
     description: 'Test API Djomy',
     merchantPaymentReference: `SUB_${Date.now()}`,
     returnUrl: 'https://myfotia.com/billing/success',
