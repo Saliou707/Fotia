@@ -296,7 +296,7 @@ idx_payments_user_created           (user_id, created_at DESC)
 | `payments` | 11 colonnes, 3 indexes | ✅ | SELECT owner |
 | `admin_users` | 4 colonnes, 1 index | ✅ | SELECT admins only |
 | `admin_logs` | 4 colonnes, 1 index | ✅ | SELECT admins only |
-| `email_logs` | 7 colonnes | ✅ | SELECT admins only |
+| `email_logs` | 8 colonnes, 1 index | ✅ | SELECT admins only |
 | `webhook_events` | 5 colonnes, 1 index | ✅ | Service role only |
 
 Fonctions RPC :

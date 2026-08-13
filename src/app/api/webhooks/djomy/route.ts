@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest, after } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { defaultPaymentProvider } from '@/lib/payment-provider'
 import { computeExpiryDate, expireSupersededSubscriptions, fetchActiveSubscriptionExpiry } from '@/lib/subscription'
@@ -230,23 +230,34 @@ export async function POST(request: NextRequest) {
       `[Djomy Webhook] ✅ Sub ${finalStatus} — plan ${finalPlan} — user: ${sub.user_id}`
     )
 
-    // ── 12. Email de confirmation si succès ──────────────────────────────
+    // ── 12. Email de confirmation si succès (après la réponse) ──────────
+    // after() : la réponse au webhook part immédiatement, l'envoi continue en
+    // arrière-plan. La déduplication côté edge function (email_logs +
+    // provider_payment_id) évite le double envoi si verify-subscription traite
+    // la même transaction en parallèle (page /billing/success).
     if (isSuccess) {
-      const { data: userProfile } = await supabase
-        .from('profiles')
-        .select('email, display_name')
-        .eq('id', sub.user_id)
-        .single()
+      after(async () => {
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('email, display_name')
+          .eq('id', sub.user_id)
+          .single()
 
-      if (userProfile?.email) {
+        if (!userProfile?.email) return
+
+        const common = {
+          userName: userProfile.display_name || userProfile.email.split('@')[0],
+          plan: finalPlan,
+        }
+
         await supabase.functions.invoke('send-email', {
           body: {
             type: 'payment-success',
             to: userProfile.email,
             userId: sub.user_id,
+            providerPaymentId: transactionId,
             data: {
-              userName: userProfile.display_name || userProfile.email.split('@')[0],
-              plan: finalPlan,
+              ...common,
               amount: verified.paidAmount,
               currency: verified.currency || 'GNF',
               expiresAt: expiresAt!.toISOString(),
@@ -260,13 +271,11 @@ export async function POST(request: NextRequest) {
             type: 'premium-upgrade',
             to: userProfile.email,
             userId: sub.user_id,
-            data: {
-              userName: userProfile.display_name || userProfile.email.split('@')[0],
-              plan: finalPlan,
-            },
+            providerPaymentId: transactionId,
+            data: common,
           },
         }).catch(err => logger.error('[Djomy Webhook] Premium upgrade email failed:', err))
-      }
+      })
     }
 
     return NextResponse.json({ success: true, status: finalStatus })

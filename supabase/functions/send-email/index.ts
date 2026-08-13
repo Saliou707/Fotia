@@ -25,6 +25,10 @@ interface EmailPayload {
   type: "payment-success" | "premium-upgrade";
   to: string;
   userId?: string;
+  // Transaction de paiement (Djomy). Permet la déduplication : quand le
+  // webhook et la page de succès invoquent tous deux cette fonction pour la
+  // même transaction, un seul email part.
+  providerPaymentId?: string;
   data: any;
 }
 
@@ -43,7 +47,7 @@ serve(async (req) => {
 
     // 1. Parse and validate request
     const payload: EmailPayload = await req.json();
-    const { type, to, userId, data } = payload;
+    const { type, to, userId, providerPaymentId, data } = payload;
 
     if (!to || !type) {
       throw new Error("Missing required fields: 'to' and 'type' are required.");
@@ -73,6 +77,44 @@ serve(async (req) => {
         throw new Error(`Invalid email type: ${type}`);
     }
 
+    // 2b. Déduplication (race-safe) — réserver avant d'envoyer
+    // Le webhook Djomy et la page /billing/success peuvent invoquer cette
+    // fonction quasi-simultanément pour la même transaction. On insère
+    // d'abord une ligne 'sending' : si la contrainte unique
+    // (email_type, user_id, provider_payment_id) est violée, un autre appel
+    // est déjà en train d'envoyer → on skip (200 silencieux).
+    let logRowId: string | null = null;
+
+    if (providerPaymentId) {
+      const { data: inserted, error: reserveError } = await supabaseClient
+        .from("email_logs")
+        .insert({
+          user_id: userId || null,
+          email_type: type,
+          to_email: to,
+          status: "sending",
+          provider: "resend",
+          provider_payment_id: providerPaymentId,
+        }, {
+          onConflict: "email_type,user_id,provider_payment_id",
+          ignoreDuplicates: true,
+        })
+        .select("id");
+
+      if (reserveError) {
+        console.error("[Email Reserve Error]", reserveError.message);
+        // Non-bloquant : on envoie quand même (log classique ensuite)
+      } else if (!inserted || inserted.length === 0) {
+        console.log(`[Email Skip] Duplicate ${type} for ${to} (${providerPaymentId}) — déjà traité`);
+        return new Response(JSON.stringify({ success: true, skipped: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      } else {
+        logRowId = inserted[0].id;
+      }
+    }
+
     // 3. Send via Resend
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -90,25 +132,46 @@ serve(async (req) => {
 
     if (!res.ok) {
       const errorText = await res.text();
+      // Échec d'envoi : libérer la réservation pour permettre un nouvel essai
+      // (rechargement de la page de succès, retry webhook, etc.)
+      if (logRowId) {
+        await supabaseClient.from("email_logs").delete().eq("id", logRowId).then(({ error }) => {
+          if (error) console.error("[Email Reserve Release Error]", error.message);
+        });
+      }
       throw new Error(`Resend API error: ${res.status} - ${errorText}`);
     }
 
     const resendData = await res.json();
 
     // 4. Log to database
-    const { error: logError } = await supabaseClient
-      .from("email_logs")
-      .insert({
-        user_id: userId || null,
-        email_type: type,
-        to_email: to,
-        status: "success",
-        provider: "resend",
-      });
+    if (logRowId) {
+      // La ligne a déjà été réservée → on la passe en succès
+      const { error: updateError } = await supabaseClient
+        .from("email_logs")
+        .update({ status: "success" })
+        .eq("id", logRowId);
 
-    if (logError) {
-      console.error("[Email Log Error]", logError);
-      // We don't fail the request if logging fails, but we log it to console
+      if (updateError) {
+        console.error("[Email Log Update Error]", updateError.message);
+      }
+    } else {
+      // Pas de déduplication (pas de providerPaymentId ou échec de réservation)
+      const { error: logError } = await supabaseClient
+        .from("email_logs")
+        .insert({
+          user_id: userId || null,
+          email_type: type,
+          to_email: to,
+          status: "success",
+          provider: "resend",
+          provider_payment_id: providerPaymentId || null,
+        });
+
+      if (logError) {
+        console.error("[Email Log Error]", logError.message);
+        // We don't fail the request if logging fails, but we log it to console
+      }
     }
 
     return new Response(JSON.stringify({ success: true, id: resendData.id }), {

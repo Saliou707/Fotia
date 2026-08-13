@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest, after } from 'next/server'
 import { defaultPaymentProvider } from '@/lib/payment-provider'
 import { verifyOrigin } from '@/lib/csrf'
 import { computeExpiryDate, expireSupersededSubscriptions, fetchActiveSubscriptionExpiry } from '@/lib/subscription'
@@ -149,22 +149,33 @@ export async function POST(request: NextRequest) {
 
     logger.log(`[VerifySubscription] ✅ Activated — user: ${user.id}, plan: pro`)
 
-    // 8. Envoyer l'email de confirmation (meilleur effort, non-bloquant)
-    const { data: userProfile } = await supabase
-      .from('profiles')
-      .select('email, display_name')
-      .eq('id', user.id)
-      .single()
+    // 8. Envoyer les emails de confirmation après la réponse (after()).
+    // La page de succès répond instantanément ; les envois se font ensuite en
+    // arrière-plan. La déduplication côté edge function (email_logs +
+    // provider_payment_id) protège contre le double envoi si le webhook Djomy
+    // traite la même transaction en parallèle.
+    after(async () => {
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('email, display_name')
+        .eq('id', user.id)
+        .single()
 
-    if (userProfile?.email) {
-      supabase.functions.invoke('send-email', {
+      if (!userProfile?.email) return
+
+      const common = {
+        userName: userProfile.display_name || userProfile.email.split('@')[0],
+        plan: 'pro',
+      }
+
+      await supabase.functions.invoke('send-email', {
         body: {
           type: 'payment-success',
           to: userProfile.email,
           userId: user.id,
+          providerPaymentId: sub.provider_payment_id,
           data: {
-            userName: userProfile.display_name || userProfile.email.split('@')[0],
-            plan: 'pro',
+            ...common,
             amount: verified.paidAmount,
             currency: verified.currency || 'GNF',
             expiresAt: expiresAt.toISOString(),
@@ -173,18 +184,16 @@ export async function POST(request: NextRequest) {
       }).catch(err => logger.error('[VerifySubscription] Email send failed:', err))
 
       // Email de bienvenue Pro (en plus du reçu de paiement)
-      supabase.functions.invoke('send-email', {
+      await supabase.functions.invoke('send-email', {
         body: {
           type: 'premium-upgrade',
           to: userProfile.email,
           userId: user.id,
-          data: {
-            userName: userProfile.display_name || userProfile.email.split('@')[0],
-            plan: 'pro',
-          },
+          providerPaymentId: sub.provider_payment_id,
+          data: common,
         },
       }).catch(err => logger.error('[VerifySubscription] Premium upgrade email failed:', err))
-    }
+    })
 
     return NextResponse.json({
       success: true,

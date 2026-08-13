@@ -49,11 +49,13 @@ create index if not exists idx_webhook_events_lookup
 -- Les paiements ne sont accessibles que par leur propriétaire
 alter table payments enable row level security;
 
+drop policy if exists "Utilisateur voit ses propres paiements" on payments;
 create policy "Utilisateur voit ses propres paiements"
   on payments for select
   using (auth.uid() = user_id);
 
 -- Le service_role (admin) peut tout faire
+drop policy if exists "Service role accès complet payments" on payments;
 create policy "Service role accès complet payments"
   on payments for all
   using (auth.role() = 'service_role');
@@ -61,6 +63,7 @@ create policy "Service role accès complet payments"
 -- Les webhook_events ne sont accessibles qu'en service_role (backend only)
 alter table webhook_events enable row level security;
 
+drop policy if exists "Service role accès complet webhook_events" on webhook_events;
 create policy "Service role accès complet webhook_events"
   on webhook_events for all
   using (auth.role() = 'service_role');
