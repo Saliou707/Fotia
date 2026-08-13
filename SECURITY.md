@@ -62,7 +62,7 @@ Déjà configurés dans `next.config.ts` → ne pas supprimer ni affaiblir :
 
 ## 7. Webhooks (Djomy)
 
-- [ ] Vérifier la signature HMAC (`X-Webhook-Signature`) avec le secret `DJOMY_WEBHOOK_SECRET` avant tout traitement.
+- [ ] Vérifier la signature HMAC (`X-Webhook-Signature`) avec le secret `DJOMY_CLIENT_SECRET` avant tout traitement (Djomy n'a pas de webhook secret séparé).
 - [ ] Idempotence : enregistrer chaque `eventId` dans `webhook_events` (anti-rejeu).
 - [ ] Vérifier le paiement côté serveur (status `success`) avant d'activer un abonnement.
 - [ ] Ne pas re-traiter un abonnement déjà actif (guard).

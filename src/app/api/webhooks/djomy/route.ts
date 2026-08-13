@@ -34,10 +34,9 @@ export async function POST(request: NextRequest) {
   logger.log('[Djomy Webhook] Received event')
 
   // ── 1. Validation de la configuration ───────────────────────────────────
-  const webhookSecret =
-    process.env.DJOMY_WEBHOOK_SECRET ||
-    process.env.DJOMY_CLIENT_SECRET ||
-    ''
+  // Djomy signe les webhooks avec HMAC-SHA256(rawBody, clientSecret).
+  // Spec: "compute HMAC-SHA256(rawBody, clientSecret) as hex" (webhook_payment_completed gotcha)
+  const webhookSecret = process.env.DJOMY_CLIENT_SECRET || ''
 
   if (!webhookSecret) {
     logger.error('[Djomy Webhook] CRITICAL: No webhook secret configured')
@@ -254,6 +253,19 @@ export async function POST(request: NextRequest) {
             },
           },
         }).catch(err => logger.error('[Djomy Webhook] Email send failed:', err))
+
+        // Email de bienvenue Pro (en plus du reçu de paiement)
+        await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'premium-upgrade',
+            to: userProfile.email,
+            userId: sub.user_id,
+            data: {
+              userName: userProfile.display_name || userProfile.email.split('@')[0],
+              plan: finalPlan,
+            },
+          },
+        }).catch(err => logger.error('[Djomy Webhook] Premium upgrade email failed:', err))
       }
     }
 

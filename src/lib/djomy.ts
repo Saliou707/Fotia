@@ -320,12 +320,12 @@ export async function verifyDjomyPayment(transactionId: string): Promise<DjomyVe
 /**
  * Verify Djomy webhook signature.
  * Header format: X-Webhook-Signature: v1:<hex>
- * Algorithm: HMAC-SHA256(rawBody, DJOMY_WEBHOOK_SECRET)
+ * Algorithm: HMAC-SHA256(rawBody, DJOMY_CLIENT_SECRET)
  *
- * Uses DJOMY_WEBHOOK_SECRET if set, falls back to DJOMY_CLIENT_SECRET.
+ * Djomy signe ses webhooks avec le client secret (aucun webhook secret séparé).
  */
 export function verifyDjomyWebhookSignature(rawBody: string, signatureHeader: string): boolean {
-  const secret = process.env.DJOMY_WEBHOOK_SECRET || DJOMY_CLIENT_SECRET
+  const secret = DJOMY_CLIENT_SECRET
   if (!secret) {
     logger.error('[Djomy Webhook] No webhook secret configured')
     return false

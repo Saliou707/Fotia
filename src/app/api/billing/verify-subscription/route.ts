@@ -171,6 +171,19 @@ export async function POST(request: NextRequest) {
           },
         },
       }).catch(err => logger.error('[VerifySubscription] Email send failed:', err))
+
+      // Email de bienvenue Pro (en plus du reçu de paiement)
+      supabase.functions.invoke('send-email', {
+        body: {
+          type: 'premium-upgrade',
+          to: userProfile.email,
+          userId: user.id,
+          data: {
+            userName: userProfile.display_name || userProfile.email.split('@')[0],
+            plan: 'pro',
+          },
+        },
+      }).catch(err => logger.error('[VerifySubscription] Premium upgrade email failed:', err))
     }
 
     return NextResponse.json({

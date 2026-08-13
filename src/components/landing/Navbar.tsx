@@ -51,12 +51,13 @@ export default function Navbar({ scrolled, menuOpen, setMenuOpen, navLinks }: Na
                 width={400}
                 height={267}
                 priority
+                className="fotia-nav-logo"
                 style={{
-                  height: 28,
+                  height: 44,
                   width: 'auto',
                   objectFit: 'contain',
                   position: 'relative',
-                  filter: 'brightness(1.1) drop-shadow(0 0 8px rgba(223,84,56,0.4))',
+                  filter: 'brightness(1.12) drop-shadow(0 0 10px rgba(223,84,56,0.5))',
                 }}
               />
             </div>
@@ -289,6 +290,9 @@ export default function Navbar({ scrolled, menuOpen, setMenuOpen, navLinks }: Na
         @media (max-width: 768px) {
           .fotia-navbar {
             padding: 10px 14px;
+          }
+          .fotia-nav-logo {
+            height: 34px !important;
           }
           .fotia-nav-desktop-links {
             display: none !important;

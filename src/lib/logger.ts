@@ -22,6 +22,9 @@ function createLogger(tag: string) {
     log: (...args: unknown[]) => {
       if (!IS_PROD) console.log(`[${tag}]`, ...args)
     },
+    debug: (...args: unknown[]) => {
+      if (!IS_PROD) console.log(`[${tag}][debug]`, ...args)
+    },
     warn: (...args: unknown[]) => {
       if (!IS_PROD) console.warn(`[${tag}]`, ...args)
     },

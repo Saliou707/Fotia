@@ -5,9 +5,6 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import {
-  getWelcomeEmail,
-  getVerifyEmail,
-  getResetPasswordEmail,
   getPaymentSuccessEmail,
   getPremiumUpgradeEmail,
 } from "./templates.ts";
@@ -18,12 +15,14 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "
 const FROM_EMAIL = Deno.env.get("EMAIL_FROM") || "Fotia <noreply@myfotia.com>";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  // La fonction est appelée uniquement serveur-à-serveur (webhook handler).
+  // On restreint l'origine aux domaines Fotia uniquement.
+  "Access-Control-Allow-Origin": "https://myfotia.com",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 interface EmailPayload {
-  type: "welcome" | "verify" | "reset-password" | "payment-success" | "premium-upgrade";
+  type: "payment-success" | "premium-upgrade";
   to: string;
   userId?: string;
   data: any;
@@ -58,17 +57,6 @@ serve(async (req) => {
     let emailContent: { subject: string; html: string };
 
     switch (type) {
-      case "welcome":
-        emailContent = getWelcomeEmail(data?.userName || to.split("@")[0]);
-        break;
-      case "verify":
-        if (!data?.link) throw new Error("Missing 'link' in data for verify email.");
-        emailContent = getVerifyEmail(data.link);
-        break;
-      case "reset-password":
-        if (!data?.link) throw new Error("Missing 'link' in data for reset-password email.");
-        emailContent = getResetPasswordEmail(data.link);
-        break;
       case "payment-success":
         if (!data?.userName || !data?.plan || !data?.amount || !data?.currency || !data?.expiresAt) {
            throw new Error("Missing data fields for payment-success email.");

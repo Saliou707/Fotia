@@ -163,6 +163,10 @@ export async function POST(request: NextRequest) {
     // Toujours logger les erreurs en production pour pouvoir les diagnostiquer
     console.error('[Checkout] Error in production:', message, stack)
     logger.error('[Checkout] Error:', message)
-    return NextResponse.json({ error: message }, { status: 500 })
+    // En production, ne pas exposer les détails techniques au client
+    const clientMessage = process.env.NODE_ENV === 'production'
+      ? 'Erreur de paiement. Veuillez réessayer ou contacter le support.'
+      : message
+    return NextResponse.json({ error: clientMessage }, { status: 500 })
   }
 }
