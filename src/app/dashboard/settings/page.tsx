@@ -59,6 +59,7 @@ export default function SettingsPage() {
           plan: (profile.plan as Plan) || 'free',
           storageUsedBytes: Number(profile.storage_used_bytes || 0),
           galleryCount: profile.gallery_count || 0,
+          hasUsedBeta: !!profile.has_used_beta,
         }))
       }
 
@@ -266,6 +267,7 @@ export default function SettingsPage() {
       <ProCheckoutModal
         open={proModal}
         billingLoading={billingLoading}
+        hasUsedBeta={billing.hasUsedBeta}
         onClose={() => setProModal(false)}
         onCheckout={handleCheckoutGateway}
       />

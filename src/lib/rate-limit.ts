@@ -145,12 +145,19 @@ export async function rateLimit(
       return { success: true, remaining: config.tokens, limit: config.tokens }
     }
 
-    const result = await rl.limit(identifier)
-    return {
-      success: result.success,
-      remaining: result.remaining,
-      limit: result.limit,
-      pending: result.pending,
+    try {
+      const result = await rl.limit(identifier)
+      return {
+        success: result.success,
+        remaining: result.remaining,
+        limit: result.limit,
+        pending: result.pending,
+      }
+    } catch (error) {
+      // Upstash indisponible ou token invalide (WRONGPASS...) : on ne bloque
+      // pas la navigation. On dégrade en rate-limit in-memory plutôt que de
+      // faire planter le middleware avec un 500 global.
+      console.error('[RateLimit] Upstash error, fallback in-memory:', error)
     }
   }
 

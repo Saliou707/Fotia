@@ -47,12 +47,13 @@ interface DashboardHeroProps {
   greetingAccent: string
   loading: boolean
   isPro: boolean
+  hasUsedBeta?: boolean
   daysLeft: number
   kpis: DashboardKpi[]
   onOpenCreate: () => void
 }
 
-export default function DashboardHero({ greeting, greetingIcon: GreetingIcon, greetingAccent, loading, isPro, daysLeft, kpis, onOpenCreate }: DashboardHeroProps) {
+export default function DashboardHero({ greeting, greetingIcon: GreetingIcon, greetingAccent, loading, isPro, hasUsedBeta, daysLeft, kpis, onOpenCreate }: DashboardHeroProps) {
   const reduceMotion = useReducedMotion()
   const iconAnim: GreetingIconAnim =
     GreetingIcon === Sun ? 'spin'
@@ -244,13 +245,16 @@ export default function DashboardHero({ greeting, greetingIcon: GreetingIcon, gr
           {/* Info */}
           <div className="dash-pro-info" style={{ flex: 1, minWidth: 200 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-              <span className="dash-pro-title" style={{ fontSize: 15, fontWeight: 700, color: '#DF5438', letterSpacing: '-0.01em' }}>🎉 Offre Spéciale Bêta (1er mois)</span>
+              <span className="dash-pro-title" style={{ fontSize: 15, fontWeight: 700, color: '#DF5438', letterSpacing: '-0.01em' }}>
+                {!hasUsedBeta ? '🎉 Offre Spéciale Bêta (1er mois)' : 'Plan Premium Pro'}
+              </span>
             </div>
             <div className="dash-pro-features" style={{ fontSize: 12.5, color: '#A09890', lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#F2EDE4' }}>1 000 GNF</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#F2EDE4' }}>{hasUsedBeta ? '15' : '2'} €</span>
               </span>
-              <span style={{ color: '#555', textDecoration: 'line-through' }}>15 €</span>
+              {!hasUsedBeta && <span style={{ color: '#555', textDecoration: 'line-through' }}>15 €</span>}
+              <span style={{ fontSize: 11, color: '#555' }}>(~ {hasUsedBeta ? '150 000' : '20 000'} GNF)</span>
               <span>·</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <InfinityIcon size={11} color="#A09890" /> Galeries illimitées

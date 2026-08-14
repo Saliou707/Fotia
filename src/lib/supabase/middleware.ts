@@ -34,9 +34,19 @@ export async function updateSession(request: NextRequest) {
   // getUser() est le seul appel qui rafraîchit réellement le token côté serveur.
   // Ne pas remplacer par getSession() qui lit uniquement le cookie sans vérifier
   // la validité du token auprès de Supabase Auth.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  //
+  // On entoure getUser() d'un try/catch : si Supabase Auth est indisponible
+  // (projet en pause, coupure réseau...), l'appel lève une exception. Sans
+  // catch, le middleware renverrait un 500 sur TOUTES les pages (signup,
+  // login, home...). On dégrade donc proprement : utilisateur traité comme
+  // déconnecté, la navigation reste possible.
+  let user: { id: string } | null = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch (error) {
+    console.error('[Middleware] Supabase getUser failed:', error)
+  }
 
   const url = request.nextUrl
   const isDashboard = url.pathname.startsWith('/dashboard')

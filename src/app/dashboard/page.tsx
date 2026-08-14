@@ -22,6 +22,7 @@ export default function DashboardPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const [userPlan, setUserPlan] = useState<'free' | 'pro' | 'studio'>('free')
+  const [hasUsedBeta, setHasUsedBeta] = useState(false)
   const [daysLeft, setDaysLeft] = useState(0)
 
   // ⚠️ L'heure locale n'est connue qu'après hydratation : calculer le greeting
@@ -39,7 +40,10 @@ export default function DashboardPage() {
   useEffect(() => {
     Promise.all([fetchGalleries(), fetchProfile()]).then(([g, profile]) => {
       setGalleries(g)
-      if (profile) setUserPlan((profile.plan as 'free' | 'pro' | 'studio') || 'free')
+      if (profile) {
+        setUserPlan((profile.plan as 'free' | 'pro' | 'studio') || 'free')
+        setHasUsedBeta(!!profile.has_used_beta)
+      }
       setStats({
         totalGalleries: g.length,
         totalViews: g.reduce((s, x) => s + (x.view_count ?? 0), 0),
@@ -124,6 +128,7 @@ export default function DashboardPage() {
         greetingAccent={greetingAccent}
         loading={loading}
         isPro={isPro}
+        hasUsedBeta={hasUsedBeta}
         daysLeft={daysLeft}
         kpis={kpis}
         onOpenCreate={() => setShowCreate(true)}

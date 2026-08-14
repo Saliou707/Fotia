@@ -5,10 +5,9 @@ import { defaultPaymentProvider } from '@/lib/payment-provider'
 import { verifyOrigin } from '@/lib/csrf'
 import { logger } from '@/lib/logger'
 
-// Prix en GNF (Francs Guinéens) — Mode Test Production
-const PLAN_PRICE_GNF: Record<string, number> = {
-  pro: 1000,
-}
+// Prix en GNF (Francs Guinéens)
+const PLAN_PRICE_GNF_BETA = 20000
+const PLAN_PRICE_GNF_REGULAR = 150000
 
 export async function POST(request: NextRequest) {
   const csrfError = verifyOrigin(request)
@@ -30,7 +29,7 @@ export async function POST(request: NextRequest) {
 
   const { plan, phone } = body
 
-  if (!plan || !PLAN_PRICE_GNF[plan]) {
+  if (!plan || plan !== 'pro') {
     return NextResponse.json({ error: 'Plan invalide' }, { status: 400 })
   }
 
@@ -65,7 +64,16 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const amount = PLAN_PRICE_GNF[plan]
+  // Déterminer si l'utilisateur a déjà bénéficié de l'offre Bêta
+  const { count: pastPaymentsCount } = await supabase
+    .from('payments')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('status', 'success')
+    .limit(1)
+
+  const hasUsedBeta = (pastPaymentsCount ?? 0) > 0
+  const amount = hasUsedBeta ? PLAN_PRICE_GNF_REGULAR : PLAN_PRICE_GNF_BETA
   const reference = `SUB_${generateId(16)}`
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '')
   const returnUrl = `${appUrl}/billing/success?ref=${reference}`

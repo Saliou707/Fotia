@@ -17,6 +17,7 @@ export interface UserProfile {
   bio?: string | null
   avatar_url?: string | null
   onboarding_completed?: boolean
+  has_used_beta?: boolean
 }
 
 export interface FavoritePhoto {

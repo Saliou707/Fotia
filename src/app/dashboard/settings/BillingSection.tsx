@@ -197,7 +197,7 @@ export default function BillingSection({ billing, billingLoading, onUpgrade }: B
                 boxShadow: '0 6px 20px rgba(200,72,46,0.3)',
               }}
             >
-              <Sparkles size={16} /> Passer au Premium Pro — 1 000 GNF/mois
+              <Sparkles size={16} /> Passer au Premium Pro — {billing.hasUsedBeta ? '15 €' : '2 €'}/mois (~{billing.hasUsedBeta ? '150 000' : '20 000'} GNF)
             </button>
           </div>
         </Card>

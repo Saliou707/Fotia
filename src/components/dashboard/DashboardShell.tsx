@@ -60,7 +60,7 @@ function Avatar({ name, plan, size = 28 }: { name: string; plan: string; size?: 
   )
 }
 
-interface Profile { name: string; email: string; plan: string; storageUsed?: number; galleryCount?: number }
+interface Profile { name: string; email: string; plan: string; storageUsed?: number; galleryCount?: number; hasUsedBeta?: boolean }
 
 // ─── Nav labels ──────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -443,13 +443,18 @@ export default function DashboardShell({
 
                   {/* Price */}
                   <div style={{ background: 'linear-gradient(135deg, rgba(251,191,36,0.06), rgba(245,158,11,0.03))', border: '1px solid rgba(251,191,36,0.18)', borderRadius: 16, padding: '20px 22px', marginBottom: 20 }}>
-                    <div style={{ display: 'inline-block', padding: '4px 10px', background: 'rgba(232, 179, 61, 0.15)', color: '#E8B33D', borderRadius: '12px', fontSize: '11px', fontWeight: 800, marginBottom: '12px', border: '1px solid rgba(232, 179, 61, 0.25)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      🎉 Offre Spéciale Bêta (1er mois)
+                    {!profile.hasUsedBeta && (
+                      <div style={{ display: 'inline-block', padding: '4px 10px', background: 'rgba(232, 179, 61, 0.15)', color: '#E8B33D', borderRadius: '12px', fontSize: '11px', fontWeight: 800, marginBottom: '12px', border: '1px solid rgba(232, 179, 61, 0.25)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        🎉 Offre Spéciale Bêta (1er mois)
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, marginBottom: 8 }}>
+                      <span style={{ fontSize: 40, fontWeight: 800, color: '#F2EDE4', letterSpacing: '-0.04em', lineHeight: 1 }}>{profile.hasUsedBeta ? '15' : '2'}</span>
+                      <span style={{ fontSize: 14, color: '#A09890', fontWeight: 500, marginBottom: 5 }}>€ / mois</span>
+                      {!profile.hasUsedBeta && <span style={{ fontSize: 16, color: '#555', fontWeight: 600, textDecoration: 'line-through', marginBottom: 5, marginLeft: 8 }}>15 €</span>}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, marginBottom: 16 }}>
-                      <span style={{ fontSize: 40, fontWeight: 800, color: '#F2EDE4', letterSpacing: '-0.04em', lineHeight: 1 }}>1 000</span>
-                      <span style={{ fontSize: 14, color: '#A09890', fontWeight: 500, marginBottom: 5 }}>GNF / mois</span>
-                      <span style={{ fontSize: 16, color: '#555', fontWeight: 600, textDecoration: 'line-through', marginBottom: 5, marginLeft: 8 }}>15 €</span>
+                    <div style={{ fontSize: 12, color: '#A09890', marginBottom: 16 }}>
+                      Soit l&apos;équivalent de {profile.hasUsedBeta ? '150 000' : '20 000'} GNF
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {PRO_FEATURES.map(f => (

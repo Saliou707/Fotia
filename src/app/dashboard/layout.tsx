@@ -58,6 +58,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
   let plan = profile?.plan ?? 'free'
   const storageUsed = profile?.storage_used_bytes ?? 0
 
+  // Vérifier si l'utilisateur a déjà payé
+  const { count: pastPaymentsCount } = await supabase
+    .from('payments')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('status', 'success')
+    .limit(1)
+  const hasUsedBeta = (pastPaymentsCount ?? 0) > 0
+
   // Vérifier l'abonnement actif : si le plan est pro, on vérifie aussi la subscription
   // et on downgrade en DB si l'abonnement a expiré (pas juste cosmétique)
   if (plan === 'pro') {
@@ -116,7 +125,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const isAdmin = !!adminUser
 
   return (
-    <DashboardShell profile={{ name: userName, email: user.email ?? '', plan, storageUsed, galleryCount: galleryCount || 0 }} isAdmin={isAdmin}>
+    <DashboardShell profile={{ name: userName, email: user.email ?? '', plan, storageUsed, galleryCount: galleryCount || 0, hasUsedBeta }} isAdmin={isAdmin}>
       {children}
     </DashboardShell>
   )

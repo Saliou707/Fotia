@@ -97,6 +97,9 @@ export default function PricingSection({ isMobile }: PricingSectionProps) {
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 180, borderRadius: '24px 24px 0 0', background: 'radial-gradient(ellipse at 50% 0%, rgba(223,84,56,0.10) 0%, transparent 75%)', pointerEvents: 'none' }} />
               <div style={{ marginBottom: 32, position: 'relative' }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#DF5438', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>Premium Pro</div>
+                <div style={{ display: 'inline-block', padding: '4px 10px', background: 'rgba(223, 84, 56, 0.15)', color: '#DF5438', borderRadius: '12px', fontSize: '11px', fontWeight: 800, marginBottom: '12px', border: '1px solid rgba(223, 84, 56, 0.25)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  🎉 Offre Bêta : 1er mois à 2 €
+                </div>
                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 10 }}>
                   <span style={{ fontSize: 58, fontWeight: 800, color: '#F2EDE4', letterSpacing: '-0.04em', lineHeight: 1 }}>15€</span>
                   <span style={{ fontSize: 16, color: '#A09890', marginBottom: 10 }}>/mois</span>

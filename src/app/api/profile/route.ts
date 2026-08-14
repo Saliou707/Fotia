@@ -11,7 +11,7 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const [profileRes, countRes] = await Promise.all([
+  const [profileRes, countRes, paymentsRes] = await Promise.all([
     supabase
       .from('profiles')
       .select('display_name, phone, instagram, facebook, tiktok, website, bio, avatar_url, plan, storage_used_bytes, onboarding_completed')
@@ -22,15 +22,22 @@ export async function GET() {
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
       .in('status', ['draft', 'active']),
+    supabase
+      .from('payments')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('status', 'success'),
   ])
   const { data: profile } = profileRes
   const { count } = countRes
+  const has_used_beta = (paymentsRes.count ?? 0) > 0
 
   return NextResponse.json({
     id: user.id,
     email: user.email ?? '',
     ...(profile ?? {}),
     gallery_count: count ?? 0, // brouillons + actives
+    has_used_beta,
   })
 }
 

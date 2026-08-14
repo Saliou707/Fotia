@@ -20,6 +20,7 @@ export interface BillingData {
   storageUsedBytes: number
   galleryCount: number
   subscription: Subscription | null
+  hasUsedBeta?: boolean
 }
 
 export type NotifKey = 'newFav' | 'galleryView' | 'download' | 'weekly'
