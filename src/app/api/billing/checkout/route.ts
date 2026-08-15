@@ -44,25 +44,9 @@ export async function POST(request: NextRequest) {
   // relancer un paiement avant expiration. La nouvelle échéance prolongera
   // la période en cours (computeExpiryDate — voir webhook / verify-subscription).
 
-  // Idempotence : vérifier qu'un paiement pending n'existe pas déjà
-  const { data: existingPending } = await supabase
-    .from('subscriptions')
-    .select('id, provider_payment_id')
-    .eq('user_id', user.id)
-    .eq('status', 'pending')
-    .eq('provider', 'djomy')
-    .maybeSingle()
-
-  if (existingPending) {
-    logger.log('[Checkout] Pending subscription found, returning existing reference')
-    // Retourner une URL de paiement existante si disponible
-    if (existingPending.provider_payment_id) {
-      return NextResponse.json({
-        message: 'Un paiement est déjà en attente.',
-        transaction_id: existingPending.provider_payment_id,
-      })
-    }
-  }
+  // On ne bloque plus si un abonnement 'pending' existe. Si l'utilisateur relance le flux,
+  // on crée une nouvelle intention de paiement. Si l'ancienne aboutit quand même,
+  // le webhook l'activera et expirera les autres.
 
   // Déterminer si l'utilisateur a déjà bénéficié de l'offre Bêta
   const { count: pastPaymentsCount } = await supabase
@@ -82,23 +66,56 @@ export async function POST(request: NextRequest) {
   logger.log(`[Checkout] Initiating payment — user: ${user.id}, plan: ${plan}, amount: ${amount} GNF`)
 
   try {
-    // 1. Créer un abonnement en attente dans Supabase
-    const { data: subscription, error: subError } = await supabase
+    // 1. Gérer l'abonnement en attente dans Supabase (Création ou Mise à jour)
+    // Pour éviter de polluer la base avec de multiples lignes "pending", on recycle
+    // une ligne existante si elle existe, en lui attribuant simplement la nouvelle référence.
+    const { data: existingPending } = await supabase
       .from('subscriptions')
-      .insert({
-        user_id: user.id,
-        plan,
-        status: 'pending',
-        provider: 'djomy',
-        provider_reference: reference,
-        billing_cycle: 'monthly',
-      })
       .select('id')
-      .single()
+      .eq('user_id', user.id)
+      .eq('status', 'pending')
+      .eq('provider', 'djomy')
+      .maybeSingle()
 
-    if (subError) {
-      logger.error('[Checkout] Subscription insert error:', subError.message)
-      throw subError
+    let subscription: { id: string }
+    
+    if (existingPending) {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .update({
+          plan,
+          provider_reference: reference,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existingPending.id)
+        .select('id')
+        .single()
+        
+      if (error) {
+        logger.error('[Checkout] Subscription update error:', error.message)
+        throw error
+      }
+      subscription = data
+      logger.log('[Checkout] Recycled existing pending subscription')
+    } else {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: user.id,
+          plan,
+          status: 'pending',
+          provider: 'djomy',
+          provider_reference: reference,
+          billing_cycle: 'monthly',
+        })
+        .select('id')
+        .single()
+        
+      if (error) {
+        logger.error('[Checkout] Subscription insert error:', error.message)
+        throw error
+      }
+      subscription = data
     }
 
     // Normaliser le numéro au format international attendu par Djomy (00224XXXXXXXXX).
