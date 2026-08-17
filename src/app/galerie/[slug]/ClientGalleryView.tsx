@@ -2,6 +2,7 @@
 /* eslint-disable react-hooks/set-state-in-effect -- hydratation des favoris locaux + tracking de vue au montage */
 
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { ArrowUp } from 'lucide-react'
 import { toast } from '@/components/ui'
 import { getClientToken, buildWhatsAppUrl } from '@/lib/utils'
 import { getImageUrl } from '@/lib/api'
@@ -27,6 +28,7 @@ export default function ClientGalleryView({ gallery, images, jsonLd }: Props) {
   const [isDownloadingAll, setIsDownloadingAll] = useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [showScrollTop, setShowScrollTop] = useState(false)
   const clientToken = useRef<string>('')
 
   useEffect(() => {
@@ -50,6 +52,13 @@ export default function ClientGalleryView({ gallery, images, jsonLd }: Props) {
         body: JSON.stringify({ client_token: clientToken.current }),
       }).catch(() => { /* silently ignore – tracking must never break the UX */ })
     }
+
+    // ── Track Scroll to Top visibility ──
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 800)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [gallery.id])
 
   const toggleFavorite = useCallback(async (imageId: string) => {
@@ -82,7 +91,7 @@ export default function ClientGalleryView({ gallery, images, jsonLd }: Props) {
     }
   }, [favorites, gallery.id])
 
-  const handleDownload = async (image: GalleryImage) => {
+  const handleDownload = async (image: GalleryImage, skipShare = false) => {
     if (!gallery.allow_downloads) return
     try {
       const res = await fetch(`/api/galleries/${gallery.id}/download`, {
@@ -91,6 +100,28 @@ export default function ClientGalleryView({ gallery, images, jsonLd }: Props) {
         body: JSON.stringify({ image_id: image.id, client_token: clientToken.current }),
       })
       const { download_url } = await res.json()
+
+      // Tentative de partage natif (Web Share API) pour forcer l'enregistrement dans la pellicule sur mobile
+      if (!skipShare && navigator.share && navigator.canShare) {
+        try {
+          const response = await fetch(download_url)
+          const blob = await response.blob()
+          const file = new File([blob], image.original_filename || 'photo.jpg', { type: blob.type })
+          
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: image.original_filename || 'Photo',
+            })
+            return // Si le partage a réussi, on s'arrête là
+          }
+        } catch (shareError) {
+          if (shareError instanceof DOMException && shareError.name === 'AbortError') return // L'utilisateur a annulé le partage
+          // Sinon (ex: CORS ou timeout), on laisse filer au fallback classique
+        }
+      }
+
+      // Fallback: méthode de téléchargement classique (Dossier Téléchargements)
       const a = document.createElement('a')
       a.href = download_url
       a.download = image.original_filename ?? 'photo.jpg'
@@ -103,9 +134,9 @@ export default function ClientGalleryView({ gallery, images, jsonLd }: Props) {
   const downloadFavorites = async () => {
     if (favorites.size === 0) return
     const favList = images.filter(img => favorites.has(img.id))
-    toast.success("Téléchargement lancé", `Préparation de vos ${favorites.size} favoris...`)
+    toast.success("Téléchargement lancé", `Vos ${favorites.size} favoris vont s'enregistrer dans 'Fichiers' ou 'Téléchargements'.`)
     for (const img of favList) {
-      await handleDownload(img)
+      await handleDownload(img, true) // skipShare = true pour éviter d'ouvrir 10 popups de partage à la suite
       await new Promise(r => setTimeout(r, 450)) // Throttle to prevent browser blocking multiple downloads
     }
   }
@@ -148,7 +179,7 @@ export default function ClientGalleryView({ gallery, images, jsonLd }: Props) {
       if (res.ok) {
         const { download_url } = await res.json()
         window.open(download_url, '_blank')
-        toast.success("Téléchargement lancé", "La préparation de votre fichier ZIP a commencé.")
+        toast.success("Fichier ZIP en téléchargement", "Sur mobile, allez dans l'app Fichiers ou Téléchargements pour l'ouvrir et enregistrer les photos.")
       } else {
         toast.error("Erreur", "Impossible de générer l'archive.")
       }
@@ -176,6 +207,10 @@ export default function ClientGalleryView({ gallery, images, jsonLd }: Props) {
     setCopied(true)
     toast.success("Lien copié !", "Vous pouvez maintenant le partager.")
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
@@ -251,6 +286,17 @@ export default function ClientGalleryView({ gallery, images, jsonLd }: Props) {
           onClose={() => setIsShareModalOpen(false)}
           onCopyLink={handleCopyLink}
         />
+      )}
+
+      {/* ---- SCROLL TO TOP ---- */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="scroll-to-top-btn"
+          aria-label="Remonter en haut"
+        >
+          <ArrowUp size={24} />
+        </button>
       )}
     </div>
   )

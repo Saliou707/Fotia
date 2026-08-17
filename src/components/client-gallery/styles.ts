@@ -508,6 +508,35 @@ export function galleryStyles(heroBgUrl: string, avatarUrl: string | null): stri
       box-shadow: 0 6px 20px rgba(200,72,46,0.4);
     }
 
+    /* Scroll to Top Button */
+    .scroll-to-top-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(200, 72, 46, 0.9);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #FFF;
+      border: 1px solid rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 45;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: fadeInScale 0.3s forwards;
+    }
+
+    .scroll-to-top-btn:hover {
+      background: #DF5438;
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 8px 25px rgba(200,72,46,0.6);
+    }
+
     @media (max-width: 640px) {
       .main-gallery-section {
         padding: 24px 12px 120px !important;
@@ -582,6 +611,18 @@ export function galleryStyles(heroBgUrl: string, avatarUrl: string | null): stri
       .sticky-bar-btn {
         padding: 10px 16px !important;
         font-size: 12px !important;
+      }
+
+      /* Scroll to Top mobile adjustment */
+      .scroll-to-top-btn {
+        bottom: 76px !important; /* Juste au-dessus de la sticky bar */
+        right: 16px !important;
+        width: 44px !important;
+        height: 44px !important;
+      }
+      .scroll-to-top-btn svg {
+        width: 20px !important;
+        height: 20px !important;
       }
     }
 
